@@ -77,7 +77,7 @@ router.get('/test',reqIsAuthenticate,function (req,res) {
 
 //xử lý token trước khi vào API, đính kèm trước cái hàm cần đăng nhập
 function reqIsAuthenticate(req,res,next) {
-  var token = req.body.token || req.query.token || req.headers['Authorization'];
+  var token = req.body.token || req.query.token || req.headers['authorization'];
 
   // decode token
   if (token) {
