@@ -1,6 +1,10 @@
 var mongoose = require('mongoose');
 var Schema   = mongoose.Schema;
 var GiangVienSchema = mongoose.Schema({
+    _id:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref : 'User'
+    },
     tenGiangVien:{
         type:String,
         required: true

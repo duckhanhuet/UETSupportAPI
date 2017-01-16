@@ -17,12 +17,12 @@ var UserSchema = new mongoose.Schema({
         type: String,
         enum : ['Khoa','PhongBan','GiangVien','SinhVien'],
         default: 'SinhVien'
-    },
-
-    UserId:{
-        type: Schema.Types.ObjectId,
-        ref : 'SinhVien'
     }
+
+    // UserId:{
+    //     type: Schema.Types.ObjectId,
+    //     ref : 'SinhVien'
+    // }
 
 });
 
