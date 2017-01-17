@@ -10,3 +10,4 @@ var ChuDeSchema = mongoose.Schema({
 });
 
 module.exports = mongoose.model('ChuDe',ChuDeSchema);
+

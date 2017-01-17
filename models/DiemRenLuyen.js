@@ -17,3 +17,4 @@ var DiemRenLuyenSchema = mongoose.Schema({
 });
 
 module.exports = mongoose.model('DiemRenLuyen',DiemRenLuyenSchema);
+

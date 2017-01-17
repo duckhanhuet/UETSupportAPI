@@ -13,3 +13,4 @@ var LopChinhSchema = mongoose.Schema({
 
 
 module.exports = mongoose.model('LopChinh',LopChinhSchema);
+

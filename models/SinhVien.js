@@ -18,3 +18,4 @@ var SinhVienSchema =new  mongoose.Schema({
 })
 
 module.exports = mongoose.model('SinhVien',SinhVienSchema);
+

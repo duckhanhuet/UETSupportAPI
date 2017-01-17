@@ -1,10 +1,12 @@
 var express = require('express');
 var router = express.Router();
-var User = require('../models/User')
+var User = require('../models/User');
+var SinhVien = require('../models/SinhVien');
 var config = require('../Config/Config');
-
+var async  = require('async');
 var jwt    = require('jsonwebtoken'); // used to create, sign, and verify tokens
-
+var UserController = require('../controllers/UserController');
+var SinhVienController = require('../controllers/SinhVienController');
 
 // route to return all users (GET http://localhost:8080/users)
 router.get('/', function(req, res) {
@@ -14,66 +16,70 @@ router.get('/', function(req, res) {
 });
 
 
-//create Sinh viên để dung thử nao không cần
-router.post('/',function (req,res) {
-  var username  = req.body.username;
-  var password = req.body.password;
-  var role = "SinhVien"
-  var sv = new User({
-    username : username,
-    password : password,
-    role : role
-  })
-  sv.save(function (err,sv) {
-
-    if(err)
-      res.json({access : false});
-    else
-      res.json(sv)
-  })
-})
+//test create User Sinh Vien
+require('../test/test');
 
 //xem lai cai ham nay dung asynce để làm lại làm bằng bcrys để hashcode password nhé
-router.post('/authenticate', function(req, res) {
 
-  // find the user
-  User.findOne({
-    name: req.body.name
-  }, function(err, user) {
-
+router.post('/authenticate',function (req, res) {
+  User.findOne({username:req.body.username},function (err, user) {
     if (err) throw err;
+    if (!user){
+      res.send({
+        success: false,
+        message: 'Authentication failed ,User not Found.'
+      })
+    } else {
+      user.comparePassword(req.body.password,function (err, isMatch) {
+        if (isMatch&&!err){
+          var token = jwt.sign(user, config.secret);
 
-    if (!user) {
-      res.json({ success: false, message: 'Authentication failed. User not found.' });
-    } else if (user) {
-
-      // check if password matches
-      if (user.password != req.body.password) {
-        res.json({ success: false, message: 'Authentication failed. Wrong password.' });
-      } else {
-
-        // if user is found and password is right
-        // create a token
-        var token = jwt.sign(user, config.secret);
-
-        // return the information including token as JSON
-        res.json({
-          success: true,
-          message: 'Enjoy your token!',
-          token: token
-        });
-      }
-
+          // return the information including token as JSON
+          res.json({
+            success: true,
+            message: 'Enjoy your token!',
+            token: token
+          });
+        } else {
+          res.json({
+            succsess: false,
+            message: 'Authentication failed.Password did not match'
+          })
+        }
+      })
     }
-
-  });
-});
+  })
+})
 
 // VD xử lý có đăng nhập
 // hafm nay phải có token mới có thể chạy đc
 router.get('/test',reqIsAuthenticate,function (req,res) {
-  res.json(req.user)
+  res.json(req.user);
 })
+
+//Api for find sum users
+router.get('/',function (req, res, next) {
+  UserController.find(req.query,function (err, results) {
+    if (err){
+      res.json({
+        success: false,
+        message: err
+      })
+      return;
+    }
+    res.json({
+      success: true,
+      results: results
+    })
+  })
+});
+
+router.get('/:id',reqIsAuthenticate,function (req, res) {
+  var id= req.params.id;
+  // prallel
+})
+
+
 
 //xử lý token trước khi vào API, đính kèm trước cái hàm cần đăng nhập
 function reqIsAuthenticate(req,res,next) {
@@ -105,5 +111,8 @@ function reqIsAuthenticate(req,res,next) {
 
   }
 }
+
+
+
 
 module.exports = router;

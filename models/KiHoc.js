@@ -7,3 +7,4 @@ var KiHocSchema = mongoose.Schema({
 });
 
 module.exports = mongoose.model('KiHoc',KiHocSchema);
+

@@ -12,3 +12,4 @@ var PhongBanSchema = mongoose.Schema({
 });
 
 module.exports = mongoose.model('PhongBan',PhongBanSchema);
+

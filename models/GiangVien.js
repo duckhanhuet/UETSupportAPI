@@ -16,3 +16,5 @@ var GiangVienSchema = mongoose.Schema({
 });
 
 module.exports = mongoose.model('GiangVien',GiangVienSchema);
+
+

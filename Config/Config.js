@@ -5,6 +5,6 @@ module.exports = {
 
     'secret': 'ilovescotchyscotch',
     //tự điền trong mongo
-    'database': 'mongodb://localhost:27017/uetsporterapi'
+    'database': 'mongodb://localhost:27017/database'
 
 };
