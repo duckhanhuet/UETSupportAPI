@@ -6,7 +6,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var mongoose = require('mongoose');
 var config = require('./config/Config'); // get our config file
-
+var tintucs = require('./routes/tintuc')
 var users = require('./routes/users');
 
 var app = express();
@@ -30,7 +30,7 @@ mongoose.connect(config.database); // connect to database
 //======================================================
 //thêm routes ở đây
 app.use('/users', users);  //đăng nhập trong file users.js
-
+app.use('/tintuc',tintucs)
 
 
 
