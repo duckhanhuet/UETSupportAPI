@@ -18,9 +18,6 @@ router.get('/', function (req, res) {
 });
 
 
-//test create User Sinh Vien
-require('../test/test');
-
 //xem lai cai ham nay dung asynce để làm lại làm bằng bcrys để hashcode password nhé
 
 router.post('/authenticate', function (req, res) {
