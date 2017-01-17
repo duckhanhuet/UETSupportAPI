@@ -13,6 +13,10 @@ var SinhVienSchema =new  mongoose.Schema({
     idLopChinh:{
         type: mongoose.Schema.Types.ObjectId,
         ref :'LopChinh'
+    },
+    idLopMonHoc:{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'LopMonHoc'
     }
 
 })
