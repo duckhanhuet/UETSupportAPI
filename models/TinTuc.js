@@ -20,7 +20,7 @@ var TinTucSchema = new mongoose.Schema({
     },
     role:{
         type: String,
-        enum : ['SuKien','DaoTao','NghienCuu','HoiThao','HopTac','HoatDongDoan','TheThao_VanHoa','TuyenDung','TongHop'],
+        enum : ['DaoTao','NghienCuu','HoiThao','HopTac','HoatDongDoan','TheThaoVanHoa','TuyenDung','TongHop'],
         default: 'TongHop'
     }
 });

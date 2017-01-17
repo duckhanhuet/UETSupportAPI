@@ -7,16 +7,17 @@ var config = require('../Config/Config')
 var Entities = require('html-entities').AllHtmlEntities;
 entities = new Entities();
 var async = require('async');
+var utils = require('./UltisTinTuc')
+var TinTucController = require('../controllers/TinTucController')
 
-
-module.exports.parserHtmlTinTuc = function (url,callbackall) {
+module.exports.parserHtmlTinTuc = function (url,role,callbackall) {
     async.waterfall([
         function (callback) {
-        console.log(url)
+            console.log(url)
             request({
                 uri: url,
                 method: "GET",
-                timeout: 10000,
+                timeout: 60000,
                 followRedirect: true,
                 maxRedirects: 10
             },function (err,response,body) {
@@ -52,6 +53,9 @@ module.exports.parserHtmlTinTuc = function (url,callbackall) {
                     stringOnSpan = $('div.views-field-teaser>div>div>div>span', this).text();
                 }
                 if(stringOnSpan==""){
+                    stringOnSpan= $('div.views-field-teaser>div>p', this).text();
+                }
+                if(stringOnSpan==""){
                     stringOnSpan = $('div.views-field-teaser span', this).text();
                 }
                 //====================================
@@ -61,63 +65,164 @@ module.exports.parserHtmlTinTuc = function (url,callbackall) {
                     || $('div.views-field-teaser>div>div>span>span', this).text()
                     || stringOnSpan;
 
-                // if(title=="") console.log("title")
-                // if(container=="") console.log("containaer")
-                // if(link_temp=="") console.log("linl")
-                // if(imageLink=="") console.log("imageLink")
+
                 //tao model
                 //link lấy về đoi khi cps kí tự dặc biệt
                 //phai decode sang string
                 if (title && link_temp && imageLink && container) {
-                    list[i] = {
-                        title: entities.decode(title),
-                        link: config.UetHostName + link_temp,
-                        imageLink: imageLink,
-                        content: entities.decode(container)
-                    };
+                    list.push({
+                        title: entities.decode(title).toLowerCase().trim(),
+                        link: (config.UetHostName + link_temp).trim().toLowerCase(),
+                        imageLink: imageLink.trim(),
+                        content: entities.decode(container).toLowerCase().trim(),
+                        role : role
+                    });
                 }
             });
             callback(null, list)
         }
     ],callbackall)
-    // request({
-    //     uri: url,
-    //     method: "GET",
-    //     timeout: 10000,
-    //     followRedirect: true,
-    //     maxRedirects: 10
-    // }, function(error, response, body) {
-    //     if(!error){
-    //
-    //         var list= [];
-    //         var $ = cheerio.load(body,{
-    //             normalizeWhitespace: true,
-    //             xmlMode: true
-    //         });
-    //
-    //         $('.views-row').each(function (i,ele) {
-    //             var title = $('.field-content .title_term ',this).text();
-    //             var link_temp = $('.field-content > a',this).attr('href');
-    //             var imageLink = $('.field-content img',this).attr('src');
-    //
-    //             var container = $('div.views-field-teaser>div>div>span>span>span',this).text()
-    //                 ||$('div.views-field-teaser>div>div>span>span',this).text();
-    //
-    //             //tao model
-    //             //link lấy về đoi khi cps kí tự dặc biệt
-    //             //phai decode sang string
-    //             if(title&&link_temp&&imageLink&&container){
-    //                 list[i]={
-    //                     title : entities.decode(title),
-    //                     link : config.UetHostName+link_temp,
-    //                     imageLink : imageLink,
-    //                     content : entities.decode(container)
-    //                 };
-    //             }
-    //         });
-    //         callback(null,list)
-    //     }
-    //     callback(error,null)
-    //
-    // });
+}
+
+var getData = function (baseUrl,role,numberPage,callback) {
+    var url = baseUrl;
+    var arrUrl = []
+    for(var i=0;i<numberPage;i++){
+        arrUrl.push(url+'?page='+i)
+    }
+    var arr = [];
+    var dem=0;
+    for(var i=0;i<numberPage;i++){
+        var fun1 = function (callback) {
+            utils.parserHtmlTinTuc(arrUrl[dem++],role,callback)
+        }
+        arr.push(fun1)
+    }
+
+    async.parallel(arr,function (err,result) {
+        if(err) {
+            console.log(err)
+            callback(err,null)
+        }
+        else {
+            var list = []
+            for(var i=0;i<result.length;i++){
+                for (var j=0;j<result[i].length;j++){
+                    list.push(result[i][j])
+                }
+            }
+            callback(null,list)
+        }
+    })
+}
+//delete duplicate
+function deleteDuplicate(a) {
+    var list = a;
+    for(var i=0;i<list.length;i++){
+        var obj = list[i];
+        var copying = []
+        for(var j=i+1;j<list.length;j++){
+            if(obj.link.toLowerCase().trim() == list[j].link.toLowerCase().trim()){
+                copying.push(list[j])
+            }
+        }
+        if(copying.length>0){
+            list = list.filter( function( el ) {
+                return copying.indexOf( el ) < 0;
+            } );
+        }
+    }
+    return list;
+}
+module.exports.importTinTuc = function () {
+    async.waterfall([
+        function (callback) {
+            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/93","DaoTao",15,function (err,list) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,list)
+            })
+        },
+        function (data,callback) {
+            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/96","NghienCuu",2,function (err,list) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,list.concat(data))
+            });
+        },
+        function (data,callback) {
+            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/101","TongHop",27,function (err,list) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,list.concat(data))
+            });
+        },
+        function (data,callback) {
+            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/95","HoiThao",4,function (err,list) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,list.concat(data))
+            });
+        },
+        function (data,callback) {
+            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/94","HopTac",11,function (err,list) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,list.concat(data))
+            });
+        },
+        function (data,callback) {
+            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/97","HoatDongDoan",12,function (err,list) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,list.concat(data))
+            });
+        },
+        function (data,callback) {
+            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/98","TheThaoVanHoa",3,function (err,list) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,list.concat(data))
+            });
+        },
+        function (data,callback) {
+            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/99","TuyenDung",2,function (err,list) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,list.concat(data))
+            });
+        }
+    ],function (err,list) {
+        console.log(list.length)
+        var result = deleteDuplicate(list)
+        console.log(result.length)
+
+        // for(var i=0;i<result.length;i++){
+        //     if(result[i].link == "http://uet.vnu.edu.vn/coltech/taxonomy/term/202/4842"){
+        //         result.splice(i,1)
+        //     }
+        // }
+
+        TinTucController.create(result,function (err,result) {
+            if (err) console.log(err)
+            else console.log("import success")
+        })
+    })
+
 }

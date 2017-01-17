@@ -13,12 +13,8 @@ module.exports = {
     },
     //default limit = 10
     findAndLimit : function (param,offset,callback) {
-        TinTuc.find(param,{
-            limit : 10,
-            skip : offset
-        },callback)
+        TinTuc.find(param).limit(10).skip(offset).exec(callback);
     },
-
     create: function (params, callback) {
         TinTuc.create(params,function (err, thongbao) {
             if (err){
