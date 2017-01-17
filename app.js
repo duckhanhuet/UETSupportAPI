@@ -38,18 +38,18 @@ app.use('/')
 //======================================================
 //không cần để ý phần này
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  var err = new Error('Not Found');
-  err.status = 404;
-  next(err);
-});
-
-// error handler
-app.use(function(err, req, res, next) {
-  // render the error page
-  res.json({
-    error : err
-  });
-});
+// app.use(function(req, res, next) {
+//   var err = new Error('Not Found');
+//   err.status = 404;
+//   next(err);
+// });
+//
+// // error handler
+// app.use(function(err, req, res, next) {
+//   // render the error page
+//   res.json({
+//     error : err
+//   });
+// });
 
 module.exports = app;
