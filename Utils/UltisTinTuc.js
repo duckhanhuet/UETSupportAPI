@@ -36,8 +36,8 @@ module.exports.parserHtmlTinTuc = function (url,callback) {
 
             callback(null,content)
 
+        }else {
+            callback(error,null);
         }
-        callback(error,null)
-
     });
 }

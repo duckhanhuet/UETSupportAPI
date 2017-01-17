@@ -10,13 +10,6 @@ var SinhVienController = require('../controllers/SinhVienController');
 var KhoaController = require('../controllers/KhoaController');
 var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
-// route to return all users (GET http://localhost:8080/users)
-router.get('/', function (req, res) {
-    User.find({}, function (err, users) {
-        res.json(users);
-    });
-});
-
 
 //xem lai cai ham nay dung asynce để làm lại làm bằng bcrys để hashcode password nhé
 

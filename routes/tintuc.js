@@ -11,7 +11,8 @@ router.get('/',function (req,res) {
     utils.parserHtmlTinTuc(url,function (err,result) {
         if(err){
             res.json({
-                success : false
+                success : false,
+                message:'not found news in the website'
             })
         }
         res.send(result)
@@ -19,4 +20,4 @@ router.get('/',function (req,res) {
 
 })
 
-module.exports = router
+module.exports = router;
