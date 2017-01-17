@@ -5,6 +5,6 @@ module.exports = {
 
     'secret': 'ilovescotchyscotch',
     //tự điền trong mongo
-    'database': 'mongodb://localhost:27017/database'
-
+    'database': 'mongodb://localhost:27017/database',
+    'UetHostName' : 'http://uet.vnu.edu.vn'
 };
