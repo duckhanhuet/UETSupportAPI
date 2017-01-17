@@ -86,7 +86,6 @@ router.get('/:id', function (req, res) {
             })
         },
         function findEachUser(callback) {
-
             switch (role) {
                 // neu quyen la khoa
                 case 'Khoa':
