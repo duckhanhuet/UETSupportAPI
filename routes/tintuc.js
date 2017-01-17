@@ -15,6 +15,7 @@ router.get('/',function (req,res) {
                 message:'not found news in the website'
             })
         }
+
         res.send(result)
     })
 

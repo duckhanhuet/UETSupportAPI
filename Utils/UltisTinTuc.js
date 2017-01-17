@@ -1,6 +1,9 @@
 /**
  * Created by Administrator on 17/01/2017.
  */
+
+var TinTucController = require('../controllers/TinTucController');
+
 var cheerio = require('cheerio')
 var request = require('request');
 module.exports.parserHtmlTinTuc = function (url,callback) {
@@ -27,8 +30,17 @@ module.exports.parserHtmlTinTuc = function (url,callback) {
                     content[i]={
                         title : title,
                         link : link,
-                        image : image
+                        imageLink : image
                     };
+                    TinTucController.create(content[i],function (err, result) {
+                        if (err){
+
+                        }
+                        else {
+                            console.log('website have updated some new news: '+result);
+                        }
+
+                    })
                 }
             })
 

@@ -31,7 +31,7 @@ mongoose.connect(config.database); // connect to database
 //thêm routes ở đây
 app.use('/users', users);  //đăng nhập trong file users.js
 app.use('/tintuc',tintucs);
-
+app.use('/')
 
 
 

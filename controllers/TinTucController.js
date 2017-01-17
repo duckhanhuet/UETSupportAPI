@@ -17,5 +17,15 @@ module.exports = {
             limit : 10,
             skip : offset
         },callback)
-    }
+    },
+
+    create: function (params, callback) {
+        TinTuc.create(params,function (err, thongbao) {
+            if (err){
+                callback(err,null);
+                return;
+            }
+            callback(null,thongbao);
+        })
+    },
 }
