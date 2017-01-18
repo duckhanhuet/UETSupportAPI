@@ -207,22 +207,99 @@ module.exports.importTinTuc = function () {
                 }
                 callback(null,list.concat(data))
             });
+        },
+        function (data,callback) {
+            //xoa cacs baif bij trung
+            var result = deleteDuplicate(data)
+            callback(null,result)
+
+        },
+        /*
+         * Chay tung ham de boc tac thoi gian nen mat kha nhieu thi gio
+         */
+        function (result,callback) {
+            var stack = []
+            var dem = 0;
+            stack.push(function(callback){
+                callback(null,result)
+            })
+            //make stack request to server
+            for(var i=0;i<result.length;i++){
+                var prototype = function (data,callback) {
+                    //gui request len server
+                    console.log(dem)
+                    detailRequest(result[dem++].link,function (err,date) {
+                        data[--dem].postAt = date;
+                        dem++;
+                        callback(null,result)
+                    })
+                }
+                stack.push(prototype)
+            }
+            async.waterfall(stack,function (err,result) {
+                if (err) {
+                    console.log(err)
+                    callback(err,null)
+                }
+                callback(null,result)
+            })
         }
-    ],function (err,list) {
-        console.log(list.length)
-        var result = deleteDuplicate(list)
-        console.log(result.length)
-
-        // for(var i=0;i<result.length;i++){
-        //     if(result[i].link == "http://uet.vnu.edu.vn/coltech/taxonomy/term/202/4842"){
-        //         result.splice(i,1)
-        //     }
-        // }
-
-        TinTucController.create(result,function (err,result) {
-            if (err) console.log(err)
+    ],function (err,result) {
+        TinTucController.create(result,function (err,list) {
+            if (err){
+                console.log(err)
+                return;
+            }
             else console.log("import success")
         })
     })
+}
+function detailRequest(url,callback) {
+    console.log(url)
+    async.waterfall([
+        function (callback) {
+            request({
+                uri: url,
+                method: "GET",
+                timeout: 60000,
+                followRedirect: true,
+                maxRedirects: 10
+            },function (err,response,body) {
+                if(err) {
+                    callback(err,null)
+                    return;
+                }
+                callback(null,body)
+                return;
+            })
+        },
+        function (body,callback) {
+            var $ = cheerio.load(body, {
+                normalizeWhitespace: true,
+                xmlMode: true
+            });
+            var stringDate = $('.node .submitted').text().trim();
+            console.log(stringDate)
+            var date = chuanHoaDate(stringDate)
+            console.log(date)
+            callback(null,date)
+        }
+    ],function (err,result) {
+        if(err){
+            console.log(err)
+            return;
+        }
+        callback(null,result)
+    })
 
+}
+function chuanHoaDate(string){
+    //string dang MM,DD,YYYY
+    var stringDate = string.split(',')[1].trim().split(' ')[0].trim();
+    var arr = stringDate.split('/');
+
+    // new Date(YYYY,MM,DD)
+    var str = arr[2].trim()+"-"+arr[0].trim()+"-"+arr[1].trim();
+    var date = new Date(str.trim());
+    return date
 }

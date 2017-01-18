@@ -14,10 +14,9 @@ router.get('/',function (req,res) {
             TinTuc : tintuc
         })
     })
-
 })
 //ham nay de impot du lieu
 //CHAY LAN DAU ROI COMMENT NO LAI
-// utils.importTinTuc();
+ utils.importTinTuc();
 
 module.exports = router

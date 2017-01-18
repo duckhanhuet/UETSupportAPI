@@ -18,6 +18,11 @@ var TinTucSchema = new mongoose.Schema({
         type : String,
         require : true
     },
+    postAt :{
+        type : Date,
+        require :true,
+        defaulr :Date.now()
+    },
     role:{
         type: String,
         enum : ['DaoTao','NghienCuu','HoiThao','HopTac','HoatDongDoan','TheThaoVanHoa','TuyenDung','TongHop'],
