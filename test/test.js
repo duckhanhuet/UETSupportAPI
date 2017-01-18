@@ -3,9 +3,12 @@ User = require('../models/User');
 SinhVien = require('../models/SinhVien');
 GiangVien= require('../models/GiangVien');
 LopMonHoc= require('../models/LopMonHoc');
+File     = require('../models/File');
 var LopChinh= require('../models/LopChinh');
+var LopMonHocController= require('../models/LopMonHoc');
+var FileController     = require('../controllers/FileController');
 
-// Creat 1 Sinh Vien
+//Creat 1 Sinh Vien
 async.waterfall([
     function createLopMonHoc(callback) {
         var lopmonhoc= new LopMonHoc({tenLopMonHoc:'INT345'});
@@ -28,7 +31,9 @@ async.waterfall([
     function SaveSinhVien(user,callback) {
         var sinhvien= new SinhVien({tenSinhVien:'Nguyen Duc Khanh',_id:user._id});
         sinhvien.save(function (err) {
-            if (err) throw err;
+            if (err){
+                console('id sinh vien exist');
+            }
         });
         callback(null,sinhvien);
     }
@@ -54,13 +59,41 @@ async.waterfall([
     function SaveGiangVien(user,callback) {
         var giangvien= new GiangVien({tenGiangVien:'To Van Khanh',_id:user._id});
         giangvien.save(function (err) {
-            if (err) throw err;
+            if (err){
+                console.log('giangvien existed');
+            }
         });
         callback(null,giangvien);
     }
 ],function (err, result) {
     if (err){
         console.error(err);
+    }
+    console.log(result);
+});
+
+LopMonHocController.update('587e2903a4a1bb1300f541df',{idGiangVien:'587e2903a4a1bb1300f541e1'},function (err, result) {
+    if (err){
+        console.log('err');
+    }
+    else {
+        console.log('ok');
+    }
+});
+
+async.waterfall([
+    function createFile(callback) {
+        var file=new File({tenFile:'bao cao tai chinh',link:'http://abc.com'});
+        file.save(function (err) {
+            if (err){
+                console.log('error when try create new file');
+            }
+        });
+        callback(null,file);
+    }
+],function (err, result) {
+    if (err){
+        console.error(err)
     }
     console.log(result);
 })

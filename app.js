@@ -8,7 +8,9 @@ var mongoose = require('mongoose');
 var config = require('./config/Config'); // get our config file
 var tintucs = require('./routes/tintuc')
 var users = require('./routes/users');
-
+var lopmonhoc= require('./routes/lopmonhoc');
+var kihoc    = require('./routes/kihoc');
+var file     = require('./routes/file');
 var app = express();
 
 // view engine setup
@@ -31,8 +33,9 @@ mongoose.connect(config.database); // connect to database
 //thêm routes ở đây
 app.use('/users', users);  //đăng nhập trong file users.js
 app.use('/tintuc',tintucs);
-
-
+app.use('/lopmonhoc',lopmonhoc);
+app.use('/kihoc',kihoc);
+app.use('/file',file);
 
 //======================================================
 //không cần để ý phần này
@@ -50,5 +53,7 @@ app.use('/tintuc',tintucs);
 //     error : err
 //   });
 // });
+
+//require('./test/postDatabase');
 
 module.exports = app;

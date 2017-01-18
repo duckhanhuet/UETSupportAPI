@@ -3,7 +3,8 @@ var mongoose = require('mongoose');
 var SinhVienSchema =new  mongoose.Schema({
     _id:{
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'User'
+        ref : 'User',
+        unique:true
     },
 
     tenSinhVien: {

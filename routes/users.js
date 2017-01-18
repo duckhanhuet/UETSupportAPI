@@ -3,6 +3,7 @@ var router = express.Router();
 var User = require('../models/User');
 var SinhVien = require('../models/SinhVien');
 var config = require('../Config/Config');
+var auth = require('../policies/auth');  //xử lý token trước khi vào API, đính kèm trước cái hàm cần đăng nhập
 var async = require('async');
 var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
 var UserController = require('../controllers/UserController');
@@ -11,6 +12,7 @@ var KhoaController = require('../controllers/KhoaController');
 var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 
+//require('../test/test');
 //xem lai cai ham nay dung asynce để làm lại làm bằng bcrys để hashcode password nhé
 
 router.post('/authenticate', function (req, res) {
@@ -45,7 +47,7 @@ router.post('/authenticate', function (req, res) {
 
 // VD xử lý có đăng nhập
 // hafm nay phải có token mới có thể chạy đc
-router.get('/test', reqIsAuthenticate, function (req, res) {
+router.get('/test', auth.reqIsAuthenticate, function (req, res) {
     res.json(req.user);
 })
 
@@ -67,9 +69,9 @@ router.get('/', function (req, res, next) {
 });
 
 //get User and Infomation by get link: /users/:id
-router.get('/:id', function (req, res) {
-    var id = req.params.id;
-    var role;
+router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
+    var id = req.user._id;
+    var role = req.user.role;
     async.series([
         function findUser(callback) {
             UserController.findById(id, function (err, result) {
@@ -79,7 +81,7 @@ router.get('/:id', function (req, res) {
                         message: 'Cannot find User'
                     })
                 } else {
-                    role = result.role;
+                    //role = result.role;
                     callback(null, result);
                 }
 
@@ -146,41 +148,5 @@ router.get('/:id', function (req, res) {
         });
     })
 });
-
-
-
-//Xu ly API for Sinh Vien
-
-//xử lý token trước khi vào API, đính kèm trước cái hàm cần đăng nhập
-function reqIsAuthenticate(req, res, next) {
-    var token = req.body.token || req.query.token || req.headers['authorization'];
-
-    // decode token
-    if (token) {
-
-        // verifies secret and checks exp
-        jwt.verify(token, config.secret, function (err, decoded) {
-            if (err) {
-                return res.json({success: false, message: 'Failed to authenticate token.'});
-            } else {
-                // if everything is good, save to request for use in other routes
-                //nếu mà muốn truy xuất chi tiết từng thăng thì truy vấn vào từng bảng rồi
-                //lưu nó vào user
-                req.user = decoded._doc;
-                next();
-            }
-        });
-    } else {
-
-        // if there is no token
-        // return an error
-        return res.status(403).send({
-            success: false,
-            message: 'No token provided.'
-        });
-
-    }
-}
-
 
 module.exports = router;

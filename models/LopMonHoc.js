@@ -3,7 +3,7 @@ var Schema   = mongoose.Schema;
 var LopMonHocSchema = mongoose.Schema({
     tenLopMonHoc: {
         type: String,
-        required: true
+        unique: true
     },
     thoiGian:{
         type: Date,

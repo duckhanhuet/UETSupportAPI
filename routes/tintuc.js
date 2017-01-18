@@ -5,18 +5,19 @@ var express = require('express');
 var router = express.Router();
 var TinTucController = require('../controllers/TinTucController')
 var utils = require('../Utils/UltisTinTuc')
-var async = require('async');
 
-router.get('/',function (req,res) {
-    TinTucController.findAndLimit({},0,function (err,tintuc) {
-        res.json({
-            success : true,
-            TinTuc : tintuc
-        })
+router.get('/', function (req, res) {
+    var url = "http://uet.vnu.edu.vn/coltech/taxonomy/term/101"
+    utils.parserHtmlTinTuc(url, function (err, result) {
+        if (err) {
+            res.json({
+                success: false,
+                message: 'not found news in the website'
+            })
+        }
+
+        res.send(result)
     })
 })
-//ham nay de impot du lieu
-//CHAY LAN DAU ROI COMMENT NO LAI
- utils.importTinTuc();
 
-module.exports = router
+module.exports = router;

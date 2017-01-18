@@ -3,7 +3,8 @@ var Schema   = mongoose.Schema;
 var GiangVienSchema = mongoose.Schema({
     _id:{
         type: mongoose.Schema.Types.ObjectId,
-        ref : 'User'
+        ref : 'User',
+        unique:true
     },
     tenGiangVien:{
         type:String,
