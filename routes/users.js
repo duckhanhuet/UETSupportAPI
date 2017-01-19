@@ -15,6 +15,11 @@ var GiangVienController = require('../controllers/GiangVienController');
 //require('../test/test');
 //xem lai cai ham nay dung asynce để làm lại làm bằng bcrys để hashcode password nhé
 
+
+//=========================================================================
+//=========================================================================
+//api for login
+
 router.post('/authenticate', function (req, res) {
     User.findOne({username: req.body.username}, function (err, user) {
         if (err) throw err;
@@ -67,6 +72,11 @@ router.get('/', function (req, res, next) {
         })
     })
 });
+
+//=========================================================
+//=========================================================
+
+//Api get profile : http://localhost:3000/users/profile?token=..........
 
 //get User and Infomation by get link: /users/:id
 router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
@@ -148,5 +158,84 @@ router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
         });
     })
 });
+
+
+//===================================================
+//===================================================
+
+//Api for add Sinh vien : http://localhost:3000/users/addSinhVien?token=....
+// Only Khoa can add Sinh Vien
+
+//Add Thong tin Sinh VIen moi chi gom co username,password,tenSSinhVien
+
+router.post('/addSinhVien',auth.reqIsAuthenticate,function (req, res, next) {
+    var role= req.user.role;
+
+    switch (role){
+        case 'Khoa':
+            var username= req.body.username;
+            var password= req.body.password;
+            var tenSinhVien = req.body.tenSinhVien;
+
+            if (!username||!password||!tenSinhVien)
+            {
+                res.json({
+                    success: false,
+                    message:'Invalid'
+                })
+            }
+            else{
+                async.waterfall([
+                    function createUser(callback) {
+                        var user= new User({username:username,password:password});
+                        user.save(function (err) {
+                            if (err){
+                                res.json({
+                                    success: false,
+                                    message: 'create user fail'
+                                })
+                                return;
+                            }
+                            else {
+                                callback(null,user);
+                            }
+                        })
+                    },
+                    function saveSinhVien(user,callback) {
+                        var sinhvien= new SinhVien({tenSinhVien:tenSinhVien,_id:user._id});
+                        sinhvien.save(function (err) {
+                            if (err){
+                                res.json({
+                                    success: false,
+                                    message: 'create sinh vien fail'
+                                })
+                                return;
+                            } else {
+                                var result={
+                                    user: user,
+                                    info: sinhvien
+                                }
+                                callback(null,result);
+                            }
+                        })
+                    }
+                ],function (err, result) {
+                    if (err){
+                        console.error(err);
+                    }else {
+                        res.json(result);
+                    }
+
+                })
+            }
+            break;
+        default:
+            res.json({
+                success: false,
+                message: 'Ban khong co quyen them sinh vien'
+            })
+            break;
+    }
+})
 
 module.exports = router;

@@ -8,7 +8,8 @@ var KhoaSchema = new mongoose.Schema({
     ,
     tenKhoa: {
         type: String,
-        required: true
+        required: true,
+        unique:true
     }
 });
 

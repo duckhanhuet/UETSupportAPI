@@ -7,6 +7,7 @@ File     = require('../models/File');
 var LopChinh= require('../models/LopChinh');
 var LopMonHocController= require('../models/LopMonHoc');
 var FileController     = require('../controllers/FileController');
+var Khoa= require('../models/Khoa');
 
 //Creat 1 Sinh Vien
 async.waterfall([
@@ -97,3 +98,32 @@ async.waterfall([
     }
     console.log(result);
 })
+
+
+// create khoa
+
+async.waterfall([
+    function createKhoa(callback) {
+        var user= new User({username:'cntt',password:'14020234',role:'Khoa'});
+        user.save(function (err) {
+            if (err){
+                console.log('this username existed');
+            }
+        });
+        callback(null,user);
+    },
+    function SaveKhoa(user,callback) {
+        var khoa= new Khoa({tenKhoa:'cong nghe thong tin',_id:user._id});
+        khoa.save(function (err) {
+            if (err){
+                console.log('giangvien existed');
+            }
+        });
+        callback(null,khoa);
+    }
+],function (err, result) {
+    if (err){
+        console.error(err);
+    }
+    console.log(result);
+});

@@ -56,4 +56,10 @@ app.use('/file',file);
 
 //require('./test/postDatabase');
 
+//================================================
+//================================================
+//Phan tich File xlsx
+require('./Utils/PhanTichBangDiem');
+
+
 module.exports = app;
