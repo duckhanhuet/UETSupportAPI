@@ -23,10 +23,9 @@ var TinTucSchema = new mongoose.Schema({
         require :true,
         defaulr :Date.now()
     },
-    role:{
-        type: String,
-        enum : ['DaoTao','NghienCuu','HoiThao','HopTac','HoatDongDoan','TheThaoVanHoa','TuyenDung','TongHop'],
-        default: 'TongHop'
+    loaiTinTuc: {
+        type : Number,
+        ref : "LoaiTinTuc"
     }
 });
 

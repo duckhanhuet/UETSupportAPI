@@ -15,6 +15,11 @@ module.exports = {
     findAndLimit : function (param,offset,callback) {
         TinTuc.find(param).limit(10).skip(offset).exec(callback);
     },
+    findDetailTinTuc : function (param,callback) {
+        TinTuc
+            .find(param)
+            .limit(10).populate('loaiTinTuc').exec(callback)
+    },
     create: function (params, callback) {
         TinTuc.create(params,function (err, thongbao) {
             if (err){
