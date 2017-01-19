@@ -59,7 +59,7 @@ app.use('/file',file);
 //================================================
 //================================================
 //Phan tich File xlsx
-require('./Utils/PhanTichBangDiem');
+//require('./Utils/PhanTichBangDiem');
 
 
 module.exports = app;
