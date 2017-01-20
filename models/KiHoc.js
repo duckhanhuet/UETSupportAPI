@@ -2,7 +2,12 @@ var mongoose = require('mongoose');
 
 var KiHocSchema = mongoose.Schema({
     tenKiHoc: {
-        type: String
+        type: String,
+        required: true
+    },
+    _id:{
+        type:String,
+        unique: true
     }
 });
 

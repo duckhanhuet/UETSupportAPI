@@ -22,13 +22,13 @@ module.exports =  {
     },
 
     create: function (params, callback) {
-        var lopmonhocs = params['idLopMonHoc'];
-        var lopmonhoc  = lopmonhocs.split(',');
-        var newLops    = [];
-        lopmonho.forEach(function (lophoc) {
-            newLops.push(lophoc);
-        });
-        params['idLopMonHoc']= newLops;
+        // var lopmonhocs = params['idLopMonHoc'];
+        // var lopmonhoc  = lopmonhocs.split(',');
+        // var newLops    = [];
+        // lopmonho.forEach(function (lophoc) {
+        //     newLops.push(lophoc);
+        // });
+        // params['idLopMonHoc']= newLops;
         GiangVien.create(params,function (err, giangvien) {
             if (err){
                 callback(err,null);

@@ -2,7 +2,7 @@ var mongoose = require('mongoose');
 var Schema   = mongoose.Schema;
 var GiangVienSchema = mongoose.Schema({
     _id:{
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref : 'User',
         unique:true
     },
@@ -10,10 +10,13 @@ var GiangVienSchema = mongoose.Schema({
         type:String,
         required: true
     },
-    idLopMonHoc: [{
-            type: Schema.Types.ObjectId,
-            ref : 'LopMonHoc'
-        }]
+    idKhoa:{
+        type:String
+    }
+    // idLopMonHoc: [{
+    //         type: String,
+    //         ref : 'LopMonHoc'
+    //     }]
 });
 
 module.exports = mongoose.model('GiangVien',GiangVienSchema);

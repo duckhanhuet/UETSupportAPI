@@ -2,21 +2,21 @@ var mongoose = require('mongoose');
 
 var SinhVienSchema =new  mongoose.Schema({
     _id:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref : 'User',
-        unique:true
+        type: String,
+        unique: true
     },
 
     tenSinhVien: {
-        type: String
+        type: String,
+        required: true
     },
 
     idLopChinh:{
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref :'LopChinh'
     },
     idLopMonHoc:{
-        type: mongoose.Schema.Types.ObjectId,
+        type: String,
         ref: 'LopMonHoc'
     }
 

@@ -12,16 +12,23 @@ var KhoaController = require('../controllers/KhoaController');
 var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 
+//=====================================================================
+//=====================================================================
+
+//test add some sinhvien to database
 //require('../test/test');
 //xem lai cai ham nay dung asynce để làm lại làm bằng bcrys để hashcode password nhé
 
+//=====================================================================
+//create database from file exels
+require('../test/postDatabase');
 
-//=========================================================================
-//=========================================================================
+//=====================================================================
+//=====================================================================
 //api for login
 
 router.post('/authenticate', function (req, res) {
-    User.findOne({username: req.body.username}, function (err, user) {
+    User.findOne({_id: req.body.username}, function (err, user) {
         if (err) throw err;
         if (!user) {
             res.send({
@@ -92,7 +99,10 @@ router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
                     })
                 } else {
                     //role = result.role;
-                    callback(null, result);
+                    var kq={
+                        user: result
+                    }
+                    callback(null, kq);
                 }
 
             })
@@ -108,7 +118,10 @@ router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
                                 message: 'cant found'
                             })
                         }
-                        callback(null, result);
+                        var kq={
+                            profile:result
+                        }
+                        callback(null, kq);
                     })
                     break;
                 case 'GiangVien':
@@ -120,7 +133,10 @@ router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
                                 message: 'not found'
                             })
                         }
-                        callback(null, result);
+                        var kq={
+                            profile:result
+                        }
+                        callback(null, kq);
                     });
                     break;
                 case 'PhongBan':
@@ -132,7 +148,10 @@ router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
                                 message: 'cant found'
                             })
                         }
-                        callback(null, result);
+                        var kq={
+                            profile:result
+                        }
+                        callback(null, kq);
                     })
                     break;
                 default:
@@ -144,7 +163,10 @@ router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
                                 message: 'cant found'
                             })
                         }
-                        callback(null, result);
+                        var kq={
+                            profile: result
+                        }
+                        callback(null, kq);
                     })
             }
         }
@@ -152,10 +174,7 @@ router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
         if (err) {
             console.error(err);
         }
-        res.json({
-            success: true,
-            metadata: result
-        });
+        res.json(result);
     })
 });
 
@@ -168,16 +187,17 @@ router.get('/profile', auth.reqIsAuthenticate, function (req, res) {
 
 //Add Thong tin Sinh VIen moi chi gom co username,password,tenSSinhVien
 
-router.post('/addSinhVien',auth.reqIsAuthenticate,function (req, res, next) {
+router.post('/khoa/addSinhVien',auth.reqIsAuthenticate,function (req, res, next) {
     var role= req.user.role;
 
     switch (role){
         case 'Khoa':
-            var username= req.body.username;
+            var _id= req.body.username;
             var password= req.body.password;
             var tenSinhVien = req.body.tenSinhVien;
-
-            if (!username||!password||!tenSinhVien)
+            var idLopMonHoc= req.body.idLopMonHoc;
+            var idLopChinh= req.body.idLopChinh;
+            if (!_id||!password||!tenSinhVien)
             {
                 res.json({
                     success: false,
@@ -187,7 +207,7 @@ router.post('/addSinhVien',auth.reqIsAuthenticate,function (req, res, next) {
             else{
                 async.waterfall([
                     function createUser(callback) {
-                        var user= new User({username:username,password:password});
+                        var user= new User({_id:_id,password:password});
                         user.save(function (err) {
                             if (err){
                                 res.json({
@@ -202,7 +222,7 @@ router.post('/addSinhVien',auth.reqIsAuthenticate,function (req, res, next) {
                         })
                     },
                     function saveSinhVien(user,callback) {
-                        var sinhvien= new SinhVien({tenSinhVien:tenSinhVien,_id:user._id});
+                        var sinhvien= new SinhVien({tenSinhVien:tenSinhVien,_id:user._id,idLopChinh:idLopChinh,idLopMonHoc:idLopMonHoc});
                         sinhvien.save(function (err) {
                             if (err){
                                 res.json({

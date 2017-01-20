@@ -2,8 +2,9 @@ var mongoose = require('mongoose');
 
 var PhongBanSchema = mongoose.Schema({
     _id:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref : 'User'
+        type: String,
+        ref : 'User',
+        unique: true
     },
     tenPhongBan:{
         type: String,

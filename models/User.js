@@ -5,7 +5,7 @@ var SinhVien = require('./SinhVien');
 
 
 var UserSchema = new mongoose.Schema({
-    username:{
+    _id:{
         type: String,
         unique: true,
         required: true
