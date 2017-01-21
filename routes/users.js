@@ -302,32 +302,82 @@ router.post('/tokenFirebase',auth.reqIsAuthenticate,function (req, res, next) {
 //==============================================
 //api for Khoa send thongbao for user (Gui thong bao cho tat ca cac sinh vien)
 
-// router.post('/khoa/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
-//     //var loaiThongBao= req.body.loaiThongBao;
-//
-//     //Thong bao ms chi co tieude va noi dung
-//     var tieuDe= req.body.tieuDe;
-//     var noiDung= req.body.noiDung;
-//
-//     switch (req.user.role){
-//         case 'Khoa':
-//             UserController.find({},function (err, users) {
-//                 if (err){
-//                     console.log('cannot found sinhvien');
-//                 }
-//
-//             })
-//             break;
-//         case 'GiangVien':
-//             break;
-//         case 'PhongBan':
-//             break;
-//         default:
-//             res.json({
-//                 success: false,
-//                 message: 'Ban Khong co quyen post Thong Bao'
-//             })
-//     }
-// })
+router.post('/khoa/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
+    //var loaiThongBao= req.body.loaiThongBao;
+
+    //Thong bao ms chi co tieude va noi dung
+    var tieuDe= req.body.tieuDe;
+    var noiDung= req.body.noiDung;
+
+    switch (req.user.role){
+        case 'Khoa':
+            async.waterfall([
+                function findSinhVien(callback) {
+                    SinhVienController.find({},function (err, users) {
+                        if (err){
+                            console.log('cannot found sinhvien');
+                        }
+                        callback(null,users);
+                    })
+                },
+
+                //========================================
+                //1 so cac thong so nhu serverKey hay la collapse_key chua ro no la gi ?? tuan biet bo sung ho t nhe
+                function sendThongBao(users,callback) {
+                    users.forEach(function (user) {
+                        if (user.tokenFirebase==null){
+                            console.log(user._id+' chua gui token firebase');
+                        } else {
+                            var message={
+                                to: user.tokenFirebase,
+                                collapse_key : 'demo',
+                                notification: {
+                                    title: 'Title of your push notification',
+                                    body: 'Body of your push notification'
+                                },
+
+                                data: {  //you can send only notification or only data(or include both)
+                                    my_key: tieuDe,
+                                    my_another_key: noiDung
+                                }
+                            }
+                            fcm.send(message,function (err, response) {
+                                if (err){
+                                    res.json({
+                                        success: false,
+                                        message:'send notificaton fail'
+                                    })
+                                }
+                                else {
+                                    res.json({
+                                        success: true,
+                                        message: 'send notification success'
+                                    })
+                                }
+                            })
+                        }
+                    })
+
+                    callback(null,'success');
+                }
+            ],function (err, result) {
+                if (err){
+                    console.error(err);
+                } else {
+                    console.log('Gui noitification thanh cong');
+                }
+            })
+            break;
+        case 'GiangVien':
+            break;
+        case 'PhongBan':
+            break;
+        default:
+            res.json({
+                success: false,
+                message: 'Ban Khong co quyen post Thong Bao'
+            })
+    }
+})
 
 module.exports = router;

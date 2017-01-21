@@ -12,6 +12,9 @@ var lopmonhoc= require('./routes/lopmonhoc');
 var kihoc    = require('./routes/kihoc');
 var file     = require('./routes/file');
 var lopchinh = require('./routes/lopchinh');
+var khoa     = require('./routes/khoa');
+var phongban = require('./routes/phongban');
+var giangvien = require('./routes/giangvien');
 var app = express();
 
 // view engine setup
@@ -38,6 +41,9 @@ app.use('/lopmonhoc',lopmonhoc);
 app.use('/kihoc',kihoc);
 app.use('/file',file);
 app.use('/lopchinh',lopchinh);
+app.use('/khoa',khoa);
+app.use('/giangvien',giangvien);
+app.use('/phongban',phongban);
 
 //======================================================
 //không cần để ý phần này
