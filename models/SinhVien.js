@@ -18,8 +18,10 @@ var SinhVienSchema =new  mongoose.Schema({
     idLopMonHoc:{
         type: String,
         ref: 'LopMonHoc'
+    },
+    tokenFirebase:{
+      type: String
     }
-
 })
 
 module.exports = mongoose.model('SinhVien',SinhVienSchema);

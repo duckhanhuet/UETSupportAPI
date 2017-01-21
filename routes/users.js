@@ -12,6 +12,11 @@ var KhoaController = require('../controllers/KhoaController');
 var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 
+//====================================================================
+var FCM = require('fcm-node');
+var serverKey =config.serverKey;
+var fcm = new FCM(serverKey);
+
 //=====================================================================
 //=====================================================================
 
@@ -21,7 +26,7 @@ var GiangVienController = require('../controllers/GiangVienController');
 
 //=====================================================================
 //create database from file exels
-require('../test/postDatabase');
+//require('../test/postDatabase');
 
 //=====================================================================
 //=====================================================================
@@ -257,5 +262,72 @@ router.post('/khoa/addSinhVien',auth.reqIsAuthenticate,function (req, res, next)
             break;
     }
 })
+//==============================================================
+//==============================================================
+//API for sinhvien post tokenFirebase
+
+router.post('/tokenFirebase',auth.reqIsAuthenticate,function (req, res, next) {
+    var tokenFirebase = req.body.tokenFirebase;
+    if (!tokenFirebase){
+        res.json({
+            success: false,
+            message: 'Invalid token firebase'
+        })
+    } else {
+        switch (req.user.role){
+            case 'SinhVien':
+                SinhVienController.update(req.user._id,{tokenFirebase:tokenFirebase},function (err, result) {
+                    if (err){
+                        res.json({
+                            success: false,
+                            message:'cannot insert token firebase to database'
+                        })
+                    }else {
+                        res.json({
+                            success: true,
+                            message:'ok'
+                        })
+                    }
+                })
+                break;
+            default:
+                res.json({
+                    success: false,
+                    message: 'Notification only use by SinhVien'
+                })
+        }
+    }
+});
+
+//==============================================
+//api for Khoa send thongbao for user (Gui thong bao cho tat ca cac sinh vien)
+
+// router.post('/khoa/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
+//     //var loaiThongBao= req.body.loaiThongBao;
+//
+//     //Thong bao ms chi co tieude va noi dung
+//     var tieuDe= req.body.tieuDe;
+//     var noiDung= req.body.noiDung;
+//
+//     switch (req.user.role){
+//         case 'Khoa':
+//             UserController.find({},function (err, users) {
+//                 if (err){
+//                     console.log('cannot found sinhvien');
+//                 }
+//
+//             })
+//             break;
+//         case 'GiangVien':
+//             break;
+//         case 'PhongBan':
+//             break;
+//         default:
+//             res.json({
+//                 success: false,
+//                 message: 'Ban Khong co quyen post Thong Bao'
+//             })
+//     }
+// })
 
 module.exports = router;

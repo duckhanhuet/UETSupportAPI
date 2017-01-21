@@ -11,6 +11,7 @@ var users = require('./routes/users');
 var lopmonhoc= require('./routes/lopmonhoc');
 var kihoc    = require('./routes/kihoc');
 var file     = require('./routes/file');
+var lopchinh = require('./routes/lopchinh');
 var app = express();
 
 // view engine setup
@@ -36,6 +37,7 @@ app.use('/tintuc',tintucs);
 app.use('/lopmonhoc',lopmonhoc);
 app.use('/kihoc',kihoc);
 app.use('/file',file);
+app.use('/lopchinh',lopchinh);
 
 //======================================================
 //không cần để ý phần này
