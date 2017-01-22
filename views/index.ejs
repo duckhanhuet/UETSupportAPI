@@ -6,26 +6,18 @@
     <meta http-equiv="Content-type" content="text/html; charset=utf-8">
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:400,300,600,700&subset=all" rel="stylesheet" type="text/css">
     <!--stylesheet-->
-    <link rel="stylesheet" href="/assert/twentytwenty/css/twentytwenty.css"  type="text/css" />
     <link rel="stylesheet" href="/assert/bootstrap/css/bootstrap.css"/>
     <link rel='stylesheet' href='/stylesheets/style.css' />
   </head>
   <body>
+
     <div class="container">
-      <h3><%- result.title%></h3>
+      <h3><%= result.title%></h3>
       <%- result.main%>
     </div>
 
     <script type="text/javascript" src="/assert/jquery/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="/assert/bootstrap/js/bootstrap.js"></script>
-    <script src="/assert/twentytwenty/js/jquery.twentytwenty.js"></script>
-    <script src="/assert/twentytwenty/js/jquery.event.move.js"></script>
     <script type="text/javascript" src="/javascripts/layout.js"></script>
-
-    <script>
-      $(window).load(function(){
-        $(".img-responsive").twentytwenty({default_offset_pct: 0.5});
-      });
-    </script>
   </body>
 </html>

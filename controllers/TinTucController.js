@@ -18,7 +18,7 @@ module.exports = {
     findDetailTinTuc : function (param,callback) {
         TinTuc
             .find(param)
-            .limit(10).populate('loaiTinTuc').exec(callback)
+            .limit(10).sort("postAt").populate('loaiTinTuc').exec(callback)
     },
     create: function (params, callback) {
         TinTuc.create(params,function (err, thongbao) {

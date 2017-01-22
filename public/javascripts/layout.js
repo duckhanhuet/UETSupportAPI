@@ -2,12 +2,8 @@ $(document).ready(function(){
 
     //responsive table
     var img = $('img');
-    console.log(img.length)
     for(var i=0;i<img.length;i++){
-        if(img[i].getAttribute('alt')==""){
-            img[i].setAttribute("class","img-responsive center-block")
-        }
-
+        img[i].setAttribute("class","img-responsive center-block")
     }
     var table = $('table');
     if(table){

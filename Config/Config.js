@@ -7,5 +7,5 @@ module.exports = {
     //tự điền trong mongo
     'database': 'mongodb://localhost:27017/database',
     'UetHostName' : 'http://uet.vnu.edu.vn',
-    'serverKey':'AAAAsAKsctA:APA91bE675vxuUKSA7PardWy2voiN2AxTaJd2qkO1OFWuKbu37kU91d0Ti8ZWOcq2xwXeNFH3ui_Xwsl-tWkPlwuqdlY4SLMch61Bh8Imfhe36DfnE_YuXiG7zqhDA35RXpkcMedUgAu'
+    'serverKey':'AAAAFnXeGIY:APA91bFn9T9WgwhhHBw5qS0nOeash_pZkIJzJYegM2Igs7fynSox64Dlf64YGm4POkAeyTNmtmd3cT3c0An9AIjcYC2ZY_bO5RUICiy7lm0ftIqDozFDVnBngwNiXSr55UgBn-kuSSDs'
 };

@@ -17,15 +17,16 @@ router.get('/',function (req,res) {
 })
 //Tra json
 router.get('/test',function (req,res) {
+    var loaiTinTuc = req.query.loaitintuc;
     TinTucController.findDetailTinTuc({
-        loaiTinTuc : 7
+        loaiTinTuc : loaiTinTuc
     },function (err,tintuc) {
         res.json(tintuc)
     })
 })
 
 //phan tích lại tin tuc detail
-router.get('/detailapdater',function (req,res) {
+router.get('/detail',function (req,res) {
     var url = req.query.url;
     utils.adapter(url,function (err,result) {
         if (err) {

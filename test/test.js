@@ -33,7 +33,7 @@ async.waterfall([
         var sinhvien= new SinhVien({tenSinhVien:'Nguyen Duc Khanh',_id:user._id});
         sinhvien.save(function (err) {
             if (err){
-                console('id sinh vien exist');
+                console.log('id sinh vien exist');
             }
         });
         callback(null,sinhvien);

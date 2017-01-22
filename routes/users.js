@@ -32,6 +32,7 @@ var gcm = require('node-gcm');
 //api for login
 
 router.post('/authenticate', function (req, res) {
+    console.log(req.body)
     User.findOne({_id: req.body.username}, function (err, user) {
         if (err) throw err;
         if (!user) {
@@ -265,7 +266,7 @@ router.post('/khoa/addSinhVien',auth.reqIsAuthenticate,function (req, res, next)
 //==============================================================
 //API for sinhvien post tokenFirebase
 
-router.post('/tokenFirebase',auth.reqIsAuthenticate,function (req, res, next) {
+router.post('/tokenfirebase',auth.reqIsAuthenticate,function (req, res, next) {
     var tokenFirebase = req.body.tokenFirebase;
     if (!tokenFirebase){
         res.json({
@@ -301,7 +302,7 @@ router.post('/tokenFirebase',auth.reqIsAuthenticate,function (req, res, next) {
 //==============================================
 //api for Khoa send thongbao for user (Gui thong bao cho tat ca cac sinh vien)
 
-router.post('/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
+router.post('/guithongBao',auth.reqIsAuthenticate,function (req, res, next) {
     //var loaiThongBao= req.body.loaiThongBao;
 
     //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
@@ -315,10 +316,9 @@ router.post('/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
                 function findSinhVien(callback) {
                     SinhVienController.find({},function (err, users) {
                         if (err){
-                            console.log('cannot found sinhvien');
+                           callback("ERR",null)
                         }
                         else {
-                            console.log(users);
                             callback(null,users);
                         }
 
@@ -328,17 +328,19 @@ router.post('/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
                 //========================================
                 function sendThongBao(users,callback) {
                     if (!tieuDe||!noiDung){
-                        res.json({
-                            success:false,
-                            message:'Invalid tieuDe or noiDung please enter value'
-                        })
+                        // res.json({
+                        //     success:false,
+                        //     message:'Invalid tieuDe or noiDung please enter value'
+                        // })
+                        callback("ERR",null)
                     } else {
                         SinhVienController.find({},function (err, sinhviens) {
-                            if (err){
-                                res.json({
-                                    success:false,
-                                    message: 'cannot found sinhvien to send notification'
-                                })
+                            if (err) {
+                                // res.json({
+                                //     success:false,
+                                //     message: 'cannot found sinhvien to send notification'
+                                // })
+                                callback(err,null)
                             }else {
                                 var message= new gcm.Message({
                                     data: {
@@ -353,27 +355,34 @@ router.post('/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
                                     }
                                 })
                                 var sender =new gcm.Sender(config.serverKey);
+                                var registerToken = []
                                 sinhviens.forEach(function (sinhvien) {
-                                    sender.send(message,sinhvien.tokenFirebase,function (err, response) {
-                                        if (err){
-                                            console.log('ERROR:'+err);
-                                        }
-                                        else {
-                                            res.json(response);
-                                            //console.log(sinhvien);
-                                        }
-                                    })
+                                    registerToken.push(sinhvien.tokenFirebase)
+                                })
+                                sender.send(message,registerToken,function (err, response) {
+                                    console.log(response)
+                                    if (err){
+                                        callback(err,null)
+                                    }
+                                    else {
+                                        callback(null,"Success")
+                                    }
                                 })
                             }
                         })
                     }
-                    callback(null,'success');
                 }
             ],function (err, result) {
                 if (err){
                     console.error(err);
+                    res.json({
+                        success:false,
+                        error: err
+                    })
                 } else {
-                    console.log('Gui noitification thanh cong');
+                    res.json({
+                        success:true
+                    })
                 }
             })
             break;
@@ -387,20 +396,18 @@ router.post('/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
             var tenFile     = req.body.tenFile;
             var linkFile    = req.body.linkFile;
             if (!idLopMonHoc||!tieuDe||!noiDung){
-                res.json({
-                    success:false,
-                    message:'Invalid IdLopMonHoc or tieuDe or noiDung,please enter truy again'
-                })
+                // res.json({
+                //     success:false,
+                //     message:'Invalid IdLopMonHoc or tieuDe or noiDung,please enter truy again'
+                // })
+                callback("ERR",null)
             }
             else {
                 async.waterfall([
                     function findSinhViens(callback) {
                         SinhVienController.find({},function (err, sinhviens) {
                             if (err){
-                                res.json({
-                                    success: false,
-                                    message: 'cannot found sinhvien '
-                                })
+                                callback(err,null)
                             } else {
                                 callback(null,sinhviens);
                             }
@@ -420,29 +427,33 @@ router.post('/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
                             }
                         });
                         var sender = new gcm.Sender(config.serverKey);
+                        var registerToken = [];
                         sinhviens.forEach(function (sinhvien) {
                             if (sinhvien.idLopMonHoc==idLopMonHoc){
-                                sender.send(message,sinhvien.tokenFirebase,function (err, response) {
-                                    if (err){
-                                        console.log('ERR:'+err);
-                                    }
-                                    else {
-                                        res.json(response);
-                                        console.log(sinhvien);
-                                    }
-                                })
+                                registerToken.push(sinhvien.tokenFirebase)
                             }
                         })
-                        callback(null,'send notification successfull')
+                        sender.send(message,registerToken,function (err, response) {
+                            if (err){
+                                callback(err,null)
+                            }
+                            else {
+                                callback(null,"Success")
+                            }
+                        })
+
                     }
                 ],function (err, result) {
                     if (err){
                         res.json({
                             success: false,
-                            message:'send notification fail'
+                            message:'send notification fail',
+                            error: err
                         })
                     } else {
-                        console.log(result);
+                        res.json({
+                            success: true
+                        })
                     }
                 })
             }
