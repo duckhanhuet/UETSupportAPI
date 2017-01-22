@@ -13,9 +13,8 @@ var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 
 //====================================================================
-var FCM = require('fcm-node');
-var serverKey =config.serverKey;
-var fcm = new FCM(serverKey);
+var gcm = require('node-gcm');
+
 
 //=====================================================================
 //=====================================================================
@@ -302,62 +301,72 @@ router.post('/tokenFirebase',auth.reqIsAuthenticate,function (req, res, next) {
 //==============================================
 //api for Khoa send thongbao for user (Gui thong bao cho tat ca cac sinh vien)
 
-router.post('/khoa/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
+router.post('/guiThongBao',auth.reqIsAuthenticate,function (req, res, next) {
     //var loaiThongBao= req.body.loaiThongBao;
 
-    //Thong bao ms chi co tieude va noi dung
+    //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
     var tieuDe= req.body.tieuDe;
     var noiDung= req.body.noiDung;
-
+    var tenFile= req.body.tenFile;
+    var linkFile= req.body.linkFile;
     switch (req.user.role){
-        case 'Khoa':
+        case 'Khoa','PhongBan':
             async.waterfall([
                 function findSinhVien(callback) {
                     SinhVienController.find({},function (err, users) {
                         if (err){
                             console.log('cannot found sinhvien');
                         }
-                        callback(null,users);
+                        else {
+                            console.log(users);
+                            callback(null,users);
+                        }
+
                     })
                 },
 
                 //========================================
-                //1 so cac thong so nhu serverKey hay la collapse_key chua ro no la gi ?? tuan biet bo sung ho t nhe
                 function sendThongBao(users,callback) {
-                    users.forEach(function (user) {
-                        if (user.tokenFirebase==null){
-                            console.log(user._id+' chua gui token firebase');
-                        } else {
-                            var message={
-                                to: user.tokenFirebase,
-                                collapse_key : 'demo',
-                                notification: {
-                                    title: 'Title of your push notification',
-                                    body: 'Body of your push notification'
-                                },
-
-                                data: {  //you can send only notification or only data(or include both)
-                                    my_key: tieuDe,
-                                    my_another_key: noiDung
-                                }
+                    if (!tieuDe||!noiDung){
+                        res.json({
+                            success:false,
+                            message:'Invalid tieuDe or noiDung please enter value'
+                        })
+                    } else {
+                        SinhVienController.find({},function (err, sinhviens) {
+                            if (err){
+                                res.json({
+                                    success:false,
+                                    message: 'cannot found sinhvien to send notification'
+                                })
+                            }else {
+                                var message= new gcm.Message({
+                                    data: {
+                                        tieuDe: tieuDe,
+                                        noiDung: noiDung,
+                                        tenFile : tenFile,
+                                        linkFile: linkFile
+                                    },
+                                    notification:{
+                                        title: tieuDe,
+                                        body: noiDung
+                                    }
+                                })
+                                var sender =new gcm.Sender(config.serverKey);
+                                sinhviens.forEach(function (sinhvien) {
+                                    sender.send(message,sinhvien.tokenFirebase,function (err, response) {
+                                        if (err){
+                                            console.log('ERROR:'+err);
+                                        }
+                                        else {
+                                            res.json(response);
+                                            //console.log(sinhvien);
+                                        }
+                                    })
+                                })
                             }
-                            fcm.send(message,function (err, response) {
-                                if (err){
-                                    res.json({
-                                        success: false,
-                                        message:'send notificaton fail'
-                                    })
-                                }
-                                else {
-                                    res.json({
-                                        success: true,
-                                        message: 'send notification success'
-                                    })
-                                }
-                            })
-                        }
-                    })
-
+                        })
+                    }
                     callback(null,'success');
                 }
             ],function (err, result) {
@@ -369,13 +378,137 @@ router.post('/khoa/guiThongBao',auth.reqIsAuthenticate,function (req, res, next)
             })
             break;
         case 'GiangVien':
-            break;
-        case 'PhongBan':
+            //===================================
+            //===================================
+            //Giang vien co the gui Thong bao toi cac lop mon hoc cua minh
+            var idLopMonHoc = req.body.idLopMonHoc;
+            var tieuDe      = req.body.tieuDe;
+            var noiDung     = req.body.noiDung;
+            var tenFile     = req.body.tenFile;
+            var linkFile    = req.body.linkFile;
+            if (!idLopMonHoc||!tieuDe||!noiDung){
+                res.json({
+                    success:false,
+                    message:'Invalid IdLopMonHoc or tieuDe or noiDung,please enter truy again'
+                })
+            }
+            else {
+                async.waterfall([
+                    function findSinhViens(callback) {
+                        SinhVienController.find({},function (err, sinhviens) {
+                            if (err){
+                                res.json({
+                                    success: false,
+                                    message: 'cannot found sinhvien '
+                                })
+                            } else {
+                                callback(null,sinhviens);
+                            }
+                        })
+                    },
+                    function sendNotification(sinhviens,callback) {
+                        var message= new gcm.Message({
+                            data:{
+                                tieuDe: tieuDe,
+                                noiDung:noiDung,
+                                tenFile: tenFile,
+                                linkFile: linkFile
+                            },
+                            notification:{
+                                title: tieuDe,
+                                body: noiDung
+                            }
+                        });
+                        var sender = new gcm.Sender(config.serverKey);
+                        sinhviens.forEach(function (sinhvien) {
+                            if (sinhvien.idLopMonHoc==idLopMonHoc){
+                                sender.send(message,sinhvien.tokenFirebase,function (err, response) {
+                                    if (err){
+                                        console.log('ERR:'+err);
+                                    }
+                                    else {
+                                        res.json(response);
+                                        console.log(sinhvien);
+                                    }
+                                })
+                            }
+                        })
+                        callback(null,'send notification successfull')
+                    }
+                ],function (err, result) {
+                    if (err){
+                        res.json({
+                            success: false,
+                            message:'send notification fail'
+                        })
+                    } else {
+                        console.log(result);
+                    }
+                })
+            }
             break;
         default:
             res.json({
                 success: false,
                 message: 'Ban Khong co quyen post Thong Bao'
+            })
+    }
+});
+
+
+//=================================================
+//=================================================
+//file nay chua xu ly xong, con phu thuoc vao Thanh post diem nhu the nao va gom nhung thuoc tinh gi nua
+router.post('/khoa/postFileDiem',auth.reqIsAuthenticate,function (req, res, next) {
+    switch (req.user.role){
+        case 'Khoa','GiangVien':
+            var tenKiHoc=req.body.tenKiHoc;
+            var tenGiangVien= req.body.tenGiangVien;
+            var tenLopMonHoc= req.body.tenLopMonHoc;
+            var monHoc = req.body.monHoc;
+            var MSV= req.body.MSV;
+            var HoTen= req.body.HoTen;
+            var diemThanhPhan = req.body.diemThanhPhan;
+            var diemCuoiKi = req.body.diemCuoiKi;
+            var tongDiem   = req.body.tongDiem;
+            var lopChinh    = req.body.LopChinh;
+            var message= new gcm.Message({
+                data:{
+                    tenKiHoc: tenKiHoc,
+                    tenLopMonHoc: tenLopMonHoc,
+                    monHoc: monHoc,
+                    diemThanhPhan: diemThanhPhan,
+                    diemCuoiKi: diemCuoiKi,
+                    tongDiem: tongDiem
+                },
+                notification:{
+                    title: 'da co diem mon hoc '+ monHoc,
+                    body: 'Wellcome to Notification'
+                }
+            });
+            var sender = gcm.Sender(config.serverKey);
+            SinhVienController.findById(MSV,function (err, sinhvien) {
+                if (err){
+                    console.log('cannot found sinh vien '+sinhvien._id+' in the database');
+                }
+                else {
+                    sender.send(message,sinhvien.tokenFirebase,function (err, response) {
+                        if (err){
+                            console.log('ERROR:'+ err);
+                        } else {
+                            res.json({
+                                success: true,
+                                response: response
+                            })
+                        }
+                    })
+                }
+            });
+            break;
+        default:
+            res.json({
+                success: false,
+                message:'You dont have permission to post file diem'
             })
     }
 })
