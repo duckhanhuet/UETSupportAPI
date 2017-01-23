@@ -1,6 +1,6 @@
 var express = require('express');
 var router = express.Router();
-var User   = require('../models/User');
+var User = require('../models/User');
 var SinhVien = require('../models/SinhVien');
 var auth = require('../policies/auth');  //xử lý token trước khi vào API, đính kèm trước cái hàm cần đăng nhập
 var async = require('async');
@@ -12,12 +12,12 @@ var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 //========================================
 var gcm = require('node-gcm');
-var config= require('../Config/Config');
+var config = require('../Config/Config');
 //========================================
 //get information of all sinhvien
-router.get('/',auth.reqIsAuthenticate,function (req, res, next) {
-    KhoaController.find({},function (err, khoas) {
-        if (err){
+router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
+    KhoaController.find({}, function (err, khoas) {
+        if (err) {
             res.json({
                 success: false,
                 message: 'not found khoa'
@@ -29,7 +29,7 @@ router.get('/',auth.reqIsAuthenticate,function (req, res, next) {
 //=====================================================
 //getting profile of khoa
 
-router.get('/profile', auth.reqIsAuthenticate,auth.reqIsKhoa, function (req, res) {
+router.get('/profile', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res) {
     var id = req.user._id;
     KhoaController.findById(id, function (err, result) {
         if (err) {
@@ -50,19 +50,19 @@ router.get('/profile', auth.reqIsAuthenticate,auth.reqIsKhoa, function (req, res
 
 //=====================================================
 //getting infomation for each khoa
-router.get('/information/:id',auth.reqIsAuthenticate,function (req,res,next) {
+router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next) {
 
-    KhoaController.findById(req.params.id,function (err, khoa) {
-        if (err){
+    KhoaController.findById(req.params.id, function (err, khoa) {
+        if (err) {
             res.json({
-                success:err,
-                message:'not found file with id '+req.params.id
+                success: err,
+                message: 'not found file with id ' + req.params.id
             })
         }
         else {
             res.json({
                 success: true,
-                metadata:khoa
+                metadata: khoa
             });
         }
     })
@@ -70,25 +70,24 @@ router.get('/information/:id',auth.reqIsAuthenticate,function (req,res,next) {
 
 //=====================================================
 //add sinh vien
-router.post('/addSinhVien',auth.reqIsAuthenticate,auth.reqIsKhoa,function (req, res, next) {
-    var _id= req.body.username;
-    var password= req.body.password;
+router.post('/addSinhVien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
+    var _id = req.body.username;
+    var password = req.body.password;
     var tenSinhVien = req.body.tenSinhVien;
-    var idLopMonHoc= req.body.idLopMonHoc;
-    var idLopChinh= req.body.idLopChinh;
-    if (!_id||!password||!tenSinhVien)
-    {
+    var idLopMonHoc = req.body.idLopMonHoc;
+    var idLopChinh = req.body.idLopChinh;
+    if (!_id || !password || !tenSinhVien) {
         res.json({
             success: false,
-            message:'Invalid'
+            message: 'Invalid'
         })
     }
-    else{
+    else {
         async.waterfall([
             function createUser(callback) {
-                var user= new User({_id:_id,password:password});
+                var user = new User({_id: _id, password: password});
                 user.save(function (err) {
-                    if (err){
+                    if (err) {
                         res.json({
                             success: false,
                             message: 'create user fail'
@@ -96,32 +95,37 @@ router.post('/addSinhVien',auth.reqIsAuthenticate,auth.reqIsKhoa,function (req, 
                         return;
                     }
                     else {
-                        callback(null,user);
+                        callback(null, user);
                     }
                 })
             },
-            function saveSinhVien(user,callback) {
-                var sinhvien= new SinhVien({tenSinhVien:tenSinhVien,_id:user._id,idLopChinh:idLopChinh,idLopMonHoc:idLopMonHoc});
+            function saveSinhVien(user, callback) {
+                var sinhvien = new SinhVien({
+                    tenSinhVien: tenSinhVien,
+                    _id: user._id,
+                    idLopChinh: idLopChinh,
+                    idLopMonHoc: idLopMonHoc
+                });
                 sinhvien.save(function (err) {
-                    if (err){
+                    if (err) {
                         res.json({
                             success: false,
                             message: 'create sinh vien fail'
                         })
                         return;
                     } else {
-                        var result={
+                        var result = {
                             user: user,
                             info: sinhvien
                         }
-                        callback(null,result);
+                        callback(null, result);
                     }
                 })
             }
-        ],function (err, result) {
-            if (err){
+        ], function (err, result) {
+            if (err) {
                 console.error(err);
-            }else {
+            } else {
                 res.json(result);
             }
 
@@ -129,83 +133,83 @@ router.post('/addSinhVien',auth.reqIsAuthenticate,auth.reqIsKhoa,function (req, 
     }
 });
 
-router.post('/guithongBao',auth.reqIsAuthenticate,auth.reqIsKhoa,function (req, res, next) {
+router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
     //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
-    var tieuDe= req.body.tieuDe;
-    var noiDung= req.body.noiDung;
-    var tenFile= req.body.tenFile;
-    var linkFile= req.body.linkFile;
+    var tieuDe = req.body.tieuDe;
+    var noiDung = req.body.noiDung;
+    var tenFile = req.body.tenFile;
+    var linkFile = req.body.linkFile;
     var mucDoThongBao = req.body.mucDoThongBao;
     async.waterfall([
         function findSinhVien(callback) {
-            SinhVienController.find({},function (err, users) {
-                if (err){
-                    callback("ERR",null)
+            SinhVienController.find({}, function (err, users) {
+                if (err) {
+                    callback("ERR", null)
                 }
                 else {
-                    callback(null,users);
+                    callback(null, users);
                 }
             })
         },
 
         //========================================
-        function sendThongBao(users,callback) {
-            if (!tieuDe||!noiDung){
+        function sendThongBao(users, callback) {
+            if (!tieuDe || !noiDung) {
                 // res.json({
                 //     success:false,
                 //     message:'Invalid tieuDe or noiDung please enter value'
                 // })
-                callback("ERR",null)
+                callback("ERR", null)
             } else {
-                SinhVienController.find({},function (err, sinhviens) {
+                SinhVienController.find({}, function (err, sinhviens) {
                     if (err) {
                         // res.json({
                         //     success:false,
                         //     message: 'cannot found sinhvien to send notification'
                         // })
-                        callback(err,null)
-                    }else {
-                        var message= new gcm.Message({
+                        callback(err, null)
+                    } else {
+                        var message = new gcm.Message({
                             data: {
                                 tieuDe: tieuDe,
                                 noiDung: noiDung,
-                                tenFile : tenFile,
+                                tenFile: tenFile,
                                 linkFile: linkFile,
                                 mucDoThongBao: mucDoThongBao
                             },
-                            notification:{
+                            notification: {
                                 title: tieuDe,
                                 body: noiDung
                             }
                         })
-                        var sender =new gcm.Sender(config.serverKey);
+                        var sender = new gcm.Sender(config.serverKey);
                         var registerToken = []
                         sinhviens.forEach(function (sinhvien) {
                             registerToken.push(sinhvien.tokenFirebase)
                         })
-                        sender.send(message,registerToken,function (err, response) {
+                        sender.send(message, registerToken, function (err, response) {
                             console.log(response)
-                            if (err){
-                                callback(err,null)
+                            if (err) {
+                                callback(err, null)
                             }
                             else {
-                                callback(null,"Success")
+                                callback(null, "Success")
                             }
                         })
                     }
                 })
             }
         }
-    ],function (err, result) {
-        if (err){
+    ], function (err, result) {
+        if (err) {
             console.error(err);
             res.json({
-                success:false,
+                success: false,
                 error: err
             })
         } else {
             res.json({
-                success:true
+                success: true
             })
         }
     })

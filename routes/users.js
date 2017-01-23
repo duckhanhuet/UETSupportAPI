@@ -61,7 +61,7 @@ router.post('/authenticate', function (req, res) {
 })
 
 //Api for find sum users
-router.get('/',auth.reqIsAuthenticate,function (req, res, next) {
+router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     UserController.find(req.query, function (err, results) {
         if (err) {
             res.json({

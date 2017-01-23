@@ -1,23 +1,15 @@
 var express = require('express');
-var router  = express.Router();
-var auth    = require('../policies/auth');
+var router = express.Router();
+var auth = require('../policies/auth');
 var KiHocController = require('../controllers/KiHocController');
-var KiHoc           = require('../models/KiHoc');
+var KiHoc = require('../models/KiHoc');
+var auth = require('../policies/auth');
 
-// KiHocController.create({tenKiHoc:'Ki hoc 2013-2014'},function (err, result) {
-//     if (err){
-//         console.log('create error ki hoc');
-//         return
-//     } else {
-//         console.log('create successfull ki hoc')
-//     }
-// });
-
-router.get('/',function (req, res, next) {
-    KiHocController.find(req.query,function (err, results) {
-        if (err){
+router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
+    KiHocController.find(req.query, function (err, results) {
+        if (err) {
             res.json({
-                success:false,
+                success: false,
                 message: 'khong tim duoc ki hoc'
             })
         }
@@ -28,11 +20,11 @@ router.get('/',function (req, res, next) {
     })
 });
 
-router.get('/:id',function (req, res) {
-    KiHocController.findById(req.params.id,function (err, result) {
-        if (err){
+router.get('/:id', auth.reqIsAuthenticate, function (req, res) {
+    KiHocController.findById(req.params.id, function (err, result) {
+        if (err) {
             res.json({
-                success:false,
+                success: false,
                 message: 'khong tim thay ki hoc'
             })
             return;
