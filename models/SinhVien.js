@@ -21,7 +21,13 @@ var SinhVienSchema =new  mongoose.Schema({
     },
     tokenFirebase:{
       type: String
-    }
+    },
+    nhanLoaiThongBao:[{
+        type: String,
+        enum:['DiemThi','LichThi','DangKiTinChi','LichHoc','ThongBaoKhac'],
+        default:'ThongBaoKhac',
+        ref:'LoaiThongBao'
+    }]
 })
 
 module.exports = mongoose.model('SinhVien',SinhVienSchema);

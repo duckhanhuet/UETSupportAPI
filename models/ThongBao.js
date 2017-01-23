@@ -12,14 +12,22 @@ var ThongBaoSchema = mongoose.Schema({
         default: Date.now
     },
     idUser:{
-        type: Schema.Types.ObjectId,
+        type: String,
         ref : ['SinhVien','Khoa','PhongBan']
     },
     idFile:{
-        type: Schema.Types.ObjectId,
+        type: String,
         ref : 'File'
     },
-
+    loaiThongBao:[{
+        type: String,
+        ref: 'LoaiThongBao'
+    }],
+    mucDoThongBao:{
+        type: String,
+        enum: ['khanCap','quanTrong','binhThuong'],
+        default:'binhThuong'
+    }
 });
 
 module.exports = mongoose.model('ThongBao',ThongBaoSchema);
