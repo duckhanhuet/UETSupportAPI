@@ -18,12 +18,12 @@ var gcm = require('node-gcm');
 //=====================================================================
 
 //test add some sinhvien to database
-//require('../test/test');
+// require('../test/test');
 //xem lai cai ham nay dung asynce để làm lại làm bằng bcrys để hashcode password nhé
 
 //=====================================================================
 //create database from file exels
-//require('../test/postDatabase');
+// require('../test/postDatabase');
 
 //=====================================================================
 //=====================================================================

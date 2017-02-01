@@ -141,7 +141,10 @@ router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsGiangVien, functio
 
 //VI moi sinh vien co object diem khac nhau nen phai gui tung request mot
 //Thanh se post len diem sinh vien va thong tin cua lop mon hoc cua tung sinh vien
-
+/**
+ * PHAN NAY PHAI SUA LAI
+ * CAC TOKEN FIREBASE CHO MANG MANG NHU CAI TREN
+ */
 router.post('/guiThongBao/diemthi', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (req, res, next) {
     var tenKiHoc = req.body.tenKiHoc;
     var tenGiangVien = req.body.tenGiangVien;
@@ -196,7 +199,7 @@ router.post('/guiThongBao/diemthi', auth.reqIsAuthenticate, auth.reqIsGiangVien,
                             body: 'Xem thong tin chi tiet....'
                         }
                     })
-                    sender.send(message, sinhvien.tokenFirebase, function (err, response) {
+                    sender.send(message, sinhvien.tokenFirebase, function (err, response) { //XEM CAI HAM BEN TREN
                         if (err) {
                             callback('ERR', null);
                         } else {

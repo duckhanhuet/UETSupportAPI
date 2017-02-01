@@ -132,7 +132,9 @@ router.post('/addSinhVien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
         })
     }
 });
-
+/**
+ * XEM LẠI CAU TRUY VẤN ĐỂ KHOA CHI GỬI CHO CÁC SINH VIÊN TRONG KHOA
+ */
 router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
     //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
     var tieuDe = req.body.tieuDe;

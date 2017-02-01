@@ -61,7 +61,9 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
     });
 })
 //====================================================
-
+/**
+ * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
+ */
 router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res, next) {
     //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
     var tieuDe = req.body.tieuDe;
