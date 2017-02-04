@@ -10,71 +10,247 @@ var async = require('async');
 var utils = require('./UltisTinTuc')
 var TinTucController = require('../controllers/TinTucController')
 var LoaiTinTuc = require('../models/LoaiTinTuc');
-
-module.exports.importLoaiTinTuc = function () {
-    var DaoTao = new LoaiTinTuc({
-        _id: 0,
-        kind: "Đào Tạo"
-    })
-    var NghienCuu = new LoaiTinTuc({
-        _id: 1,
-        kind: "Nghiên Cứu"
-    })
-    var TongHop = new LoaiTinTuc({
-        _id: 2,
-        kind: "Tổng Hợp"
-    })
-    var HoiThao = new LoaiTinTuc({
-        _id: 3,
-        kind: "Hội Thảo"
-    })
-    var HopTac = new LoaiTinTuc({
-        _id: 4,
-        kind: "Hợp Tác"
-    })
-    var HoatDongDoan = new LoaiTinTuc({
-        _id: 5,
-        kind: "Hoạt Động Đoàn Thể"
-    })
-    var TheThaoVanHoa = new LoaiTinTuc({
-        _id: 6,
-        kind: "Thể Thao Văn Hóa"
-    })
-    var TuyenDung = new LoaiTinTuc({
-        _id: 7,
-        kind: "Tuyển Dụng"
-    })
-    //==================================
-    DaoTao.save(function (err) {
-        console.log("DaoTao ok")
-    })
-    TuyenDung.save(function (err) {
-        console.log("TuyenDung ok")
-    })
-    TheThaoVanHoa.save(function (err) {
-        console.log("TheThaoVanHoa ok")
-    })
-    HoatDongDoan.save(function (err) {
-        console.log("HoatDongDoan ok")
-    })
-    HopTac.save(function (err) {
-        console.log("HopTac ok")
-    })
-    HoiThao.save(function (err) {
-        console.log("HoiThao ok")
-    })
-
-    TongHop.save(function (err) {
-        console.log("TongHop ok")
-    })
-    NghienCuu.save(function (err) {
-        console.log("NghienCuu ok")
+/**
+ * parse trang chu để lấy dự liệu
+ */
+module.exports.parseMainPage = function (mainUrl) {
+    async.waterfall([
+        function (callback) {
+            makeRequest(mainUrl, callback)
+        },
+        function (data, callback) {
+            parsePage(data, callback)
+        },
+        function (data, callback) {
+            var arr = [];
+            for (let i = 0; i < data.length; i++) {
+                var loaitintuc = new LoaiTinTuc({
+                    _id: i,
+                    linkPage: config.UetHostName + data[i].link,
+                    kind: data[i].loai
+                });
+                arr.push(loaitintuc)
+            }
+            callback(null, arr)
+        },
+        function (arrLoaiTinTuc, callback) {
+            var arr = []
+            for (let i = 0; i < arrLoaiTinTuc.length; i++) {
+                var fun = function (callback) {
+                    arrLoaiTinTuc[i].save(function (err) {
+                        if (err) callback(err, null)
+                        callback(null, arrLoaiTinTuc[i])
+                    })
+                }
+                arr.push(fun)
+            }
+            async.parallel(arr, function (err, result) {
+                if (err) callback(err, null)
+                callback(null, result)
+            })
+        },
+        function (arrLoaiTinTuc, callback) {
+            parseUrlLastIndicator(arrLoaiTinTuc, callback)
+        },
+        /**
+         * mảng obj có các trường
+         * link : url của main
+         * lastIndicator : trang cuối cùng của link
+         * kind : loại tin tức
+         */
+            function (list, callback) {
+            getAllUrlPageTinTuc(list, callback)
+        },
+        /**
+         * mảng Url có các trường
+         * http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
+         */
+            function (arrURL, callback) {
+            getAllUrlTinTuc(arrURL, callback)
+        },
+        function (arrTinTuc, callback) {
+            var arr = deleteDuplicate(arrTinTuc)
+            callback(null, arr)
+        },
+        function (arrTinTuc, callback) {
+            getPostAllForEachTinTuc(arrTinTuc, callback)
+        }
+    ], function (err, result) {
+        TinTucController.create(result, function (err, list) {
+            if (err) {
+                console.log(err)
+                return;
+            }
+            else console.log("import success")
+        })
     })
 }
-
-
+/**
+ * get URL ca trang
+ * Lấy link và tên của từng loại tin tức
+ * @param data HTML của trang chủ tin tức
+ * @param callback
+ */
+function parsePage(data, callback) {
+    var list = [];
+    var $ = cheerio.load(data, {
+        normalizeWhitespace: true,
+        xmlMode: true
+    });
+    $('#block-menu-menu-tin-tuc-su-kien-r .menu .leaf').each(function (i, ele) {
+        var link = $('a', this).attr('href');
+        var loaitintuc = $('a', this).text();
+        var obj = {
+            link: link,
+            loai: loaitintuc
+        };
+        //bo qua cái cuối cùng tức là tin tức
+        //dang test
+        if (i == 0 || i == 8) {
+        } else {
+            list.push(obj);
+        }
+    });
+    callback(null, list);
+}
+/**
+ * get All page by URL
+ * Lấy tát cả các
+ * @param arrLoaiTinTuc
+ * @param callback
+ *
+ * đầu ra của hàm
+ * link : loaiTinTuc.linkPage,
+ * kind : loaiTinTuc.kind,
+ * lastIndicator : last,  // số trang cuối cùng của từng loại
+ * role : loaiTinTuc._id
+ */
+function parseUrlLastIndicator(arrLoaiTinTuc, callback) {
+    var arr = []
+    for (let i = 0; i < arrLoaiTinTuc.length; i++) {
+        var fun = function (callback) {
+            getObjIndicator(arrLoaiTinTuc[i], function (err, result) {
+                callback(err, result)
+            })
+        }
+        arr.push(fun)
+    }
+    async.parallel(arr, function (err, result) {
+        if (err) console.log(err)
+        callback(err, result)
+    })
+}
+//parse indicator for mainURLpage
+function getObjIndicator(loaiTinTuc, callbackall) {
+    async.waterfall([
+        function (callback) {
+            makeRequest(loaiTinTuc.linkPage, callback)
+        },
+        function (body, callback) {
+            var list = [];
+            var $ = cheerio.load(body, {
+                normalizeWhitespace: true,
+                xmlMode: true
+            });
+            var lastIndicator = $('.pager-last a').attr('href');
+            var last = lastIndicator.split('=')[1];
+            var obj = {
+                link: loaiTinTuc.linkPage,
+                kind: loaiTinTuc.kind,
+                lastIndicator: last,
+                role: loaiTinTuc._id
+            };
+            callback(null, obj)
+        }
+    ], function (err, result) {
+        if (err) console.log(err);
+        callbackall(null, result)
+    })
+}
+/**
+ * /lấy tất cả url của các trang bài viết
+ * @param list
+ * link : loaiTinTuc.linkPage,
+ * kind : loaiTinTuc.kind,
+ * lastIndicator : last,
+ * role : loaiTinTuc._id
+ * @param callback
+ */
+function getAllUrlPageTinTuc(list, callback) {
+    var arrUrl = []
+    for (let i = 0; i < list.length; i++) {
+        for (let indicator = 0; indicator <= list[i].lastIndicator; indicator++) {
+            var url = list[i].link + "?page=" + indicator; //http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
+            var obj = {
+                link: url,
+                role: list[i].role
+            }
+            arrUrl.push(obj)
+        }
+    }
+    callback(null, arrUrl)
+}
+/**
+ * lấy tất cả các url của tất cả trnag bài viết
+ * cacs dữ liệu truyền
+ * @param list :
+    * link : url
+ * role : list[i].role
+ * @param callbackAll
+ */
+function getAllUrlTinTuc(list, callbackAll) {
+    var arrFun = [];
+    var firstFun = function (callback) {
+        callback(null, []);
+    };
+    arrFun.push(firstFun);
+    for (let i = 0; i < list.length; i++) {
+        var fun = function (arr, callback) {
+            parserHtmlTinTuc(list[i].link, list[i].role, function (err, result) {
+                if (err) callback(err, null);
+                callback(null, arr.concat(result))
+            })
+        };
+        arrFun.push(fun)
+    }
+    async.waterfall(arrFun, function (err, result) {
+        if (err) callbackAll(err, null);
+        callbackAll(null, result)
+    })
+}
+/**
+ * vì trong trang mail ko có thời gian post các bài viết nên
+ * phair vào từng trang để lấy nên mất khá nhiều thì giờ
+ * @param datas : mảng các tin tức
+ * @param callback
+ */
+function getPostAllForEachTinTuc(result, callback) {
+    var stack = []
+    stack.push(function (callback) {
+        callback(null, result)
+    })
+    //make stack request to server
+    for (let i = 0; i < result.length; i++) {
+        var prototype = function (data, callback) {
+            //gui request len server
+            detailRequest(result[i].link, function (err, date) {
+                data[i].postAt = date;
+                callback(null, result)
+            })
+        }
+        stack.push(prototype)
+    }
+    async.waterfall(stack, function (err, result) {
+        if (err) {
+            console.log(err);
+            callback(err, null)
+        }
+        callback(null, result)
+    })
+}
 //parser html to object
-module.exports.parserHtmlTinTuc = function (url, role, callbackall) {
+//get link,ten,anh
+function parserHtmlTinTuc(url, role, callbackall) {
     async.waterfall([
         function (callback) {
             makeRequest(url, callback)
@@ -85,13 +261,10 @@ module.exports.parserHtmlTinTuc = function (url, role, callbackall) {
                 normalizeWhitespace: true,
                 xmlMode: true
             });
-
             $('.views-row').each(function (i, ele) {
                 var title = $('.field-content .title_term ', this).text();
                 var link_temp = $('.field-content > a', this).attr('href');
                 var imageLink = $('.field-content img', this).attr('src');
-
-
                 //====================================
                 var stringOnSpan = "";
                 $('div.views-field-teaser>div>div>span', this).each(function (sec, e) {
@@ -109,18 +282,13 @@ module.exports.parserHtmlTinTuc = function (url, role, callbackall) {
                     stringOnSpan = $('div.views-field-teaser span', this).text();
                 }
                 //====================================
-
-
                 var container = $('div.views-field-teaser>div>div>span>span>span', this).text()
                     || $('div.views-field-teaser>div>div>span>span', this).text()
                     || stringOnSpan;
-
-
                 //tao model
                 //link lấy về đoi khi cps kí tự dặc biệt
                 //phai decode sang string
                 if (title && link_temp && imageLink && container) {
-
                     list.push({
                         title: entities.decode(title).toLowerCase().trim(),
                         link: (config.UetHostName + link_temp).trim().toLowerCase(),
@@ -134,41 +302,6 @@ module.exports.parserHtmlTinTuc = function (url, role, callbackall) {
         }
     ], callbackall)
 }
-
-//==========================================================
-//Taoj request
-var getData = function (baseUrl, role, numberPage, callback) {
-    var url = baseUrl;
-    var arrUrl = []
-    for (var i = 0; i < numberPage; i++) {
-        arrUrl.push(url + '?page=' + i)
-    }
-    var arr = [];
-    var dem = 0;
-    for (var i = 0; i < numberPage; i++) {
-        var fun1 = function (callback) {
-            utils.parserHtmlTinTuc(arrUrl[dem++], role, callback)
-        }
-        arr.push(fun1)
-    }
-
-    async.parallel(arr, function (err, result) {
-        if (err) {
-            console.log(err)
-            callback(err, null)
-        }
-        else {
-            var list = []
-            for (var i = 0; i < result.length; i++) {
-                for (var j = 0; j < result[i].length; j++) {
-                    list.push(result[i][j])
-                }
-            }
-            callback(null, list)
-        }
-    })
-}
-//delete duplicate
 function deleteDuplicate(a) {
     var list = a;
     for (var i = 0; i < list.length; i++) {
@@ -187,146 +320,10 @@ function deleteDuplicate(a) {
     }
     return list;
 }
-
-
-module.exports.importTinTuc = function () {
-    async.waterfall([
-        function (callback) {
-            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/93", 0, 15, function (err, list) {
-                if (err) {
-                    callback(err, null)
-                    return;
-                }
-                callback(null, list)
-            })
-        },
-        // function (data,callback) {
-        //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/96",1,2,function (err,list) {
-        //         if(err) {
-        //             callback(err,null)
-        //             return;
-        //         }
-        //         callback(null,list.concat(data))
-        //     });
-        // },
-        // function (data,callback) {
-        //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/101",2,27,function (err,list) {
-        //         if(err) {
-        //             callback(err,null)
-        //             return;
-        //         }
-        //         callback(null,list.concat(data))
-        //     });
-        // },
-        // function (data,callback) {
-        //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/95",3,4,function (err,list) {
-        //         if(err) {
-        //             callback(err,null)
-        //             return;
-        //         }
-        //         callback(null,list.concat(data))
-        //     });
-        // },
-        // function (data,callback) {
-        //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/94",4,11,function (err,list) {
-        //         if(err) {
-        //             callback(err,null)
-        //             return;
-        //         }
-        //         callback(null,list.concat(data))
-        //     });
-        // },
-        // function (data,callback) {
-        //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/97",5,12,function (err,list) {
-        //         if(err) {
-        //             callback(err,null)
-        //             return;
-        //         }
-        //         callback(null,list.concat(data))
-        //     });
-        // },
-        // function (data,callback) {
-        //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/98",6,3,function (err,list) {
-        //         if(err) {
-        //             callback(err,null)
-        //             return;
-        //         }
-        //         callback(null,list.concat(data))
-        //     });
-        // },
-        function (data, callback) {
-            getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/99", 7, 2, function (err, list) {
-                if (err) {
-                    callback(err, null)
-                    return;
-                }
-                callback(null, list.concat(data))
-            });
-        },
-        function (data, callback) {
-            //xoa cacs baif bij trung
-            var result = deleteDuplicate(data)
-            callback(null, result)
-
-        },
-        /*
-         * Chay tung ham de boc tac thoi gian nen mat kha nhieu thi gio
-         */
-        function (result, callback) {
-            var stack = []
-            var dem = 0;
-            stack.push(function (callback) {
-                callback(null, result)
-            })
-            //make stack request to server
-            for (var i = 0; i < result.length; i++) {
-                var prototype = function (data, callback) {
-                    //gui request len server
-                    console.log(dem)
-                    detailRequest(result[dem++].link, function (err, date) {
-                        data[--dem].postAt = date;
-                        dem++;
-                        callback(null, result)
-                    })
-                }
-                stack.push(prototype)
-            }
-            async.waterfall(stack, function (err, result) {
-                if (err) {
-                    console.log(err)
-                    callback(err, null)
-                }
-                callback(null, result)
-            })
-        }
-    ], function (err, result) {
-        TinTucController.create(result, function (err, list) {
-            if (err) {
-                console.log(err)
-                return;
-            }
-            else console.log("import success")
-        })
-    })
-}
 function detailRequest(url, callback) {
-    console.log(url)
     async.waterfall([
         function (callback) {
-            request({
-                uri: url,
-                method: "GET",
-                timeout: 60000,
-                followRedirect: true,
-                maxRedirects: 10
-            }, function (err, response, body) {
-                if (err) {
-                    callback(err, null)
-                    return;
-                }
-                callback(null, body)
-                return;
-            })
+            makeRequest(url, callback)
         },
         function (body, callback) {
             var $ = cheerio.load(body, {
@@ -334,9 +331,9 @@ function detailRequest(url, callback) {
                 xmlMode: true
             });
             var stringDate = $('.node .submitted').text().trim();
-            console.log(stringDate)
-            var date = chuanHoaDate(stringDate)
-            console.log(date)
+            console.log(stringDate);
+            var date = chuanHoaDate(stringDate);
+            console.log(date);
             callback(null, date)
         }
     ], function (err, result) {
@@ -346,37 +343,17 @@ function detailRequest(url, callback) {
         }
         callback(null, result)
     })
-
 }
 function chuanHoaDate(string) {
     //string dang MM,DD,YYYY
     var stringDate = string.split(',')[1].trim().split(' ')[0].trim();
     var arr = stringDate.split('/');
-
     // new Date(YYYY,MM,DD)
     var str = arr[2].trim() + "-" + arr[0].trim() + "-" + arr[1].trim();
     var date = new Date(str.trim());
     return date
 }
-
-//tao request trong async
-function makeRequest(url, callback) {
-    console.log(url)
-    request({
-        uri: url,
-        method: "GET",
-        timeout: 60000,
-        followRedirect: true,
-        maxRedirects: 10
-    }, function (err, response, body) {
-        if (err) {
-            callback(err, null)
-            return;
-        }
-        callback(null, body)
-        return;
-    })
-}
+//===================================================
 //tra lại body html
 module.exports.adapter = function (url, finish) {
     async.waterfall([
@@ -394,7 +371,6 @@ module.exports.adapter = function (url, finish) {
         finish(null, result)
     })
 }
-
 /**
  * phan tich tràn detail TinTuc
  * code nay kha lằng nhằng
@@ -410,8 +386,6 @@ var getMainHTML = function (body, callback) {
         xmlMode: true
     });
     var title = entities.decode($('#main>.title').html());
-
-
     //them href len server uet
     var mainHtml = $('#main').html();
     var $$ = cheerio.load(mainHtml, {
@@ -420,14 +394,13 @@ var getMainHTML = function (body, callback) {
     });
     $$('a').each(function (i, ele) {
         if (ele.attribs.href.toString().search('http://') < 0) {
-            ele.attribs.href = config.UetHostName+ele.attribs.href;
+            ele.attribs.href = config.UetHostName + ele.attribs.href;
         }
-
     })
     console.log('===================================')
     $$('img').each(function (i, ele) {
         if (ele.attribs.src.toString().search('http://') < 0) {
-            ele.attribs.src = config.UetHostName+ele.attribs.src;
+            ele.attribs.src = config.UetHostName + ele.attribs.src;
         }
         console.log(ele.attribs.src)
     })
@@ -435,7 +408,6 @@ var getMainHTML = function (body, callback) {
     //xoa vai thu ko can thiet
     $$('.links').remove()
     $$('.print-link').remove()
-
     var main = entities.decode($$('.node').html());
     var result = {
         title: title,
@@ -443,3 +415,177 @@ var getMainHTML = function (body, callback) {
     }
     callback(null, result)
 }
+//tao request trong async
+function makeRequest(url, callback) {
+    console.log(url)
+    request({
+        uri: url,
+        method: "GET",
+        timeout: 200000,
+        followRedirect: true,
+        maxRedirects: 10
+    }, function (err, response, body) {
+        if (err) {
+            callback(err, null)
+            return;
+        }
+        callback(null, body)
+        return;
+    })
+}
+//============================================================
+//==========================================================
+//CACH XU LÝ CŨ
+//Taoj request
+// var getData = function (baseUrl, role, numberPage, callback) {
+//     var url = baseUrl;
+//     var arrUrl = []
+//     for (var i = 0; i < numberPage; i++) {
+//         arrUrl.push(url + '?page=' + i)
+//     }
+//     var arr = [];
+//     var dem = 0;
+//     for (var i = 0; i < numberPage; i++) {
+//         var fun1 = function (callback) {
+//             utils.parserHtmlTinTuc(arrUrl[dem++], role, callback)
+//         }
+//         arr.push(fun1)
+//     }
+//     async.parallel(arr, function (err, result) {
+//         if (err) {
+//             console.log(err)
+//             callback(err, null)
+//         }
+//         else {
+//             var list = []
+//             for (var i = 0; i < result.length; i++) {
+//                 for (var j = 0; j < result[i].length; j++) {
+//                     list.push(result[i][j])
+//                 }
+//             }
+//             callback(null, list)
+//         }
+//     })
+// }
+//delete duplicate
+// /**
+//  * import tin tuc tung trang
+//  */
+// module.exports.importTinTuc = function () {
+//     async.waterfall([
+//         function (callback) {
+//             getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/99", 0, 2, function (err, list) {
+//                 if (err) {
+//                     callback(err, null)
+//                     return;
+//                 }
+//                 callback(null, list)
+//             })
+//         },
+//         // function (data,callback) {
+//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/96",1,2,function (err,list) {
+//         //         if(err) {
+//         //             callback(err,null)
+//         //             return;
+//         //         }
+//         //         callback(null,list.concat(data))
+//         //     });
+//         // },
+//         // function (data,callback) {
+//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/101",2,27,function (err,list) {
+//         //         if(err) {
+//         //             callback(err,null)
+//         //             return;
+//         //         }
+//         //         callback(null,list.concat(data))
+//         //     });
+//         // },
+//         // function (data,callback) {
+//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/95",3,4,function (err,list) {
+//         //         if(err) {
+//         //             callback(err,null)
+//         //             return;
+//         //         }
+//         //         callback(null,list.concat(data))
+//         //     });
+//         // },
+//         // function (data,callback) {
+//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/94",4,11,function (err,list) {
+//         //         if(err) {
+//         //             callback(err,null)
+//         //             return;
+//         //         }
+//         //         callback(null,list.concat(data))
+//         //     });
+//         // },
+//         // function (data,callback) {
+//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/97",5,12,function (err,list) {
+//         //         if(err) {
+//         //             callback(err,null)
+//         //             return;
+//         //         }
+//         //         callback(null,list.concat(data))
+//         //     });
+//         // },
+//         // function (data,callback) {
+//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/98",6,3,function (err,list) {
+//         //         if(err) {
+//         //             callback(err,null)
+//         //             return;
+//         //         }
+//         //         callback(null,list.concat(data))
+//         //     });
+//         // },
+//         // function (data, callback) {
+//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/99", 7, 2, function (err, list) {
+//         //         if (err) {
+//         //             callback(err, null)
+//         //             return;
+//         //         }
+//         //         callback(null, list.concat(data))
+//         //     });
+//         // },
+//         function (data, callback) {
+//             //xoa cacs baif bij trung
+//             var result = deleteDuplicate(data)
+//             callback(null, result)
+//         },
+//         /*
+//          * Chay tung ham de boc tac thoi gian nen mat kha nhieu thi gio
+//          */
+//         function (result, callback) {
+//             var stack = []
+//             var dem = 0;
+//             stack.push(function (callback) {
+//                 callback(null, result)
+//             })
+//             //make stack request to server
+//             for (var i = 0; i < result.length; i++) {
+//                 var prototype = function (data, callback) {
+//                     //gui request len server
+//                     detailRequest(result[dem++].link, function (err, date) {
+//                         data[--dem].postAt = date;
+//                         dem++;
+//                         callback(null, result)
+//                     })
+//                 }
+//                 stack.push(prototype)
+//             }
+//             async.waterfall(stack, function (err, result) {
+//                 if (err) {
+//                     console.log(err)
+//                     callback(err, null)
+//                 }
+//                 callback(null, result)
+//             })
+//         }
+//     ], function (err, result) {
+//         TinTucController.create(result, function (err, list) {
+//             if (err) {
+//                 console.log(err)
+//                 return;
+//             }
+//             else console.log("import success")
+//         })
+//     })
+// }

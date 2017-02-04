@@ -3,8 +3,8 @@
  */
 var express = require('express');
 var router = express.Router();
-var TinTucController = require('../controllers/TinTucController')
-var utils = require('../Utils/UltisTinTuc')
+var TinTucController = require('../controllers/TinTucController');
+var utils = require('../Utils/UltisTinTuc');
 var async = require('async');
 
 router.get('/',function (req,res) {
@@ -43,11 +43,5 @@ router.get('/detail',function (req,res) {
 
 //ham nay de impot du lieu
 //CHAY LAN DAU ROI COMMENT NO LAI
-//chắc truy vấn trước sau đó mới cho import
-//loai tin tuc chay nhanh ho nen ko phai dong bo
-// utils.importLoaiTinTuc();
-// utils.importTinTuc();
-
-
-
-module.exports = router
+//utils.parseMainPage('http://uet.vnu.edu.vn/coltech/taxonomy/term/101');
+module.exports = router;

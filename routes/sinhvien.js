@@ -57,7 +57,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req
 })
 //=============================================================
 //sinhvien post tokenfirebase
-router.post('/guiTokenfirebase', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req, res, next) {
+router.post('/guitokenfirebase', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req, res, next) {
     var tokenFirebase = req.body.tokenFirebase;
     if (!tokenFirebase) {
         res.json({

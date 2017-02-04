@@ -9,10 +9,14 @@ var LoaiTinTuc = new mongoose.Schema({
         require: true,
         unique: true
     },
+    linkPage: {
+        type: String,
+        require: true
+    }
+    ,
     kind: {
         type: String,
-        require: true,
-        default: 'Tổng Hợp'
+        require: true
     }
 });
 
