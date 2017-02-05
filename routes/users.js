@@ -77,4 +77,12 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 
+
+router.get('/profile',auth.reqIsAuthenticate,function (req, res, next) {
+    res.json({
+        username: req.user._id,
+        password: req.user.password,
+        role: req.user.role
+    })
+})
 module.exports = router;
