@@ -96,7 +96,7 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                 if (!tieuDe || !noiDung) {
                     callback("ERR", null)
                 } else {
-                    SinhVienController.find({}, function (err, sinhviens) {
+                    SubscribeController.find({}, function (err, sinhviens) {
                         if (err) {
                             callback(err, null)
                         } else {
@@ -118,82 +118,92 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                             var registerToken = [];
                             if (loaiThongBao == 'DiemThi') {
                                 sinhviens.forEach(function (sinhvien) {
-                                    if (typeNoti.checkLoaiThongBaoDiem(sinhvien)) {
-                                        registerToken.push(sinhvien.tokenFirebase)
-                                    }
-                                    sender.send(message, registerToken, function (err, response) {
-                                        console.log(response)
-                                        if (err) {
-                                            callback(err, null)
-                                        }
-                                        else {
-                                            callback(null, "Success")
+                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
+                                        if (typeNoti.checkLoaiThongBaoDiem(sinhvien)) {
+                                            registerToken.push(sv.tokenFirebase)
                                         }
                                     })
+                                })
+                                sender.send(message, registerToken, function (err, response) {
+                                    console.log(response)
+                                    if (err) {
+                                        callback(err, null)
+                                    }
+                                    else {
+                                        callback(null, "Success")
+                                    }
                                 })
                             }
                             if (loaiThongBao == 'LichThi') {
                                 sinhviens.forEach(function (sinhvien) {
-                                    if (typeNoti.checkLoaiThongBaoLichThi(sinhvien)) {
-                                        registerToken.push(sinhvien.tokenFirebase)
-                                    }
-                                    sender.send(message, registerToken, function (err, response) {
-                                        console.log(response)
-                                        if (err) {
-                                            callback(err, null)
-                                        }
-                                        else {
-                                            callback(null, "Success")
+                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
+                                        if (typeNoti.checkLoaiThongBaoLichThi(sinhvien)) {
+                                            registerToken.push(sv.tokenFirebase)
                                         }
                                     })
+                                })
+                                sender.send(message, registerToken, function (err, response) {
+                                    console.log(response)
+                                    if (err) {
+                                        callback(err, null)
+                                    }
+                                    else {
+                                        callback(null, "Success")
+                                    }
                                 })
                             }
                             if (loaiThongBao == 'LichHoc') {
                                 sinhviens.forEach(function (sinhvien) {
-                                    if (typeNoti.checkLoaiThongBaoLichHoc(sinhvien)) {
-                                        registerToken.push(sinhvien.tokenFirebase)
-                                    }
-                                    sender.send(message, registerToken, function (err, response) {
-                                        console.log(response)
-                                        if (err) {
-                                            callback(err, null)
-                                        }
-                                        else {
-                                            callback(null, "Success")
+                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
+                                        if (typeNoti.checkLoaiThongBaoLichHoc(sinhvien)) {
+                                            registerToken.push(sv.tokenFirebase)
                                         }
                                     })
+                                })
+                                sender.send(message, registerToken, function (err, response) {
+                                    console.log(response)
+                                    if (err) {
+                                        callback(err, null)
+                                    }
+                                    else {
+                                        callback(null, "Success")
+                                    }
                                 })
                             }
                             if (loaiThongBao == 'DangKiTinChi') {
                                 sinhviens.forEach(function (sinhvien) {
-                                    if (typeNoti.checkLoaiThongBaoDangKiTinChi(sinhvien)) {
-                                        registerToken.push(sinhvien.tokenFirebase)
-                                    }
-                                    sender.send(message, registerToken, function (err, response) {
-                                        console.log(response)
-                                        if (err) {
-                                            callback(err, null)
-                                        }
-                                        else {
-                                            callback(null, "Success")
+                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
+                                        if (typeNoti.checkLoaiThongBaoDangKiTinChi(sinhvien)) {
+                                            registerToken.push(sv.tokenFirebase)
                                         }
                                     })
+                                })
+                                sender.send(message, registerToken, function (err, response) {
+                                    console.log(response)
+                                    if (err) {
+                                        callback(err, null)
+                                    }
+                                    else {
+                                        callback(null, "Success")
+                                    }
                                 })
                             }
                             if (loaiThongBao == 'TatCa') {
                                 sinhviens.forEach(function (sinhvien) {
-                                    if (typeNoti.checkLoaiThongBaoTatCa(sinhvien)) {
-                                        registerToken.push(sinhvien.tokenFirebase)
-                                    }
-                                    sender.send(message, registerToken, function (err, response) {
-                                        console.log(response)
-                                        if (err) {
-                                            callback(err, null)
-                                        }
-                                        else {
-                                            callback(null, "Success")
+                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
+                                        if (typeNoti.checkLoaiThongBaoTatCa(sinhvien)) {
+                                            registerToken.push(sv.tokenFirebase)
                                         }
                                     })
+                                })
+                                sender.send(message, registerToken, function (err, response) {
+                                    console.log(response)
+                                    if (err) {
+                                        callback(err, null)
+                                    }
+                                    else {
+                                        callback(null, "Success")
+                                    }
                                 })
                             }
                         }

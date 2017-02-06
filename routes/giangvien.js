@@ -266,7 +266,6 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,funct
                   });
                   SinhVienController.findById(objectDiem.MSV,function (err, sv) {
                       if (err){
-
                       }
                       sender.send(message,sv.tokenFirebase,function (err, response) {
                           if (err){
