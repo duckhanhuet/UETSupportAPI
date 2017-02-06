@@ -2,11 +2,15 @@ var mongoose = require('mongoose');
 
 var LoaiThongBaoSchema= mongoose.Schema({
     _id: {
-        type: String
+        type: Number,
+        require: true,
+        unique: true
     },
     tenLoaiThongBao:{
         type: String,
-        enum: ['DiemThi','LichThi','LichHoc','DangKiTinChi','ThongBaoKhac'],
-        default: 'ThongBaoKhac'
+        enum: ['DiemThi','LichThi','LichHoc','DangKiTinChi','TatCa','ThongBaoKhac'],
+        default: 'TatCa'
     }
-})
+});
+
+module.exports = mongoose.model('LoaiThongBao', LoaiThongBaoSchema);

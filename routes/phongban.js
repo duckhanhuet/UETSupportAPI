@@ -2,12 +2,14 @@ var express = require('express');
 var router = express.Router();
 var PhongBanController = require('../controllers/PhongBanController');
 var SinhVienController = require('../controllers/SinhVienController');
+var SubscribeController = require('../controllers/SubscribeController');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
 //========================================================
 var gcm = require('node-gcm');
 var config = require('../Config/Config');
 var async = require('async');
+var dataNoti= require('../Utils/dataNoti');
 //========================================================
 //get infomation of all phongban
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
@@ -64,7 +66,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 /**
  * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
  */
-router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res, next) {
+router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res, next) {
     //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
@@ -99,17 +101,18 @@ router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                             callback(err, null)
                         } else {
                             var message = new gcm.Message({
-                                data: {
-                                    tieuDe: tieuDe,
-                                    noiDung: noiDung,
-                                    tenFile: tenFile,
-                                    linkFile: linkFile,
-                                    mucDoThongBao: mucDoThongBao
-                                },
-                                notification: {
-                                    title: tieuDe,
-                                    body: noiDung
-                                }
+                                // data: {
+                                //     tieuDe: tieuDe,
+                                //     noiDung: noiDung,
+                                //     tenFile: tenFile,
+                                //     linkFile: linkFile,
+                                //     mucDoThongBao: mucDoThongBao
+                                // },
+                                // notification: {
+                                //     title: tieuDe,
+                                //     body: noiDung
+                                // }
+                                data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao)
                             })
                             var sender = new gcm.Sender(config.serverKey);
                             var registerToken = [];
@@ -213,8 +216,72 @@ router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
     }
 });
 
+//=====================================================
+//Gui thong bao diem
+router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
+    //Nhan object diem tu phia phongban qua webview,objectDiem gom co array cac object gom: tenLopMonHoc,MSV,
+    //diemThanhPhan,diemCuoiKi,tongDiem,tenGiangVien
+    var objectDiems= req.body;
+    async.waterfall([
+        function findSv(callback) {
+            SubscribeController.find({},function (err, sinhviens) {
+                if (err){
+                    callback('ERROR',null);
+                } else {
+                    callback(null,sinhviens);
+                }
+            })
+        },
+        function SvDkyDiem(sinhviens, callback) {
+            var dsSv=[];
+            sinhviens.forEach(function (sinhvien) {
+                if (typeNoti.checkLoaiThongBaoDiem(sinhvien)){
+                    dsSv.push(sinhvien);
+                }
+            })
+            callback(null,dsSv);
+        },
+        function guiThongBao(dsSv,callback) {
+            var arrayMSV=[];
+            var sender= gcm.Sender(config.serverKey);
+            dsSv.forEach(function (sv) {
+                arrayMSV.push(sv._id);
+            })
+            objectDiems.forEach(function (objectDiem) {
+                if (arrayMSV.indexOf(objectDiem.MSV)>-1){
+                    var message= new gcm.Message({
+                        data: dataNoti.createDataDiem(
+                            objectDiem.MSV,objectDiem.tenLopMonHoc
+                            ,objectDiem.tenKiHoc,objectDiem.tenGiangVien,
+                            objectDiem.monHoc,objectDiem.diemThanhPhan,objectDiem.diemCuoiKi,objectDiem.tongDiem)
+                    });
+                    SinhVienController.findById(objectDiem.MSV,function (err, sv) {
+                        if (err){
+
+                        }
+                        sender.send(message,sv.tokenFirebase,function (err, response) {
+                            if (err){
+                                console.log('Send noti for sinhvien '+objectDiem.MSV+' fail');
+                            }
+                        })
+                    })
+                }
+            })
+            callback(null,'Send Notification Diem success');
+        }
+    ])
+},function (err, result) {
+    if (err){
+        console.error(err);
+    }
+    res.json({
+        success: true,
+        message: result
+    })
+})
+
 //======================================================
-router.post('/postDatabase', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res) {
+router.post('/postdatabase', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res) {
     require('../test/postDatabase');
     res.json({
         success: true,

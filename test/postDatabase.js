@@ -8,6 +8,7 @@ GiangVien = require('../models/GiangVien');
 LopMonHoc = require('../models/LopMonHoc');
 KiHoc = require('../models/KiHoc');
 LopChinh = require('../models/LopChinh');
+LoaiThongBao = require('../models/LoaiThongBao');
 
 var UserController = require('../controllers/UserController');
 var SinhVienController = require('../controllers/SinhVienController');
@@ -17,6 +18,8 @@ var GiangVienController = require('../controllers/GiangVienController');
 var LopChinhController = require('../controllers/LopChinhController');
 var LopMonHocController = require('../controllers/LopMonHocController');
 var KiHocController = require('../controllers/KiHocController');
+var SubscribeController = require('../controllers/SubscribeController');
+var LoaiThongBaoController = require('../controllers/LoaiThongBaoController');
 
 var async = require('async');
 
@@ -30,6 +33,7 @@ var workbookLopChinhQuy = XLSX.readFile('./filedatabase/lopchinhquy.xlsx');
 var workbookLopMonHoc = XLSX.readFile('./filedatabase/lopmonhoc.xlsx');
 var workbookGiangVien = XLSX.readFile('./filedatabase/giangvien.xlsx');
 var workbookSinhVien = XLSX.readFile('./filedatabase/sinhvien.xlsx');
+var workbookLoaiThongBao = XLSX.readFile('./filedatabase/loaithongbao.xlsx');
 /* DO SOMETHING WITH workbook HERE */
 
 //===========================================
@@ -56,7 +60,7 @@ var sheet_name_list_lop_chinh_quy = workbookLopChinhQuy.SheetNames;
 var sheet_name_list_lop_mon_hoc = workbookLopMonHoc.SheetNames;
 var sheet_name_list_giang_vien = workbookGiangVien.SheetNames;
 var sheet_name_list_sinh_vien = workbookSinhVien.SheetNames;
-
+var sheet_name_list_loai_thong_bao = workbookSinhVien.SheetNames;
 async.series([
     function createKhoa(callback) {
         sheet_name_list_khoa.forEach(function (y) {
@@ -271,6 +275,8 @@ async.series([
         })
         callback(null, 'Create Lop Mon hoc thanh cong');
     },
+
+    // create sinh vien va Subscribe
     function CreateSinhVien(callback) {
         sheet_name_list_sinh_vien.forEach(function (y) {
             var worksheet = workbookSinhVien.Sheets[y];
@@ -293,7 +299,6 @@ async.series([
                         //console.log('Users PhongBan existed');
                     }
                 })
-
                 //======================
                 //create info sinhvien
                 var info = {
@@ -302,6 +307,9 @@ async.series([
                     idLopChinh: sinhvien.idLopChinh,
                     idLopMonHoc: sinhvien.idLopMonHoc
                 };
+                var infoSubscribe={
+                    _id: sinhvien._id,
+                }
                 //======================
                 //save info PB
                 SinhVienController.create(info, function (err, info) {
@@ -309,10 +317,35 @@ async.series([
                         //console.log('exist id');
                     }
                     //console.log(info);
+                });
+                SubscribeController.create(infoSubscribe,function (err, info) {
+                    if (err){
+
+                    }
                 })
             }
         })
         callback(null, 'Create Sinh vien thanh cong')
+    },
+    function createLoaiThongBao(callback) {
+        sheet_name_list_loai_thong_bao.forEach(function (y) {
+            var worksheet = workbookLoaiThongBao.Sheets[y];
+            var result = XLSX.utils.sheet_to_json(worksheet);
+            console.log(result);
+            for (var i=0;i<result.length;i++){
+                var loaithongbao= result[i];
+                var info={
+                    _id: Number(loaithongbao._id),
+                    tenLoaiThongBao: loaithongbao.tenLoaiThongBao
+                }
+                LoaiThongBaoController.create(info,function (err, info) {
+                    if (err){
+
+                    }
+                })
+            }
+        })
+        callback(null,'Create Loai Thong Bao Thanh Cong');
     }
 ], function (err, result) {
     if (err) {

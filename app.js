@@ -18,6 +18,8 @@ var giangvien = require('./routes/giangvien');
 var thongbao  = require('./routes/thongbao');
 var sinhvien  = require('./routes/sinhvien');
 var loaitintuc = require('./routes/loaitintuc');
+var loaithongbao = require('./routes/loaithongbao');
+var subscribe   = require('./routes/subscribe');
 var app = express();
 
 // view engine setup
@@ -50,6 +52,8 @@ app.use('/phongban',phongban);
 app.use('/sinhvien',sinhvien);
 app.use('/thongbao',thongbao);
 app.use('/loaitintuc', loaitintuc);
+app.use('/loaithongbao',loaithongbao);
+app.use('/subscribe',subscribe);
 
 //======================================================
 //không cần để ý phần này

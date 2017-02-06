@@ -13,6 +13,7 @@ var GiangVienController = require('../controllers/GiangVienController');
 //========================================
 var gcm = require('node-gcm');
 var config = require('../Config/Config');
+var dataNoti= require('../Utils/dataNoti');
 //========================================
 //get information of all sinhvien
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
@@ -70,7 +71,7 @@ router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next)
 
 //=====================================================
 //add sinh vien
-router.post('/addSinhVien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
+router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
     var _id = req.body.username;
     var password = req.body.password;
     var tenSinhVien = req.body.tenSinhVien;
@@ -135,13 +136,14 @@ router.post('/addSinhVien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 /**
  * XEM LẠI CAU TRUY VẤN ĐỂ KHOA CHI GỬI CHO CÁC SINH VIÊN TRONG KHOA
  */
-router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
+router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
     //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var tenFile = req.body.tenFile;
     var linkFile = req.body.linkFile;
     var mucDoThongBao = req.body.mucDoThongBao;
+    var loaiThongBao  = req.body.loaiThongBao;
     async.waterfall([
         function findSinhVien(callback) {
             SinhVienController.find({}, function (err, users) {
@@ -172,17 +174,18 @@ router.post('/guithongBao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
                         callback(err, null)
                     } else {
                         var message = new gcm.Message({
-                            data: {
-                                tieuDe: tieuDe,
-                                noiDung: noiDung,
-                                tenFile: tenFile,
-                                linkFile: linkFile,
-                                mucDoThongBao: mucDoThongBao
-                            },
-                            notification: {
-                                title: tieuDe,
-                                body: noiDung
-                            }
+                            // data: {
+                            //     tieuDe: tieuDe,
+                            //     noiDung: noiDung,
+                            //     tenFile: tenFile,
+                            //     linkFile: linkFile,
+                            //     mucDoThongBao: mucDoThongBao
+                            // },
+                            // notification: {
+                            //     title: tieuDe,
+                            //     body: noiDung
+                            // }
+                            data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao)
                         })
                         var sender = new gcm.Sender(config.serverKey);
                         var registerToken = []
