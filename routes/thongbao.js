@@ -29,6 +29,23 @@ router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
             });
         }
     })
+});
+
+router.get('/list100thongbao',function (req, res, next) {
+    var list=[];
+    ThongBaoController.find({},function (err, results) {
+        if (err){
+            res.json({
+                success: false,
+                message:'not found thongbao'
+            })
+        }
+        for (var i=0;i<100;i++){
+            list.push(results[i]);
+        }
+        res.json(list);
+    });
+
 })
 
 module.exports = router;
