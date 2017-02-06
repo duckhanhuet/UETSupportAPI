@@ -192,7 +192,7 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                                 sinhviens.forEach(function (sinhvien) {
                                     SinhVienController.findById(sinhvien._id,function (err, sv) {
                                         if (typeNoti.checkLoaiThongBaoTatCa(sinhvien)) {
-                                            registerToken.push(sv.tokenFirebase)
+                                            registerToken.push(sv.tokenFirebase);
                                         }
                                     })
                                 })
