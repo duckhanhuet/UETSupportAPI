@@ -1,5 +1,8 @@
 var express = require('express');
 var router = express.Router();
+var SinhVien= require('../models/SinhVien');
+var User    = require('../models/User');
+var LopChinh= require('../models/LopChinh');
 var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var auth = require('../policies/auth');
@@ -41,20 +44,26 @@ router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next)
 //getting profile of sinhvien
 router.get('/profile', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req, res) {
     var id = req.user._id;
-    SinhVienController.findById(id, function (err, result) {
-        if (err) {
+    SinhVien.findOne({_id:id}).populate('idLopChinh').populate('idLopMonHoc').exec(function (err, sv) {
+        if (err){
             res.json({
-                success: false,
-                message: 'cant found sinh vien'
-            })
-        } else {
-            res.json({
-                success: true,
-                profile: result,
-                user: req.user
+                success: false
             })
         }
-    });
+        LopChinh.findOne({_id:sv.idLopChinh}).populate('idKhoa').exec(function (err, lopchinh) {
+            if (err){
+                res.json({
+                    success:false
+                })
+            }
+            res.json({
+                success:true,
+                user: req.user,
+                profile: sv,
+                lopChinh: lopchinh
+            })
+        })
+    })
 })
 //=============================================================
 //sinhvien post tokenfirebase
@@ -164,6 +173,14 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
     //         }
     //     })
     //}
-})
+});
+
+// SinhVien.findOne({_id:'14020234'}).populate('_id').exec(function (err, sv) {
+//     if (err){
+//         console.log('error')
+//     }else {
+//         console.log(sv._id.password);
+//     }
+// })
 
 module.exports = router;

@@ -144,6 +144,8 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
     var linkFile = req.body.linkFile;
     var mucDoThongBao = req.body.mucDoThongBao;
     var loaiThongBao  = req.body.loaiThongBao;
+
+
     async.waterfall([
         function findSinhVien(callback) {
             SinhVienController.find({}, function (err, users) {

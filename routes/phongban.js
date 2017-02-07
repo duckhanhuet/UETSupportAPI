@@ -11,6 +11,12 @@ var config = require('../Config/Config');
 var async = require('async');
 var dataNoti= require('../Utils/dataNoti');
 //========================================================
+var bodyParser= require('body-parser');
+router.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+router.use(bodyParser.json())
+//
 //get infomation of all phongban
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     PhongBanController.find({}, function (err, phongbans) {
@@ -231,7 +237,7 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
     //Nhan object diem tu phia phongban qua webview,objectDiem gom co array cac object gom: tenLopMonHoc,MSV,
     //diemThanhPhan,diemCuoiKi,tongDiem,tenGiangVien
-    var objectDiems= req.body;
+    var objectDiems= JSON.parse(req.body.list);
     async.waterfall([
         function findSv(callback) {
             SubscribeController.find({},function (err, sinhviens) {

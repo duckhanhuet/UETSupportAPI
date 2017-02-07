@@ -3,7 +3,8 @@ var mongoose = require('mongoose');
 var SinhVienSchema =new  mongoose.Schema({
     _id:{
         type: String,
-        unique: true
+        unique: true,
+        ref: 'User'
     },
 
     tenSinhVien: {
@@ -15,10 +16,10 @@ var SinhVienSchema =new  mongoose.Schema({
         type: String,
         ref :'LopChinh'
     },
-    idLopMonHoc:{
+    idLopMonHoc:[{
         type: String,
         ref: 'LopMonHoc'
-    },
+    }],
     tokenFirebase:{
       type: String
     },

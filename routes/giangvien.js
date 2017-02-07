@@ -230,7 +230,7 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsGiangVien, functio
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,function (req, res, next) {
     //Nhan object diem tu phia giangvien qua webview,objectDiem gom co array cac object gom: tenLopMonHoc,MSV,
     //diemThanhPhan,diemCuoiKi,tongDiem,tenGiangVien
-    var objectDiems= req.body;
+    var objectDiems= JSON.parse(req.body.list);
     async.waterfall([
         function findSv(callback) {
             SubscribeController.find({},function (err, sinhviens) {
