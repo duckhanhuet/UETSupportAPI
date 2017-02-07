@@ -145,17 +145,26 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
     var mucDoThongBao = req.body.mucDoThongBao;
     var loaiThongBao  = req.body.loaiThongBao;
 
-
     async.waterfall([
         function findSinhVien(callback) {
-            SinhVienController.find({}, function (err, users) {
-                if (err) {
-                    callback("ERR", null)
+            var users=[];
+            SinhVienController.find({},function (err, svs) {
+                if (err){
+                    callback(err,null);
                 }
-                else {
-                    callback(null, users);
-                }
+                svs.forEach(function (sv) {
+                    SinhVien.findOne({_id:sv._id}).populate('idLopChinh').exec(function (err, sinhvien) {
+                        if (err){
+                            throw err;
+                        }
+                        if (sinhvien.idLopChinh.idKhoa==req.user._id){
+                            users.push(sinhvien);
+                            //console.log(sinhvien);
+                        }
+                    })
+                })
             })
+            callback(null,users);
         },
 
         //========================================
