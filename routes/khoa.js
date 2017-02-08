@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 var User = require('../models/User');
 var SinhVien = require('../models/SinhVien');
+var Subscribe= require('../models/Subscribe');
 var auth = require('../policies/auth');  //xử lý token trước khi vào API, đính kèm trước cái hàm cần đăng nhập
 var async = require('async');
 var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
@@ -10,10 +11,12 @@ var SinhVienController = require('../controllers/SinhVienController');
 var KhoaController = require('../controllers/KhoaController');
 var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
+var SubscribeController = require('../controllers/SubscribeController');
 //========================================
 var gcm = require('node-gcm');
 var config = require('../Config/Config');
 var dataNoti= require('../Utils/dataNoti');
+var typeNoti = require('../policies/sinhvien');
 //========================================
 //get information of all sinhvien
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
@@ -136,6 +139,7 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 /**
  * XEM LẠI CAU TRUY VẤN ĐỂ KHOA CHI GỬI CHO CÁC SINH VIÊN TRONG KHOA
  */
+
 router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
     //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
     var tieuDe = req.body.tieuDe;
@@ -176,44 +180,65 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
                 // })
                 callback("ERR", null)
             } else {
-                SinhVienController.find({}, function (err, sinhviens) {
-                    if (err) {
-                        // res.json({
-                        //     success:false,
-                        //     message: 'cannot found sinhvien to send notification'
-                        // })
-                        callback(err, null)
-                    } else {
-                        var message = new gcm.Message({
-                            // data: {
-                            //     tieuDe: tieuDe,
-                            //     noiDung: noiDung,
-                            //     tenFile: tenFile,
-                            //     linkFile: linkFile,
-                            //     mucDoThongBao: mucDoThongBao
-                            // },
-                            // notification: {
-                            //     title: tieuDe,
-                            //     body: noiDung
-                            // }
-                            data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao)
-                        })
-                        var sender = new gcm.Sender(config.serverKey);
-                        var registerToken = []
-                        sinhviens.forEach(function (sinhvien) {
-                            registerToken.push(sinhvien.tokenFirebase)
-                        })
-                        sender.send(message, registerToken, function (err, response) {
-                            console.log(response)
-                            if (err) {
-                                callback(err, null)
-                            }
-                            else {
-                                callback(null, "Success")
-                            }
-                        })
-                    }
-                })
+                var message= new gcm.Message({
+                    data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao)
+                });
+                var sender= new gcm.Sender(config.serverKey);
+                var registerToken= [];
+                if (loaiThongBao=='TatCa')
+                {
+                    SubscribeController.findById(users._id,function (err, sv) {
+                        if (typeNoti.checkLoaiThongBaoTatCa(sv)){
+                            registerToken.push(sv);
+                        }
+                    })
+                    sender.send(message, registerToken, function (err, response) {
+                        console.log(response)
+                        if (err) {
+                            callback(err, null)
+                        }
+                        else {
+                            callback(null, "Success")
+                        }
+                    })
+                }
+
+                if (loaiThongBao=='LichHoc')
+                {
+                    SubscribeController.findById(users._id,function (err, sv) {
+                        if (typeNoti.checkLoaiThongBaoLichHoc(sv)){
+                            registerToken.push(sv);
+                        }
+                    })
+                    sender.send(message, registerToken, function (err, response) {
+                        console.log(response)
+                        if (err) {
+                            callback(err, null)
+                        }
+                        else {
+                            callback(null, "Success")
+                        }
+                    })
+                }
+
+                if (loaiThongBao=='LichThi')
+                {
+                    SubscribeController.findById(users._id,function (err, sv) {
+                        if (typeNoti.checkLoaiThongBaoLichThi(sv)){
+                            registerToken.push(sv);
+                        }
+                    })
+                    sender.send(message, registerToken, function (err, response) {
+                        console.log(response)
+                        if (err) {
+                            callback(err, null)
+                        }
+                        else {
+                            callback(null, "Success")
+                        }
+                    })
+                }
+
             }
         }
     ], function (err, result) {
