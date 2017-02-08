@@ -130,7 +130,7 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
             if (err) {
                 console.error(err);
             } else {
-                res.json(result);
+                res.json(result)
             }
 
         })
