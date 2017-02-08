@@ -216,7 +216,7 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
                             callback(err, null)
                         }
                         else {
-                            callback(null, "Success")
+                            callback(null, "Success");
                         }
                     })
                 }
