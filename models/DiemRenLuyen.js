@@ -7,11 +7,11 @@ var DiemRenLuyenSchema = mongoose.Schema({
         required: true
     },
     idSinhVien:{
-        type: Schema.Types.ObjectId,
+        type: String,
         ref : 'SinhVien'
     },
     idKi :{
-        type: Schema.Types.ObjectId,
+        type: String,
         ref : 'KiHoc'
     }
 });

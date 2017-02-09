@@ -13,20 +13,19 @@ var ThongBaoSchema = mongoose.Schema({
     },
     idUser:{
         type: String,
-        ref : ['SinhVien','Khoa','PhongBan']
+        //ref : ['GiangVien','Khoa','PhongBan']
     },
     idFile:{
         type: String,
         ref : 'File'
     },
-    loaiThongBao:[{
-        type: String,
+    idLoaiThongBao:{
+        type: Number,
         ref: 'LoaiThongBao'
-    }],
-    mucDoThongBao:{
-        type: String,
-        enum: ['khanCap','quanTrong','binhThuong'],
-        default:'binhThuong'
+    },
+    idMucDoThongBao:{
+        type: Number,
+        ref:'MucDoThongBao'
     }
 });
 

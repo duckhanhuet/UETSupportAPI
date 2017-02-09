@@ -6,10 +6,6 @@ var FileSchema = mongoose.Schema({
     },
     link:{
         type: String
-    },
-    time:{
-        type:Date,
-        default: Date.now
     }
 });
 

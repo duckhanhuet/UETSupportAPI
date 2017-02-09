@@ -2,6 +2,9 @@ var express = require('express');
 var router = express.Router();
 var FileController = require('../controllers/FileController');
 var ThongBaoController = require('../controllers/ThongBaoController');
+var LoaiThongBaoController= require('../controllers/LoaiThongBaoController');
+var FileController    = require('../controllers/FileController');
+var ThongBao           = require('../models/ThongBao');
 var auth = require('../policies/auth');
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     ThongBaoController.find({}, function (err, thongbaos) {
@@ -15,18 +18,17 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    ThongBaoController.findById(req.params.id, function (err, thongbao) {
-        if (err) {
+    ThongBao.findOne({_id:req.params.id}).populate('idFile').populate('idLoaiThongBao').exec(function (err, thongbao) {
+        if (err){
             res.json({
-                success: err,
-                message: 'not found file with id ' + req.params.id
+                success: false
             })
         }
         else {
             res.json({
-                success: true,
-                metadata: thongbao
-            });
+                success:true,
+                metadata:thongbao
+            })
         }
     })
 });
@@ -45,7 +47,26 @@ router.get('/list100thongbao',function (req, res, next) {
         }
         res.json(list);
     });
+});
 
+//thong bao diem thi (file diem duoi dang link file pdf)
+router.get('/list/diemthi',auth.reqIsAuthenticate,function (req, res) {
+    ThongBaoController.find({},function (err, thongbaos) {
+        if (err) {
+            res.json({
+                success: false
+            })
+        }
+        else {
+            var listThongBao = [];
+            thongbaos.forEach(function (thongbao) {
+                if (thongbao.idLoaiThongBao==1){
+                    listThongBao.push(thongbao);
+                }
+            })
+            res.json(listThongBao)
+        }
+
+    })
 })
-
 module.exports = router;

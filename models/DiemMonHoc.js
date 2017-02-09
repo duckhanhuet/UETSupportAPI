@@ -11,11 +11,11 @@ var DiemMonHocSchema = mongoose.Schema({
         required: true
     },
     idSinhVien:{
-        type: Schema.Types.ObjectId,
+        type:String,
         ref : 'SinhVien'
     },
     idLopMonHoc:{
-        type: Schema.Types.ObjectId,
+        type:String,
         ref : 'LopMonHoc'
     }
 

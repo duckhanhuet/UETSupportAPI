@@ -20,6 +20,7 @@ var sinhvien  = require('./routes/sinhvien');
 var loaitintuc = require('./routes/loaitintuc');
 var loaithongbao = require('./routes/loaithongbao');
 var subscribe   = require('./routes/subscribe');
+var mucdothongbao = require('./routes/mucdothongbao');
 var app = express();
 
 // view engine setup
@@ -54,7 +55,7 @@ app.use('/thongbao',thongbao);
 app.use('/loaitintuc', loaitintuc);
 app.use('/loaithongbao',loaithongbao);
 app.use('/subscribe',subscribe);
-
+app.use('/mucdothongbao',mucdothongbao);
 //======================================================
 //không cần để ý phần này
 // catch 404 and forward to error handler

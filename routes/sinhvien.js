@@ -5,6 +5,9 @@ var User    = require('../models/User');
 var LopChinh= require('../models/LopChinh');
 var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
+var DiemMonHocController = require('../controllers/DiemMonHocController');
+var DiemMonHoc           = require('../models/DiemMonHoc');
+var DiemRenLuyenController = require('../controllers/DiemRenLuyenController');
 var auth = require('../policies/auth');
 //==========================================
 var gcm = require('node-gcm');
@@ -182,5 +185,41 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
 //         console.log(sv._id.password);
 //     }
 // })
+
+//=======================================================
+//diem tung mon hoc cu the
+router.get('/diem/:idlopmonhoc',auth.reqIsAuthenticate,function (req, res, next) {
+    DiemMonHocController.find({idSinhVien:req.user._id,idLopMonHoc: req.params.idlopmonhoc},function (err, diemmonhoc) {
+        if (err){
+            res.json({
+                success:false,
+            })
+        }else {
+            res.json({
+                success: true,
+                infomation: diemmonhoc
+            })
+        }
+    })
+})
+//=======================================================
+//lay diem tat ca cac mon hoc
+router.get('/alldiem',auth.reqIsAuthenticate,function (req, res, next) {
+    DiemMonHocController.find({idSinhVien:req.user._id},function (err, diemmonhocs) {
+        if (err){
+            res.json({
+                success:false
+            })
+        } else {
+            res.json(diemmonhocs);
+        }
+    })
+})
+//=======================================================
+//get diemrenluyen
+router.get('/diemrenluyen',auth.reqIsAuthenticate,function (req, res) {
+
+});
+//=======================================================
 
 module.exports = router;

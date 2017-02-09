@@ -9,6 +9,9 @@ LopMonHoc = require('../models/LopMonHoc');
 KiHoc = require('../models/KiHoc');
 LopChinh = require('../models/LopChinh');
 LoaiThongBao = require('../models/LoaiThongBao');
+MucDoThongBao= require('../models/MucDoThongBao');
+ThongBao = require('../models/ThongBao');
+File     = require('../models/File');
 
 var UserController = require('../controllers/UserController');
 var SinhVienController = require('../controllers/SinhVienController');
@@ -20,6 +23,9 @@ var LopMonHocController = require('../controllers/LopMonHocController');
 var KiHocController = require('../controllers/KiHocController');
 var SubscribeController = require('../controllers/SubscribeController');
 var LoaiThongBaoController = require('../controllers/LoaiThongBaoController');
+var FileController  = require('../controllers/FileController');
+var ThongBaoController        = require('../controllers/ThongBaoController');
+var MucDoThongBaoController   = require('../controllers/MucDoThongBaoController');
 
 var async = require('async');
 
@@ -34,6 +40,9 @@ var workbookLopMonHoc = XLSX.readFile('./filedatabase/lopmonhoc.xlsx');
 var workbookGiangVien = XLSX.readFile('./filedatabase/giangvien.xlsx');
 var workbookSinhVien = XLSX.readFile('./filedatabase/sinhvien.xlsx');
 var workbookLoaiThongBao = XLSX.readFile('./filedatabase/loaithongbao.xlsx');
+var workbookMucDoThongBao= XLSX.readFile('./filedatabase/mucdothongbao.xlsx');
+var workbookThongBao     = XLSX.readFile('./filedatabase/thongbao.xlsx');
+
 /* DO SOMETHING WITH workbook HERE */
 
 //===========================================
@@ -61,6 +70,8 @@ var sheet_name_list_lop_mon_hoc = workbookLopMonHoc.SheetNames;
 var sheet_name_list_giang_vien = workbookGiangVien.SheetNames;
 var sheet_name_list_sinh_vien = workbookSinhVien.SheetNames;
 var sheet_name_list_loai_thong_bao = workbookSinhVien.SheetNames;
+var sheet_name_list_thong_bao= workbookThongBao.SheetNames;
+var sheet_name_list_muc_do_thong_bao= workbookMucDoThongBao.SheetNames;
 async.series([
     function createKhoa(callback) {
         sheet_name_list_khoa.forEach(function (y) {
@@ -346,7 +357,58 @@ async.series([
             }
         })
         callback(null,'Create Loai Thong Bao Thanh Cong');
-    }
+    },function createMucDoThongBao(callback) {
+        sheet_name_list_muc_do_thong_bao.forEach(function (y) {
+            var worksheet = workbookMucDoThongBao.Sheets[y];
+            var result = XLSX.utils.sheet_to_json(worksheet);
+            console.log(result);
+            for (var i=0;i<result.length;i++){
+                var mucdothongbao= result[i];
+                var info={
+                    _id: Number(mucdothongbao._id),
+                    tenMucDoThongBao: mucdothongbao.tenMucDoThongBao
+                }
+                MucDoThongBaoController.create(info,function (err, info) {
+                    if (err){
+                    }
+                })
+            }
+        })
+        callback(null,'Create mucdothongbao thanh cong')
+    },
+    // function createThongBao(callback) {
+    //     sheet_name_list_thong_bao.forEach(function (y) {
+    //         var worksheet = workbookThongBao.Sheets[y];
+    //         var result = XLSX.utils.sheet_to_json(worksheet);
+    //         console.log(result);
+    //         for (var i=0;i<result.length;i++){
+    //             var thongbao= result[i];
+    //             var infoFile ={
+    //                 tenFile: thongbao.tenFile,
+    //                 link: thongbao.linkFile
+    //             }
+    //             var infoThongBao={
+    //                 tieuDe: thongbao.tieuDe,
+    //                 idLoaiThongBao: thongbao.idLoaiThongBao,
+    //                 idMucDoThongBao:thongbao.idMucDoThongBao,
+    //                 noiDung: thongbao.noiDung,
+    //                 idUser:thongbao.idUser,
+    //             }
+    //             FileController.create(infoFile,function (err, file) {
+    //                 if(err){
+    //                     console.log(err);
+    //                 }
+    //                 infoThongBao.idFile= file._id;
+    //                 ThongBaoController.create(infoThongBao,function (err, thongbao) {
+    //                     if (err){
+    //                         console.log('create thongbao fail');
+    //                     }
+    //                 })
+    //             })
+    //         }
+    //     })
+    //     callback(null,'Create file va mucdothongbao thanh cong')
+    //  }
 ], function (err, result) {
     if (err) {
         console.error(err)

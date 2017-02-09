@@ -80,7 +80,7 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
     var linkFile = req.body.linkFile;
     var mucDoThongBao = req.body.mucDoThongBao;
     var loaiThongBao = req.body.loaiThongBao;
-    if (!tieuDe || !noiDung) {
+    if (!tieuDe || !noiDung ||!loaiThongBao) {
         res.json({
             success: false,
             message: 'Invalid tieu de or noi dung, enter try again'
@@ -107,17 +107,6 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                             callback(err, null)
                         } else {
                             var message = new gcm.Message({
-                                // data: {
-                                //     tieuDe: tieuDe,
-                                //     noiDung: noiDung,
-                                //     tenFile: tenFile,
-                                //     linkFile: linkFile,
-                                //     mucDoThongBao: mucDoThongBao
-                                // },
-                                // notification: {
-                                //     title: tieuDe,
-                                //     body: noiDung
-                                // }
                                 data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao)
                             })
                             var sender = new gcm.Sender(config.serverKey);
@@ -129,7 +118,8 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                                             registerToken.push(sv.tokenFirebase)
                                         }
                                     })
-                                })
+                                });
+                                message.kind='DiemThi'
                                 sender.send(message, registerToken, function (err, response) {
                                     console.log(response)
                                     if (err) {
@@ -147,7 +137,8 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                                             registerToken.push(sv.tokenFirebase)
                                         }
                                     })
-                                })
+                                });
+                                message.kind='LichThi';
                                 sender.send(message, registerToken, function (err, response) {
                                     console.log(response)
                                     if (err) {
@@ -165,7 +156,8 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                                             registerToken.push(sv.tokenFirebase)
                                         }
                                     })
-                                })
+                                });
+                                message.kind='LichHoc';
                                 sender.send(message, registerToken, function (err, response) {
                                     console.log(response)
                                     if (err) {
@@ -183,7 +175,8 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                                             registerToken.push(sv.tokenFirebase)
                                         }
                                     })
-                                })
+                                });
+                                message.kind='DangKiTinChi'
                                 sender.send(message, registerToken, function (err, response) {
                                     console.log(response)
                                     if (err) {
@@ -201,7 +194,8 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
                                             registerToken.push(sv.tokenFirebase);
                                         }
                                     })
-                                })
+                                });
+                                message.kind='TatCa'
                                 sender.send(message, registerToken, function (err, response) {
                                     console.log(response)
                                     if (err) {
@@ -238,6 +232,25 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
     //Nhan object diem tu phia phongban qua webview,objectDiem gom co array cac object gom: tenLopMonHoc,MSV,
     //diemThanhPhan,diemCuoiKi,tongDiem,tenGiangVien
     var objectDiems= JSON.parse(req.body.list);
+
+    //===============================================
+    //luu diem mon hoc vao database
+    objectDiems.forEach(function (object) {
+        var info={
+            idSinhVien:object.MSV,
+            idLopMonHoc:object.tenLopMonHoc,
+            diemThanhPhan:object.diemThanhPhan,
+            diemCuoiKi:object.diemCuoiKi
+        }
+        DiemMonHocController.create(info,function (err, result) {
+            if (err){
+                console.log('error create diem mon hoc');
+            }
+        })
+    })
+    //===============================================
+
+
     async.waterfall([
         function findSv(callback) {
             SubscribeController.find({},function (err, sinhviens) {
@@ -269,11 +282,12 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                         data: dataNoti.createDataDiem(
                             objectDiem.MSV,objectDiem.tenLopMonHoc
                             ,objectDiem.tenKiHoc,objectDiem.tenGiangVien,
-                            objectDiem.monHoc,objectDiem.diemThanhPhan,objectDiem.diemCuoiKi,objectDiem.tongDiem)
+                            objectDiem.monHoc,objectDiem.diemThanhPhan,
+                            objectDiem.diemCuoiKi,objectDiem.tongDiem)
                     });
                     SinhVienController.findById(objectDiem.MSV,function (err, sv) {
                         if (err){
-
+                            console.log('find '+objectDiem.MSV+' fail');
                         }
                         sender.send(message,sv.tokenFirebase,function (err, response) {
                             if (err){
