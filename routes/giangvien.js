@@ -29,21 +29,23 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
 //====================================================
 //get information of giang vien with giangvien id
 router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    GiangVienController.findById(req.params.id, function (err, giangvien) {
-        if (err) {
+    GiangVien.find({_id:req.params.id}).populate([
+        {
+            path:'idKhoa'
+        },
+        {
+            path:'idLopMonHoc',
+        }
+        ]).exec(function (err, giangvien) {
+        if (err){
             res.json({
-                success: err,
-                message: 'not found file with id ' + req.params.id
+                success:false
             })
         }
-        else {
-            res.json({
-                success: true,
-                metadata: giangvien
-            });
-        }
-
-
+        res.json({
+            success:true,
+            meatadata: giangvien
+        })
     })
 });
 
@@ -219,82 +221,84 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsGiangVien, functio
 // });
 
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,function (req, res, next) {
-    //Nhan object diem tu phia giangvien qua webview,objectDiem gom co array cac object gom: tenLopMonHoc,MSV,
-    //diemThanhPhan,diemCuoiKi,tongDiem,tenGiangVien
-    var objectDiems= JSON.parse(req.body.list);
+    var objectDiems = JSON.parse(req.body.list);
 
     //===============================================
     //luu diem mon hoc vao database
+    //===============================================
+
     objectDiems.forEach(function (object) {
-        var info={
-            idSinhVien:object.MSV,
-            idLopMonHoc:object.tenLopMonHoc,
-            diemThanhPhan:object.diemThanhPhan,
-            diemCuoiKi:object.diemCuoiKi
+        var info = {
+            idSinhVien: object.MSV,
+            idLopMonHoc: object.tenLopMonHoc,
+            diemThanhPhan: object.diemThanhPhan,
+            diemCuoiKi: object.diemCuoiKi
         }
-        DiemMonHocController.create(info,function (err, result) {
-            if (err){
+        DiemMonHocController.create(info, function (err, result) {
+            if (err) {
                 console.log('error create diem mon hoc');
             }
         })
     })
     //===============================================
-
     async.waterfall([
-        function findSv(callback) {
-            SubscribeController.find({},function (err, sinhviens) {
-                if (err){
-                    callback('ERROR',null);
+        function findsubscribes(callback) {
+            Subscribe.find({}).populate('_id').exec(function (err, subscribes) {
+                if (err) {
+                    callback(err, null)
                 } else {
-                    callback(null,sinhviens);
+                    callback(null, subscribes)
                 }
             })
         },
-        function SvDkyDiem(sinhviens, callback) {
-            var dsSv=[];
-            sinhviens.forEach(function (sinhvien) {
-                if (typeNoti.checkLoaiThongBaoDiem(sinhvien)){
-                    dsSv.push(sinhvien);
+        function svdkyDiem(results, callback) {
+            var dsSv = [];
+            results.forEach(function (subscribe) {
+                if (typeNoti.checkLoaiThongBaoDiem(subscribe)) {
+                    dsSv.push(subscribe);
                 }
             })
-            callback(null,dsSv);
+            callback(null, dsSv)
         },
-        function guiThongBao(dsSv,callback) {
-            var arrayMSV=[];
-            var sender= gcm.Sender(config.serverKey);
-            dsSv.forEach(function (sv) {
+        function sendThongBao(results, callback) {
+            var arrayMSV = [];
+            var sender = gcm.Sender(config.serverKey);
+            results.forEach(function (sv) {
                 arrayMSV.push(sv._id);
-            })
+            });
+
             objectDiems.forEach(function (objectDiem) {
-                if (arrayMSV.indexOf(objectDiem.MSV)>-1){
-                  var message= new gcm.Message({
-                      data: dataNoti.createDataDiem(
-                          objectDiem.MSV,objectDiem.tenLopMonHoc
-                          ,objectDiem.tenKiHoc,objectDiem.tenGiangVien,
-                          objectDiem.monHoc,objectDiem.diemThanhPhan,objectDiem.diemCuoiKi,objectDiem.tongDiem)
-                  });
-                  SinhVienController.findById(objectDiem.MSV,function (err, sv) {
-                      if (err){
-                      }
-                      sender.send(message,sv.tokenFirebase,function (err, response) {
-                          if (err){
-                              console.log('Send noti for sinhvien '+objectDiem.MSV+' fail');
-                          }
-                      })
-                  })
+                if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
+                    var message = new gcm.Message({
+                        data: dataNoti.createDataDiem(
+                            objectDiem.MSV, objectDiem.tenLopMonHoc
+                            , objectDiem.tenKiHoc, objectDiem.tenGiangVien,
+                            objectDiem.monHoc, objectDiem.diemThanhPhan,
+                            objectDiem.diemCuoiKi, objectDiem.tongDiem)
+                    });
+                    SinhVienController.findById(objectDiem.MSV, function (err, sv) {
+                        if (err) {
+                            console.log('find ' + objectDiem.MSV + ' fail');
+                        }
+                        sender.send(message, sv.tokenFirebase, function (err, response) {
+                            if (err) {
+                                console.log('Send noti for sinhvien ' + objectDiem.MSV + ' fail');
+                            }
+                        })
+                    })
                 }
             })
-            callback(null,'Send Notification Diem success');
+            callback(null, 'success');
         }
-    ])
-},function (err, result) {
-    if (err){
-        console.error(err);
-    }
-    res.json({
-        success: true,
-        message: result
+    ], function (err, result) {
+        if (err) {
+            res.json({
+                success: false
+            })
+        }
+        res.json(result);
     })
-})
+
+});
 
 module.exports = router;

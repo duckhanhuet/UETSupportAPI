@@ -1,33 +1,73 @@
 var express = require('express');
 var router = express.Router();
 var SubscribeController = require('../controllers/SubscribeController');
+var Subscribe   = require('../models/Subscribe');
 var LoaiThongBaoController = require('../controllers/LoaiThongBaoController');
 var auth = require('../policies/auth');
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
-    SubscribeController.find({}, function (err, subscribes) {
-        if (err) {
+    Subscribe.find({}).populate([{
+        path:'_id',
+        populate:[{
+            path:'idLopChinh',
+            populate:{
+                path:'idKhoa'
+            }
+        },
+            {
+                path:'idLopMonHoc',
+                populate:{
+                    path:'idGiangVien'
+                }
+            }]
+    },
+        {
+            path:'idLoaiThongBao'
+        },
+        {
+            path:'idLoaiTinTuc'
+        }]).exec(function (err, subscribes) {
+        if (err){
             res.json({
-                success: false,
-                message: 'not found file'
+                success: false
             })
         }
-        res.json(subscribes);
+        res.json({
+            success:true,
+            metadata: subscribes
+        })
     })
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    SubscribeController.findById(req.params.id, function (err, subscribe) {
-        if (err) {
+    Subscribe.findOne({_id:req.params.id}).populate([{
+        path:'_id',
+        populate:[{
+                path:'idLopChinh',
+                populate:{
+                    path:'idKhoa'
+                }
+            },
+            {
+                path:'idLopMonHoc',
+                populate:{
+                    path:'idGiangVien'
+                }
+            }]
+        },
+        {
+        path:'idLoaiThongBao'
+        },
+        {
+            path:'idLoaiTinTuc'
+        }]).exec(function (err, subscribe) {
+        if (err){
             res.json({
-                success: err,
-                message: 'not found file with id ' + req.params.id
+                success: false
             })
         }
-        else {
-            res.json({
-                success: true,
-                metadata: subscribe
-            });
-        }
+        res.json({
+            success:true,
+            metadata: subscribe
+        })
     })
 })
 

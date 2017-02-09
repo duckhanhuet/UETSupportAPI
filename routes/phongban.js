@@ -3,6 +3,7 @@ var router = express.Router();
 var PhongBanController = require('../controllers/PhongBanController');
 var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
+var Subscribe   = require('../models/Subscribe');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
 //========================================================
@@ -86,229 +87,175 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
             message: 'Invalid tieu de or noi dung, enter try again'
         })
     } else {
+        //============================================
+        var message;
+        //==============================================
+        var sender = new gcm.Sender(config.serverKey);
+        var registerToken = [];
         async.waterfall([
-            function findSinhVien(callback) {
-                SinhVienController.find({}, function (err, users) {
-                    if (err) {
-                        callback("ERR", null)
-                    }
-                    else {
-                        callback(null, users);
+            function findsubscribe(callback) {
+                Subscribe.find({}).populate('_id').exec(function (err, subscribes) {
+                    if (err){
+                        callback(err,null)
+                    }else {
+                        callback(null,subscribes)
                     }
                 })
             },
-            //========================================
-            function sendThongBao(users, callback) {
-                if (!tieuDe || !noiDung) {
-                    callback("ERR", null)
-                } else {
-                    SubscribeController.find({}, function (err, sinhviens) {
-                        if (err) {
-                            callback(err, null)
-                        } else {
-                            var message = new gcm.Message({
-                                data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao)
-                            })
-                            var sender = new gcm.Sender(config.serverKey);
-                            var registerToken = [];
-                            if (loaiThongBao == 'DiemThi') {
-                                sinhviens.forEach(function (sinhvien) {
-                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
-                                        if (typeNoti.checkLoaiThongBaoDiem(sinhvien)) {
-                                            registerToken.push(sv.tokenFirebase)
-                                        }
-                                    })
-                                });
-                                message.kind='DiemThi'
-                                sender.send(message, registerToken, function (err, response) {
-                                    console.log(response)
-                                    if (err) {
-                                        callback(err, null)
-                                    }
-                                    else {
-                                        callback(null, "Success")
-                                    }
-                                })
-                            }
-                            if (loaiThongBao == 'LichThi') {
-                                sinhviens.forEach(function (sinhvien) {
-                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
-                                        if (typeNoti.checkLoaiThongBaoLichThi(sinhvien)) {
-                                            registerToken.push(sv.tokenFirebase)
-                                        }
-                                    })
-                                });
-                                message.kind='LichThi';
-                                sender.send(message, registerToken, function (err, response) {
-                                    console.log(response)
-                                    if (err) {
-                                        callback(err, null)
-                                    }
-                                    else {
-                                        callback(null, "Success")
-                                    }
-                                })
-                            }
-                            if (loaiThongBao == 'LichHoc') {
-                                sinhviens.forEach(function (sinhvien) {
-                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
-                                        if (typeNoti.checkLoaiThongBaoLichHoc(sinhvien)) {
-                                            registerToken.push(sv.tokenFirebase)
-                                        }
-                                    })
-                                });
-                                message.kind='LichHoc';
-                                sender.send(message, registerToken, function (err, response) {
-                                    console.log(response)
-                                    if (err) {
-                                        callback(err, null)
-                                    }
-                                    else {
-                                        callback(null, "Success")
-                                    }
-                                })
-                            }
-                            if (loaiThongBao == 'DangKiTinChi') {
-                                sinhviens.forEach(function (sinhvien) {
-                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
-                                        if (typeNoti.checkLoaiThongBaoDangKiTinChi(sinhvien)) {
-                                            registerToken.push(sv.tokenFirebase)
-                                        }
-                                    })
-                                });
-                                message.kind='DangKiTinChi'
-                                sender.send(message, registerToken, function (err, response) {
-                                    console.log(response)
-                                    if (err) {
-                                        callback(err, null)
-                                    }
-                                    else {
-                                        callback(null, "Success")
-                                    }
-                                })
-                            }
-                            if (loaiThongBao == 'TatCa') {
-                                sinhviens.forEach(function (sinhvien) {
-                                    SinhVienController.findById(sinhvien._id,function (err, sv) {
-                                        if (typeNoti.checkLoaiThongBaoTatCa(sinhvien)) {
-                                            registerToken.push(sv.tokenFirebase);
-                                        }
-                                    })
-                                });
-                                message.kind='TatCa'
-                                sender.send(message, registerToken, function (err, response) {
-                                    console.log(response)
-                                    if (err) {
-                                        callback(err, null)
-                                    }
-                                    else {
-                                        callback(null, "Success")
-                                    }
-                                })
-                            }
+            function sendThongBao(results,callback) {
+                if (loaiThongBao=='TatCa'){
+                    message = new gcm.Message({
+                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
+                        kind:'TatCa'
+                    });
+                    results.forEach(function (result) {
+                        if (typeNoti.checkLoaiThongBaoTatCa(result)){
+                            registerToken.push(result._id.tokenFirebase);
                         }
                     })
                 }
-            }
-        ], function (err, result) {
-            if (err) {
-                console.error(err);
-                res.json({
-                    success: false,
-                    error: err
+                if (loaiThongBao=='DiemThi'){
+                    message = new gcm.Message({
+                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
+                        kind:'DiemThi'
+                    });
+                    results.forEach(function (result) {
+                        if (typeNoti.checkLoaiThongBaoDiem(result)){
+                            registerToken.push(result._id.tokenFirebase);
+                        }
+                    })
+                }
+                if (loaiThongBao=='LichThi'){
+                    message = new gcm.Message({
+                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
+                        kind:'LichThi'
+                    });
+                    results.forEach(function (result) {
+                        if (typeNoti.checkLoaiThongBaoLichThi(result)){
+                            registerToken.push(result._id.tokenFirebase);
+                        }
+                    })
+                }
+                if (loaiThongBao=='LichHoc'){
+                    message = new gcm.Message({
+                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
+                        kind: 'LichHoc'
+                    });
+                    results.forEach(function (result) {
+                        if (typeNoti.checkLoaiThongBaoLichHoc(result)){
+                            registerToken.push(result._id.tokenFirebase);
+                        }
+                    })
+                }
+                sender.send(message, registerToken, function (err, response) {
+                    console.log(response)
+                    if (err) {
+                        callback(err, null)
+                    }
+                    else {
+                        callback(null, "Success")
+                    }
                 })
-            } else {
+            }
+        ],function (err, result) {
+            if (err){
                 res.json({
-                    success: true
+                    success:false
                 })
             }
+            res.json({
+                success: true,
+                message: result
+            })
         })
+        //=============================================
     }
 });
 
 //=====================================================
 //Gui thong bao diem
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
-    //Nhan object diem tu phia phongban qua webview,objectDiem gom co array cac object gom: tenLopMonHoc,MSV,
-    //diemThanhPhan,diemCuoiKi,tongDiem,tenGiangVien
-    var objectDiems= JSON.parse(req.body.list);
+    var objectDiems = JSON.parse(req.body.list);
 
     //===============================================
     //luu diem mon hoc vao database
+    //===============================================
+
     objectDiems.forEach(function (object) {
-        var info={
-            idSinhVien:object.MSV,
-            idLopMonHoc:object.tenLopMonHoc,
-            diemThanhPhan:object.diemThanhPhan,
-            diemCuoiKi:object.diemCuoiKi
+        var info = {
+            idSinhVien: object.MSV,
+            idLopMonHoc: object.tenLopMonHoc,
+            diemThanhPhan: object.diemThanhPhan,
+            diemCuoiKi: object.diemCuoiKi
         }
-        DiemMonHocController.create(info,function (err, result) {
-            if (err){
+        DiemMonHocController.create(info, function (err, result) {
+            if (err) {
                 console.log('error create diem mon hoc');
             }
         })
     })
     //===============================================
-
-
     async.waterfall([
-        function findSv(callback) {
-            SubscribeController.find({},function (err, sinhviens) {
-                if (err){
-                    callback('ERROR',null);
+        function findsubscribes(callback) {
+            Subscribe.find({}).populate('_id').exec(function (err, subscribes) {
+                if (err) {
+                    callback(err, null)
                 } else {
-                    callback(null,sinhviens);
+                    callback(null, subscribes)
                 }
             })
         },
-        function SvDkyDiem(sinhviens, callback) {
-            var dsSv=[];
-            sinhviens.forEach(function (sinhvien) {
-                if (typeNoti.checkLoaiThongBaoDiem(sinhvien)){
-                    dsSv.push(sinhvien);
+        function svdkyDiem(results, callback) {
+            var dsSv = [];
+            results.forEach(function (subscribe) {
+                if (typeNoti.checkLoaiThongBaoDiem(subscribe)) {
+                    dsSv.push(subscribe);
                 }
             })
-            callback(null,dsSv);
+            callback(null, dsSv)
         },
-        function guiThongBao(dsSv,callback) {
-            var arrayMSV=[];
-            var sender= gcm.Sender(config.serverKey);
-            dsSv.forEach(function (sv) {
+        function sendThongBao(results, callback) {
+            var arrayMSV = [];
+            var sender = gcm.Sender(config.serverKey);
+            results.forEach(function (sv) {
                 arrayMSV.push(sv._id);
-            })
+            });
+
             objectDiems.forEach(function (objectDiem) {
-                if (arrayMSV.indexOf(objectDiem.MSV)>-1){
-                    var message= new gcm.Message({
+                if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
+                    var message = new gcm.Message({
                         data: dataNoti.createDataDiem(
-                            objectDiem.MSV,objectDiem.tenLopMonHoc
-                            ,objectDiem.tenKiHoc,objectDiem.tenGiangVien,
-                            objectDiem.monHoc,objectDiem.diemThanhPhan,
-                            objectDiem.diemCuoiKi,objectDiem.tongDiem)
+                            objectDiem.MSV, objectDiem.tenLopMonHoc
+                            , objectDiem.tenKiHoc, objectDiem.tenGiangVien,
+                            objectDiem.monHoc, objectDiem.diemThanhPhan,
+                            objectDiem.diemCuoiKi, objectDiem.tongDiem)
                     });
-                    SinhVienController.findById(objectDiem.MSV,function (err, sv) {
-                        if (err){
-                            console.log('find '+objectDiem.MSV+' fail');
+                    SinhVienController.findById(objectDiem.MSV, function (err, sv) {
+                        if (err) {
+                            console.log('find ' + objectDiem.MSV + ' fail');
                         }
-                        sender.send(message,sv.tokenFirebase,function (err, response) {
-                            if (err){
-                                console.log('Send noti for sinhvien '+objectDiem.MSV+' fail');
+                        sender.send(message, sv.tokenFirebase, function (err, response) {
+                            if (err) {
+                                console.log('Send noti for sinhvien ' + objectDiem.MSV + ' fail');
                             }
                         })
                     })
                 }
             })
-            callback(null,'Send Notification Diem success');
+            callback(null, 'success');
         }
-    ])
-},function (err, result) {
-    if (err){
-        console.error(err);
-    }
-    res.json({
-        success: true,
-        message: result
+    ], function (err, result) {
+        if (err) {
+            res.json({
+                success: false
+            })
+        }
+        res.json(result);
     })
-})
+
+});
+//===============================================
+
 
 //======================================================
 router.post('/postdatabase', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res) {

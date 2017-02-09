@@ -3,12 +3,16 @@ var router = express.Router();
 var SinhVien= require('../models/SinhVien');
 var User    = require('../models/User');
 var LopChinh= require('../models/LopChinh');
+var LopMonHoc = require('../models/LopMonHoc');
 var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var DiemMonHocController = require('../controllers/DiemMonHocController');
+var GiangVienController = require('../controllers/GiangVienController');
 var DiemMonHoc           = require('../models/DiemMonHoc');
 var DiemRenLuyenController = require('../controllers/DiemRenLuyenController');
+var LopMonHocController = require('../controllers/LopMonHocController');
 var auth = require('../policies/auth');
+var async= require('async');
 //==========================================
 var gcm = require('node-gcm');
 //==========================================
@@ -27,20 +31,41 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
 //====================================================
 //get information of giang vien with sinhvien id
 router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    SinhVienController.findById(req.params.id, function (err, sinhvien) {
-        if (err) {
+    SinhVien.findOne({_id:req.params.id}).populate([{
+        path:'idLopChinh',
+        populate:{
+            path:'idKhoa'
+        }},{
+            path:'idLopMonHoc',
+            populate:{
+                path:'idGiangVien'
+            }
+        }
+        ]).exec(function (err, giangvien) {
+        if (err){
             res.json({
-                success: err,
-                message: 'not found file with id ' + req.params.id
+                success:false
             })
         }
-        else {
-            res.json({
-                success: true,
-                metadata: sinhvien
-            });
-        }
+        res.json({
+            success:true,
+            metadata:giangvien
+        })
     })
+    // SinhVienController.findById(req.params.id, function (err, sinhvien) {
+    //     if (err) {
+    //         res.json({
+    //             success: err,
+    //             message: 'not found file with id ' + req.params.id
+    //         })
+    //     }
+    //     else {
+    //         res.json({
+    //             success: true,
+    //             metadata: sinhvien
+    //         });
+    //     }
+    // })
 });
 
 //========================================================
@@ -221,5 +246,18 @@ router.get('/diemrenluyen',auth.reqIsAuthenticate,function (req, res) {
 
 });
 //=======================================================
+//test deep-populate
+// SinhVien.findOne({_id:'14020234'}).populate({
+//     path:'idLopChinh',
+//     populate:{
+//         path:'idKhoa'
+//     }
+// }).exec(function (err, sinhvien) {
+//     if (err){
+//         console.log('err');
+//     }
+//     console.log(sinhvien);
+// })
 
+//=======================================================
 module.exports = router;

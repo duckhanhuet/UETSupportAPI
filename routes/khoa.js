@@ -141,119 +141,101 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
  */
 
 router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
-    //Thong bao co tieude va noi dung , thong bao nay gui cho tat ca cac sinh vien trong truong
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var tenFile = req.body.tenFile;
     var linkFile = req.body.linkFile;
     var mucDoThongBao = req.body.mucDoThongBao;
-    var loaiThongBao  = req.body.loaiThongBao;
-
-    async.waterfall([
-        function findSinhVien(callback) {
-            var users=[];
-            SinhVienController.find({},function (err, svs) {
-                if (err){
-                    callback(err,null);
-                }
-                svs.forEach(function (sv) {
-                    SinhVien.findOne({_id:sv._id}).populate('idLopChinh').exec(function (err, sinhvien) {
-                        if (err){
-                            throw err;
-                        }
-                        if (sinhvien.idLopChinh.idKhoa==req.user._id){
-                            users.push(sinhvien);
-                            //console.log(sinhvien);
-                        }
-                    })
+    var loaiThongBao = req.body.loaiThongBao;
+    if (!tieuDe || !noiDung ||!loaiThongBao) {
+        res.json({
+            success: false,
+            message: 'Invalid tieu de or noi dung, enter try again'
+        })
+    } else {
+        //============================================
+        var message;
+        //==============================================
+        var sender = new gcm.Sender(config.serverKey);
+        var registerToken = [];
+        async.waterfall([
+            function findsubscribe(callback) {
+                Subscribe.find({}).populate('_id').exec(function (err, subscribes) {
+                    if (err){
+                        callback(err,null)
+                    }else {
+                        callback(null,subscribes)
+                    }
                 })
-            })
-            callback(null,users);
-        },
-
-        //========================================
-        function sendThongBao(users, callback) {
-            if (!tieuDe || !noiDung) {
-                // res.json({
-                //     success:false,
-                //     message:'Invalid tieuDe or noiDung please enter value'
-                // })
-                callback("ERR", null)
-            } else {
-                var message= new gcm.Message({
-                    data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao)
-                });
-                var sender= new gcm.Sender(config.serverKey);
-                var registerToken= [];
-                if (loaiThongBao=='TatCa')
-                {
-                    SubscribeController.findById(users._id,function (err, sv) {
-                        if (typeNoti.checkLoaiThongBaoTatCa(sv)){
-                            registerToken.push(sv);
-                        }
-                    })
-                    sender.send(message, registerToken, function (err, response) {
-                        console.log(response)
-                        if (err) {
-                            callback(err, null)
-                        }
-                        else {
-                            callback(null, "Success")
+            },
+            function sendThongBao(results,callback) {
+                if (loaiThongBao=='TatCa'){
+                    message = new gcm.Message({
+                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
+                        kind:'TatCa'
+                    });
+                    results.forEach(function (result) {
+                        if (typeNoti.checkLoaiThongBaoTatCa(result)){
+                            registerToken.push(result._id.tokenFirebase);
                         }
                     })
                 }
-
-                if (loaiThongBao=='LichHoc')
-                {
-                    SubscribeController.findById(users._id,function (err, sv) {
-                        if (typeNoti.checkLoaiThongBaoLichHoc(sv)){
-                            registerToken.push(sv);
-                        }
-                    })
-                    sender.send(message, registerToken, function (err, response) {
-                        console.log(response)
-                        if (err) {
-                            callback(err, null)
-                        }
-                        else {
-                            callback(null, "Success");
+                if (loaiThongBao=='DiemThi'){
+                    message = new gcm.Message({
+                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
+                        kind:'DiemThi'
+                    });
+                    results.forEach(function (result) {
+                        if (typeNoti.checkLoaiThongBaoDiem(result)){
+                            registerToken.push(result._id.tokenFirebase);
                         }
                     })
                 }
-
-                if (loaiThongBao=='LichThi')
-                {
-                    SubscribeController.findById(users._id,function (err, sv) {
-                        if (typeNoti.checkLoaiThongBaoLichThi(sv)){
-                            registerToken.push(sv);
-                        }
-                    })
-                    sender.send(message, registerToken, function (err, response) {
-                        console.log(response)
-                        if (err) {
-                            callback(err, null)
-                        }
-                        else {
-                            callback(null, "Success")
+                if (loaiThongBao=='LichThi'){
+                    message = new gcm.Message({
+                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
+                        kind:'LichThi'
+                    });
+                    results.forEach(function (result) {
+                        if (typeNoti.checkLoaiThongBaoLichThi(result)){
+                            registerToken.push(result._id.tokenFirebase);
                         }
                     })
                 }
-
+                if (loaiThongBao=='LichHoc'){
+                    message = new gcm.Message({
+                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
+                        kind: 'LichHoc'
+                    });
+                    results.forEach(function (result) {
+                        if (typeNoti.checkLoaiThongBaoLichHoc(result)){
+                            registerToken.push(result._id.tokenFirebase);
+                        }
+                    })
+                }
+                sender.send(message, registerToken, function (err, response) {
+                    console.log(response)
+                    if (err) {
+                        callback(err, null)
+                    }
+                    else {
+                        callback(null, "Success")
+                    }
+                })
             }
-        }
-    ], function (err, result) {
-        if (err) {
-            console.error(err);
+        ],function (err, result) {
+            if (err){
+                res.json({
+                    success:false
+                })
+            }
             res.json({
-                success: false,
-                error: err
+                success: true,
+                message: result
             })
-        } else {
-            res.json({
-                success: true
-            })
-        }
-    })
+        })
+        //=============================================
+    }
 });
 
 module.exports = router;
