@@ -11,14 +11,13 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
         if (err) {
             res.json({
                 success: false,
-                message: 'not found thongbao'
             })
         }
         res.json(thongbaos);
     })
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    ThongBao.findOne({_id:req.params.id}).populate('idFile').populate('idLoaiThongBao').exec(function (err, thongbao) {
+    ThongBaoController.findById(req.params.id,function (err,thongbao) {
         if (err){
             res.json({
                 success: false
@@ -33,7 +32,7 @@ router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 
-router.get('/list100thongbao',function (req, res, next) {
+router.get('/list/100thongbao',function (req, res, next) {
     var list=[];
     ThongBaoController.find({},function (err, results) {
         if (err){

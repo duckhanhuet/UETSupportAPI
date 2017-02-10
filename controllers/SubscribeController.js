@@ -2,7 +2,31 @@ var Subscribe = require('../models/Subscribe');
 
 module.exports =  {
     find: function (params, callback) {
-        Subscribe.find(params,function (err, subscribes) {
+        Subscribe.find(params).populate([
+            {
+                path:'_id',
+                populate:[
+                    {
+                        path:'idLopChinh',
+                        populate:{
+                            path:'idKhoa'
+                        }
+                    },
+                    {
+                        path:'idLopMonHoc',
+                        populate:{
+                            path:'idGiangVien'
+                        }
+                    }
+                ]
+            },
+            {
+                path:'idLoaiThongBao'
+            },
+            {
+                path:'idLoaiTinTuc'
+            }
+        ]).exec(function (err, subscribes) {
             if (err){
                 callback(err,null);
                 return;
@@ -12,7 +36,31 @@ module.exports =  {
     },
 
     findById: function (id, callback) {
-        Subscribe.findById(id,function (err, subscribe) {
+        Subscribe.findById(id).populate([
+            {
+                path:'_id',
+                populate:[
+                    {
+                        path:'idLopChinh',
+                        populate:{
+                            path:'idKhoa'
+                        }
+                    },
+                    {
+                        path:'idLopMonHoc',
+                        populate:{
+                            path:'idGiangVien'
+                        }
+                    }
+                ]
+            },
+            {
+                path:'idLoaiThongBao'
+            },
+            {
+                path:'idLoaiTinTuc'
+            }
+        ]).exec(function (err, subscribe) {
             if (err){
                 callback(err,null);
                 return;

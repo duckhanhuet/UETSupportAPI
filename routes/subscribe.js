@@ -5,27 +5,7 @@ var Subscribe   = require('../models/Subscribe');
 var LoaiThongBaoController = require('../controllers/LoaiThongBaoController');
 var auth = require('../policies/auth');
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
-    Subscribe.find({}).populate([{
-        path:'_id',
-        populate:[{
-            path:'idLopChinh',
-            populate:{
-                path:'idKhoa'
-            }
-        },
-            {
-                path:'idLopMonHoc',
-                populate:{
-                    path:'idGiangVien'
-                }
-            }]
-    },
-        {
-            path:'idLoaiThongBao'
-        },
-        {
-            path:'idLoaiTinTuc'
-        }]).exec(function (err, subscribes) {
+    SubscribeController.find({},function (err, subscribes) {
         if (err){
             res.json({
                 success: false
@@ -38,27 +18,7 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    Subscribe.findOne({_id:req.params.id}).populate([{
-        path:'_id',
-        populate:[{
-                path:'idLopChinh',
-                populate:{
-                    path:'idKhoa'
-                }
-            },
-            {
-                path:'idLopMonHoc',
-                populate:{
-                    path:'idGiangVien'
-                }
-            }]
-        },
-        {
-        path:'idLoaiThongBao'
-        },
-        {
-            path:'idLoaiTinTuc'
-        }]).exec(function (err, subscribe) {
+    SubscribeController.findById(req.params.id,function (err, subscribe) {
         if (err){
             res.json({
                 success: false

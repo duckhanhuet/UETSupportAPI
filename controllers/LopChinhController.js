@@ -3,7 +3,7 @@ var LopChinh= require('../models/LopChinh');
 
 module.exports =  {
     find: function (params, callback) {
-        LopChinh.find(params,function (err, lopchinhs) {
+        LopChinh.find(params).populate('idKhoa').exec(function (err, lopchinhs) {
             if (err){
                 callback(err,null);
                 return;
@@ -13,7 +13,7 @@ module.exports =  {
     },
 
     findById: function (id, callback) {
-        LopChinh.findById(id,function (err, lopchinh) {
+        LopChinh.findById(id).populate('idKhoa').exec(function (err, lopchinh) {
             if (err){
                 callback(err,null);
                 return;

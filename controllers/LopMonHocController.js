@@ -2,7 +2,17 @@ var LopMonHoc = require('../models/LopMonHoc');
 
 module.exports =  {
     find: function (params, callback) {
-        LopMonHoc.find(params,function (err, lopmonhocs) {
+        LopMonHoc.find(params).populate([
+            {
+                path:'idKiHoc'
+            },
+            {
+                path:'idGiangVien',
+                populate:{
+                    path:'idKhoa'
+                }
+            }
+        ]).exec(function (err, lopmonhocs) {
             if (err){
                 callback(err,null);
                 return;
@@ -12,7 +22,17 @@ module.exports =  {
     },
 
     findById: function (id, callback) {
-        LopMonHoc.findById(id,function (err, lopmonhoc) {
+        LopMonHoc.findById(id).populate([
+            {
+                path:'idKiHoc'
+            },
+            {
+                path:'idGiangVien',
+                populate:{
+                    path:'idKhoa'
+                }
+            }
+        ]).exec(function (err, lopmonhoc) {
             if (err){
                 callback(err,null);
                 return;

@@ -29,19 +29,9 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 //====================================================
-//get information of giang vien with sinhvien id
+//get information of sinhvien with sinhvien id
 router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    SinhVien.findOne({_id:req.params.id}).populate([{
-        path:'idLopChinh',
-        populate:{
-            path:'idKhoa'
-        }},{
-            path:'idLopMonHoc',
-            populate:{
-                path:'idGiangVien'
-            }
-        }
-        ]).exec(function (err, giangvien) {
+    SinhVienController.findById(req.params.id,function (err, sinhvien) {
         if (err){
             res.json({
                 success:false
@@ -49,47 +39,23 @@ router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next)
         }
         res.json({
             success:true,
-            metadata:giangvien
+            metadata:sinhvien
         })
     })
-    // SinhVienController.findById(req.params.id, function (err, sinhvien) {
-    //     if (err) {
-    //         res.json({
-    //             success: err,
-    //             message: 'not found file with id ' + req.params.id
-    //         })
-    //     }
-    //     else {
-    //         res.json({
-    //             success: true,
-    //             metadata: sinhvien
-    //         });
-    //     }
-    // })
 });
 
 //========================================================
 //getting profile of sinhvien
 router.get('/profile', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req, res) {
-    var id = req.user._id;
-    SinhVien.findOne({_id:id}).populate('idLopChinh').populate('idLopMonHoc').exec(function (err, sv) {
+    SinhVienController.findById(req.user._id,function (err, sinhvien) {
         if (err){
             res.json({
-                success: false
+                success:false
             })
         }
-        LopChinh.findOne({_id:sv.idLopChinh}).populate('idKhoa').exec(function (err, lopchinh) {
-            if (err){
-                res.json({
-                    success:false
-                })
-            }
-            res.json({
-                success:true,
-                user: req.user,
-                profile: sv,
-                lopChinh: lopchinh
-            })
+        res.json({
+            success:true,
+            metadata:sinhvien
         })
     })
 })
@@ -124,7 +90,7 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
     //android gui option cac lua chon nhan thong bao
 
     //phia android gui 1 mang cac id loai thong bao
-    var arrayObject= req.body;
+    var arrayObject= req.body.list;
     var info={
         _id: req.user._id,
         idLoaiThongBao: arrayObject
@@ -158,58 +124,7 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
             }
         })
     }
-
-    // var array = [];
-    //
-    // var DiemThi = req.body.thongBaoDiem;
-    // var LichThi = req.body.thongBaoLichThi;
-    // var DangKiTinChi = req.body.thongBaoDangKiTinChi;
-    // var LichHoc = req.body.thongBaoLichHoc;
-    // var ThongBaoKhac = req.body.thongBaoKhac;
-    // if (!DiemThi && !LichThi && !DangKiTinChi && !LichHoc && !ThongBaoKhac) {
-    //     res.json({
-    //         success: false,
-    //         message: 'Invalid option,please choose option you want to recept Notification'
-    //     })
-    // } else {
-    //     if (DiemThi) {
-    //         array.push(DiemThi);
-    //     }
-    //     if (LichHoc) {
-    //         array.push(LichHoc);
-    //     }
-    //     if (DangKiTinChi) {
-    //         array.push(DangKiTinChi);
-    //     }
-    //     if (LichThi) {
-    //         array.push(LichThi);
-    //     }
-    //     if (ThongBaoKhac) {
-    //         array.push(ThongBaoKhac);
-    //     }
-    //     SinhVienController.update(req.user._id, {nhanLoaiThongBao: array}, function (err, response) {
-    //         if (err) {
-    //             res.json({
-    //                 success: false,
-    //                 message: 'Register type of Notification fail'
-    //             })
-    //         } else {
-    //             res.json({
-    //                 success: true,
-    //                 response: response
-    //             })
-    //         }
-    //     })
-    //}
 });
-
-// SinhVien.findOne({_id:'14020234'}).populate('_id').exec(function (err, sv) {
-//     if (err){
-//         console.log('error')
-//     }else {
-//         console.log(sv._id.password);
-//     }
-// })
 
 //=======================================================
 //diem tung mon hoc cu the

@@ -2,7 +2,14 @@ var DiemRenLuyen = require('../models/DiemRenLuyen');
 
 module.exports =  {
     find: function (params, callback) {
-        DiemRenLuyen.find(params,function (err, diemrenluyens) {
+        DiemRenLuyen.find(params).populate([
+            {
+                path:'idKi'
+            },
+            {
+                path:'idSinhVien'
+            }
+        ]).exec(function (err, diemrenluyens) {
             if (err){
                 callback(err,null);
                 return;
@@ -12,7 +19,14 @@ module.exports =  {
     },
 
     findById: function (id, callback) {
-        DiemRenLuyen.findById(id,function (err, diemrenluyen) {
+        DiemRenLuyen.findById(id).populate([
+            {
+                path:'idKi'
+            },
+            {
+                path:'idSinhVien'
+            }
+        ]).exec(function (err, diemrenluyen) {
             if (err){
                 callback(err,null);
                 return;

@@ -2,7 +2,14 @@ var ThongBao= require('../models/ThongBao');
 
 module.exports =  {
     find: function (params, callback) {
-        ThongBao.find(params,function (err, thongbaos) {
+        ThongBao.find(params).populate([
+            {
+                path:'idFile'
+            },
+            {
+                path:'idThongBao'
+            }
+        ]).exec(function (err, thongbaos) {
             if (err){
                 callback(err,null);
                 return;
@@ -12,7 +19,14 @@ module.exports =  {
     },
 
     findById: function (id, callback) {
-        ThongBao.findById(id,function (err, thongbao) {
+        ThongBao.findById(id).populate([
+            {
+                path:'idFile'
+            },
+            {
+                path:'idThongBao'
+            }
+        ]).exec(function (err, thongbao) {
             if (err){
                 callback(err,null);
                 return;

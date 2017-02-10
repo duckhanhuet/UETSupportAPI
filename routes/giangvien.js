@@ -29,14 +29,7 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
 //====================================================
 //get information of giang vien with giangvien id
 router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    GiangVien.find({_id:req.params.id}).populate([
-        {
-            path:'idKhoa'
-        },
-        {
-            path:'idLopMonHoc',
-        }
-        ]).exec(function (err, giangvien) {
+    GiangVienController.findById(req.params.id,function (err, giangvien) {
         if (err){
             res.json({
                 success:false
@@ -53,7 +46,7 @@ router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next)
 //getting profile of giangvien
 router.get('/profile', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (req, res) {
     var id = req.user._id;
-    GiangVien.findOne({_id:id}).populate('idKhoa').exec(function (err, giangvien) {
+    GiangVienController.findById(req.user._id,function (err, giangvien) {
         if (err){
             res.json({
                 success: false,
@@ -62,8 +55,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (re
         } else {
             res.json({
                 success:true,
-                profile: giangvien,
-                user: req.user
+                metadata:giangvien
             })
         }
     })
@@ -135,90 +127,6 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsGiangVien, functio
 });
 //============================================================================
 //============================================================================
-
-//VI moi sinh vien co object diem khac nhau nen phai gui tung request mot
-//Thanh se post len diem sinh vien va thong tin cua lop mon hoc cua tung sinh vien
-/**
- * PHAN NAY PHAI SUA LAI
- * CAC TOKEN FIREBASE CHO MANG MANG NHU CAI TREN
- */
-// router.post('/guithongbao/diemthi', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (req, res, next) {
-//     var tenKiHoc = req.body.tenKiHoc;
-//     var tenGiangVien = req.body.tenGiangVien;
-//     var tenLopMonHoc = req.body.tenLopMonHoc;
-//     var monHoc = req.body.monHoc;
-//     var MSV = req.body.MSV;
-//     var HoTen = req.body.HoTen;
-//     var diemThanhPhan = req.body.diemThanhPhan;
-//     var diemCuoiKi = req.body.diemCuoiKi;
-//     var tongDiem = req.body.tongDiem;
-//     var lopChinh = req.body.LopChinh;
-//     if (!MSV || !tenGiangVien || !tenLopMonHoc) {
-//         res.json({
-//             success: false,
-//             message: 'Invalid msv or tenGiangVien or tenLopMonHoc'
-//         })
-//     } else {
-//         async.waterfall([
-//             function findSinhVien(callback) {
-//                 SinhVienController.find({}, function (err, sinhviens) {
-//                     if (err) {
-//                         callback('ERROR', null);
-//                     } else {
-//                         callback(null, sinhviens);
-//                     }
-//                 })
-//             },
-//             function findSinhVienDangKiThongBaoDiem(sinhviens, callback) {
-//                 var dsSv = [];
-//                 sinhviens.forEach(function (sinhvien) {
-//                     if (typeNoti.checkLoaiThongBaoDiem(sinhvien)) {
-//                         dsSv.push(sinhvien);
-//                     }
-//                 })
-//                 callback(null, dsSv);
-//             },
-//             function guiThongBao(dssv, callback) {
-//                 var sender = gcm.Sender(config.serverKey);
-//                 dssv.forEach(function (sinhvien) {
-//                     var message = new gcm.Message({
-//                         data: {
-//                             tenLopMonHoc: tenLopMonHoc,
-//                             tenKiHoc: tenKiHoc,
-//                             tenGiangVien: tenGiangVien,
-//                             monHoc: monHoc,
-//                             diemThanhPhan: diemThanhPhan,
-//                             diemCuoiKi: diemCuoiKi,
-//                             tongDiem: tongDiem
-//                         },
-//                         notification: {
-//                             title: 'Da co diem mon hoc: ' + monHoc,
-//                             body: 'Xem thong tin chi tiet....'
-//                         }
-//                     })
-//                     sender.send(message, sinhvien.tokenFirebase, function (err, response) { //XEM CAI HAM BEN TREN
-//                         if (err) {
-//                             callback('ERR', null);
-//                         } else {
-//                             callback(null, 'success');
-//                         }
-//                     })
-//                 })
-//             }
-//         ], function (err, result) {
-//             if (err) {
-//                 res.json({
-//                     success: false,
-//                     message: 'send notification fail'
-//                 })
-//             } else {
-//                 res.json({
-//                     success: true
-//                 })
-//             }
-//         })
-//     }
-// });
 
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,function (req, res, next) {
     var objectDiems = JSON.parse(req.body.list);

@@ -8,19 +8,7 @@ var SinhV = require('../controllers/SinhVienController');
 var async = require('async');
 
 router.get('/', auth.reqIsAuthenticate, function (request, res, next) {
-    LopMonHoc.find({}).populate(
-        [
-            {
-                path:'idGiangVien',
-                populate:{
-                    path:'idKhoa'
-                }
-            },
-            {
-                path:'idKiHoc'
-            }
-        ]
-    ).exec(function (err, lopmonhocs) {
+    LopMonHocController.find({},function (err,lopmonhocs) {
         if (err){
             res.json({
                 success: false
@@ -31,19 +19,7 @@ router.get('/', auth.reqIsAuthenticate, function (request, res, next) {
 });
 
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    LopMonHoc.findOne({_id:req.params.id}).populate(
-        [
-            {
-                path:'idGiangVien',
-                populate:{
-                    path:'idKhoa'
-                }
-            },
-            {
-                path:'idKiHoc'
-            }
-        ]
-    ).exec(function (err, lopmonhoc) {
+    LopMonHocController.findById(req.params.id,function (err, lopmonhoc) {
         if (err){
             res.json({
                 success: false
