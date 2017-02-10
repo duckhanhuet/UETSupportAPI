@@ -231,8 +231,8 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,funct
         var info = {
             idSinhVien: object.MSV,
             idLopMonHoc: object.tenLopMonHoc,
-            diemThanhPhan: object.diemThanhPhan,
-            diemCuoiKi: object.diemCuoiKi
+            diemThanhPhan: Number(object.diemThanhPhan),
+            diemCuoiKi: Number(object.diemCuoiKi)
         }
         DiemMonHocController.create(info, function (err, result) {
             if (err) {
