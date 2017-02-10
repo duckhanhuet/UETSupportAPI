@@ -3,6 +3,7 @@ var router = express.Router();
 var PhongBanController = require('../controllers/PhongBanController');
 var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
+var DiemMonHocController = require('../controllers/DiemMonHocController');
 var Subscribe   = require('../models/Subscribe');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
@@ -171,7 +172,6 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsPhongBan, function
         //=============================================
     }
 });
-
 //=====================================================
 //Gui thong bao diem
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
@@ -185,8 +185,8 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
         var info = {
             idSinhVien: object.MSV,
             idLopMonHoc: object.tenLopMonHoc,
-            diemThanhPhan: object.diemThanhPhan,
-            diemCuoiKi: object.diemCuoiKi
+            diemThanhPhan: Number(object.diemThanhPhan),
+            diemCuoiKi: Number(object.diemCuoiKi)
         }
         DiemMonHocController.create(info, function (err, result) {
             if (err) {
