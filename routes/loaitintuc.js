@@ -10,10 +10,7 @@ router.get('/', function (req, res) {
             success: false,
             err: err
         })
-        res.json({
-            success: true,
-            loaitintuc: result
-        })
+        res.json(result)
     })
 });
 module.exports = router
