@@ -4,23 +4,6 @@ module.exports =  {
     find: function (params, callback) {
         Subscribe.find(params).populate([
             {
-                path:'_id',
-                populate:[
-                    {
-                        path:'idLopChinh',
-                        populate:{
-                            path:'idKhoa'
-                        }
-                    },
-                    {
-                        path:'idLopMonHoc',
-                        populate:{
-                            path:'idGiangVien'
-                        }
-                    }
-                ]
-            },
-            {
                 path:'idLoaiThongBao'
             },
             {

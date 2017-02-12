@@ -139,82 +139,60 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 /**
  * XEM LẠI CAU TRUY VẤN ĐỂ KHOA CHI GỬI CHO CÁC SINH VIÊN TRONG KHOA
  */
-
+// Subscribe.find({idLoaiThongBao:{$in:[1]}}).populate('_id').exec(function (err, res) {
+//     if (err){
+//         console.log(err);
+//     }else {
+//         console.log(res)
+//     }
+// })
+// SubscribeController.find({idLoaiThongBao:{$in:[1]}},function (err, subscribes) {
+//     if (err){
+//         console.log('err');
+//     }
+//     else {
+//         console.log(subscribes.idLoaiThongBao);
+//     }
+// })
 router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var tenFile = req.body.tenFile;
     var linkFile = req.body.linkFile;
     var mucDoThongBao = req.body.mucDoThongBao;
-    var loaiThongBao = req.body.loaiThongBao;
-    if (!tieuDe || !noiDung ||!loaiThongBao) {
+    var idLoaiThongBao = req.body.idLoaiThongBao;//gui 1 id loai thong bao
+
+    if(!tieuDe||!noiDung||!idLoaiThongBao){
         res.json({
-            success: false,
-            message: 'Invalid tieu de or noi dung, enter try again'
+            success:false,
+            message: 'Invalide tieu de va noi dung thong bao'
         })
-    } else {
+    } else{
         //============================================
         var message;
         //==============================================
         var sender = new gcm.Sender(config.serverKey);
         var registerToken = [];
+        message = new gcm.Message({
+            data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,idLoaiThongBao)
+        });
+
         async.waterfall([
-            function findsubscribe(callback) {
-                Subscribe.find({}).populate('_id').exec(function (err, subscribes) {
+            function (callback) {
+                Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
                     if (err){
                         callback(err,null)
                     }else {
                         callback(null,subscribes)
+                        console.log(subscribes)
                     }
                 })
             },
-            function sendThongBao(results,callback) {
-                if (loaiThongBao=='TatCa'){
-                    message = new gcm.Message({
-                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
-                        kind:'TatCa'
-                    });
-                    results.forEach(function (result) {
-                        if (typeNoti.checkLoaiThongBaoTatCa(result)){
-                            registerToken.push(result._id.tokenFirebase);
-                        }
-                    })
-                }
-                if (loaiThongBao=='DiemThi'){
-                    message = new gcm.Message({
-                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
-                        kind:'DiemThi'
-                    });
-                    results.forEach(function (result) {
-                        if (typeNoti.checkLoaiThongBaoDiem(result)){
-                            registerToken.push(result._id.tokenFirebase);
-                        }
-                    })
-                }
-                if (loaiThongBao=='LichThi'){
-                    message = new gcm.Message({
-                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
-                        kind:'LichThi'
-                    });
-                    results.forEach(function (result) {
-                        if (typeNoti.checkLoaiThongBaoLichThi(result)){
-                            registerToken.push(result._id.tokenFirebase);
-                        }
-                    })
-                }
-                if (loaiThongBao=='LichHoc'){
-                    message = new gcm.Message({
-                        data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,loaiThongBao),
-                        kind: 'LichHoc'
-                    });
-                    results.forEach(function (result) {
-                        if (typeNoti.checkLoaiThongBaoLichHoc(result)){
-                            registerToken.push(result._id.tokenFirebase);
-                        }
-                    })
-                }
-                console.log(message)
-                console.log(registerToken)
+            function (subscribes, callback) {
+                subscribes.forEach(function (subscribe) {
+                    registerToken.push(subscribe._id.tokenFirebase);
+                })
+                console.log(registerToken);
                 sender.send(message, registerToken, function (err, response) {
                     console.log(response)
                     if (err) {
@@ -225,6 +203,7 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
                     }
                 })
             }
+
         ],function (err, result) {
             if (err){
                 res.json({
@@ -237,7 +216,6 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
                 message: result
             })
         })
-        //=============================================
     }
 });
 
