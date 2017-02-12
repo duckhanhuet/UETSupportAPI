@@ -1,7 +1,9 @@
 var express = require('express');
-
+// kind=1: gui Thong Bao
+//kind=2: gui Diem Thi
+//kind=3: gui TIn Tuc
 module.exports = {
-    createData: function (tieuDe, noiDung, tenFile, linkFile, mucDoThongBao,loaiThongBao) {
+    createData: function (tieuDe, noiDung, tenFile, linkFile, mucDoThongBao,idloaiThongBaos) {
          var data={
 
             tieuDe: tieuDe,
@@ -9,7 +11,8 @@ module.exports = {
             tenFile: tenFile,
             linkFile: linkFile,
             mucDoThongBao: mucDoThongBao,
-            loaiThongBao: loaiThongBao,
+            idLoaiThongBao: idloaiThongBaos,
+            kind:0
         }
         return data;
     },
@@ -24,7 +27,7 @@ module.exports = {
             diemThanhPhan: diemThanhPhan,
             diemCuoiKi: diemCuoiKi,
             tongDiem: tongDiem,
-            kind: 'DiemThi'
+            kind:2
         }
         return data;
     }
