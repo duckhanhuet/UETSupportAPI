@@ -21,7 +21,7 @@ var TinTucSchema = new mongoose.Schema({
     postAt :{
         type : Date,
         require :true,
-        defaulr :Date.now()
+        default :Date.now()
     },
     loaiTinTuc: {
         type : Number,
