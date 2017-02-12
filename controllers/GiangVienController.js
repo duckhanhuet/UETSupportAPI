@@ -2,7 +2,14 @@ var GiangVien = require('../models/GiangVien');
 
 module.exports =  {
     find: function (params, callback) {
-        GiangVien.find(params,function (err, giangviens) {
+        GiangVien.find(params).populate([
+            {
+                path:'idKhoa'
+            },
+            {
+                path:'idLopMonHoc'
+            }
+        ]).exec(function (err, giangviens) {
             if (err){
                 callback(err,null);
                 return;
@@ -12,7 +19,14 @@ module.exports =  {
     },
 
     findById: function (id, callback) {
-        GiangVien.findById(id,function (err, giangvien) {
+        GiangVien.findById(id).populate([
+            {
+                path:'idKhoa'
+            },
+            {
+                path:'idLopMonHoc'
+            }
+        ]).exec(function (err, giangvien) {
             if (err){
                 callback(err,null);
                 return;

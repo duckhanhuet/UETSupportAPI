@@ -1,24 +1,61 @@
 var DiemMonHoc = require('../models/DiemMonHoc');
 
 module.exports =  {
+    //========================================
+
     find: function (params, callback) {
-        DiemMonHoc.find(params,function (err, diemmonhocs) {
+        DiemMonHoc.find(params).populate([
+            {
+                path:'idSinhVien',
+                populate:{
+                    path:'idLopChinh',
+                    populate:{
+                        path:'idKhoa'
+                    }
+                }
+            },
+            {
+                path:'idLopMonHoc'
+            }
+        ]).exec(function (err, diemmonhocs) {
             if (err){
                 callback(err,null);
                 return;
             }
-            callback(null,diemmonhocs);
+            callback(null,diemmonhocs)
         })
     },
+    //====================================================
+
 
     findById: function (id, callback) {
-        DiemMonHoc.findById(id,function (err, diemmonhoc) {
+        DiemMonHoc.findById(id).populate([
+            {
+                path:'idSinhVien',
+                populate:{
+                    path:'idLopChinh',
+                    populate:{
+                        path:'idKhoa'
+                    }
+                }
+            },
+            {
+                path:'idLopMonHoc'
+            }
+        ]).exec(function (err, diemmonhoc) {
             if (err){
                 callback(err,null);
                 return;
             }
-            callback(null,diemmonhoc);
+            callback(null,diemmonhoc)
         })
+        // DiemMonHoc.findById(id,function (err, diemmonhoc) {
+        //     if (err){
+        //         callback(err,null);
+        //         return;
+        //     }
+        //     callback(null,diemmonhoc);
+        // })
     },
 
     create: function (params, callback) {

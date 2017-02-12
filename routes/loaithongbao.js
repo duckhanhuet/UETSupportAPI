@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var LoaiThongBaoController = require('../controllers/LoaiThongBaoController');
 var auth = require('../policies/auth');
-router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
+router.get('/', function (req, res, next) {
     LoaiThongBaoController.find({}, function (err, loaithongbaos) {
         if (err) {
             res.json({

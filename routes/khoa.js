@@ -213,6 +213,8 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
                         }
                     })
                 }
+                console.log(message)
+                console.log(registerToken)
                 sender.send(message, registerToken, function (err, response) {
                     console.log(response)
                     if (err) {
@@ -226,7 +228,8 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
         ],function (err, result) {
             if (err){
                 res.json({
-                    success:false
+                    success:false,
+                    err:err
                 })
             }
             res.json({

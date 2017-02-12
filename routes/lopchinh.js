@@ -4,7 +4,7 @@ var LopChinhController = require('../controllers/LopChinhController');
 var LopChinh = require('../models/LopChinh');
 var auth = require('../policies/auth');
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
-    LopChinh.find({}).populate('idKhoa').exec(function (err, lopchinhs) {
+    LopChinhController.find({},function (err, lopchinhs) {
         if (err){
             res.json({
                 success:false
@@ -15,7 +15,7 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    LopChinh.findOne({_id:req.params.id}).populate('idKhoa').exec(function (err, lopchinh) {
+    LopChinhController.findById(req.params.id,function (err, lopchinh) {
         if (err){
             res.json({
                 success: false

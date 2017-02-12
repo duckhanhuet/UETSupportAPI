@@ -2,22 +2,48 @@ var SinhVien = require('../models/SinhVien');
 
 module.exports =  {
     find: function (params, callback) {
-        SinhVien.find(params,function (err, sinhviens) {
+        SinhVien.find(params).populate([
+            {
+                path:'idLopChinh',
+                populate:{
+                    path:'idKhoa'
+                }
+            },
+            {
+                path:'idLopMonHoc',
+                populate:{
+                    path:'idGiangVien'
+                }
+            }
+        ]).exec(function (err, sinhviens) {
             if (err){
                 callback(err,null);
                 return;
             }
-            callback(null,sinhviens);
+            callback(null,sinhviens)
         })
     },
 
     findById: function (id, callback) {
-        SinhVien.findById(id,function (err, sinhvien) {
+        SinhVien.findById(id).populate([
+            {
+                path:'idLopChinh',
+                populate:{
+                    path:'idKhoa'
+                }
+            },
+            {
+                path:'idLopMonHoc',
+                populate:{
+                    path:'idGiangVien'
+                }
+            }
+        ]).exec(function (err, sinhvien) {
             if (err){
                 callback(err,null);
                 return;
             }
-            callback(null,sinhvien);
+            callback(null,sinhvien)
         })
     },
 

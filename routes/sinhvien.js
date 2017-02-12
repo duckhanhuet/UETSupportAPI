@@ -29,19 +29,9 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 //====================================================
-//get information of giang vien with sinhvien id
+//get information of sinhvien with sinhvien id
 router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    SinhVien.findOne({_id:req.params.id}).populate([{
-        path:'idLopChinh',
-        populate:{
-            path:'idKhoa'
-        }},{
-            path:'idLopMonHoc',
-            populate:{
-                path:'idGiangVien'
-            }
-        }
-        ]).exec(function (err, giangvien) {
+    SinhVienController.findById(req.params.id,function (err, sinhvien) {
         if (err){
             res.json({
                 success:false
@@ -49,48 +39,21 @@ router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next)
         }
         res.json({
             success:true,
-            metadata:giangvien
+            metadata:sinhvien
         })
     })
-    // SinhVienController.findById(req.params.id, function (err, sinhvien) {
-    //     if (err) {
-    //         res.json({
-    //             success: err,
-    //             message: 'not found file with id ' + req.params.id
-    //         })
-    //     }
-    //     else {
-    //         res.json({
-    //             success: true,
-    //             metadata: sinhvien
-    //         });
-    //     }
-    // })
 });
 
 //========================================================
 //getting profile of sinhvien
 router.get('/profile', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req, res) {
-    var id = req.user._id;
-    SinhVien.findOne({_id:id}).populate('idLopChinh').populate('idLopMonHoc').exec(function (err, sv) {
+    SinhVienController.findById(req.user._id,function (err, sinhvien) {
         if (err){
             res.json({
-                success: false
+                success:false
             })
         }
-        LopChinh.findOne({_id:sv.idLopChinh}).populate('idKhoa').exec(function (err, lopchinh) {
-            if (err){
-                res.json({
-                    success:false
-                })
-            }
-            res.json({
-                success:true,
-                user: req.user,
-                profile: sv,
-                lopChinh: lopchinh
-            })
-        })
+        res.json(sinhvien)
     })
 })
 //=============================================================
@@ -124,10 +87,18 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
     //android gui option cac lua chon nhan thong bao
 
     //phia android gui 1 mang cac id loai thong bao
-    var arrayObject= req.body;
+    var arrayObject= req.body.srrayObj;
+    console.log(arrayObject);
+    //phaan tich string to arrayInt
+    arrayObject = arrayObject.trim().substring(1,arrayObject.length-1);
+    var arr = arrayObject.split(',');
+    for (let i=0;i<arr.length;i++){
+        arr[i] =arr[i].trim();
+    }
+    //
     var info={
         _id: req.user._id,
-        idLoaiThongBao: arrayObject
+        idLoaiThongBao: arr
     }
     if (arrayObject==null){
         res.json({
@@ -146,7 +117,7 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
                     }else {
                         res.json({
                             success: true,
-                            response: result
+                            message:'thanh cong'
                         })
                     }
                 })
@@ -158,59 +129,55 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
             }
         })
     }
-
-    // var array = [];
-    //
-    // var DiemThi = req.body.thongBaoDiem;
-    // var LichThi = req.body.thongBaoLichThi;
-    // var DangKiTinChi = req.body.thongBaoDangKiTinChi;
-    // var LichHoc = req.body.thongBaoLichHoc;
-    // var ThongBaoKhac = req.body.thongBaoKhac;
-    // if (!DiemThi && !LichThi && !DangKiTinChi && !LichHoc && !ThongBaoKhac) {
-    //     res.json({
-    //         success: false,
-    //         message: 'Invalid option,please choose option you want to recept Notification'
-    //     })
-    // } else {
-    //     if (DiemThi) {
-    //         array.push(DiemThi);
-    //     }
-    //     if (LichHoc) {
-    //         array.push(LichHoc);
-    //     }
-    //     if (DangKiTinChi) {
-    //         array.push(DangKiTinChi);
-    //     }
-    //     if (LichThi) {
-    //         array.push(LichThi);
-    //     }
-    //     if (ThongBaoKhac) {
-    //         array.push(ThongBaoKhac);
-    //     }
-    //     SinhVienController.update(req.user._id, {nhanLoaiThongBao: array}, function (err, response) {
-    //         if (err) {
-    //             res.json({
-    //                 success: false,
-    //                 message: 'Register type of Notification fail'
-    //             })
-    //         } else {
-    //             res.json({
-    //                 success: true,
-    //                 response: response
-    //             })
-    //         }
-    //     })
-    //}
 });
+//Sinh vien dang ki cac loai tintuc muon nhan
+router.post('/guiloaitintuc', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req, res, next) {
+    //android gui option cac lua chon nhan thong bao
 
-// SinhVien.findOne({_id:'14020234'}).populate('_id').exec(function (err, sv) {
-//     if (err){
-//         console.log('error')
-//     }else {
-//         console.log(sv._id.password);
-//     }
-// })
-
+    //phia android gui 1 mang cac id loai thong bao
+    var arrayObject= req.body.srrayObj;
+    console.log(arrayObject);
+    //phaan tich string to arrayInt
+    arrayObject = arrayObject.trim().substring(1,arrayObject.length-1);
+    var arr = arrayObject.split(',');
+    for (let i=0;i<arr.length;i++){
+        arr[i] =arr[i].trim();
+    }
+    //
+    var info={
+        _id: req.user._id,
+        idLoaiTinTuc: arr
+    }
+    if (arrayObject==null){
+        res.json({
+            success: false,
+            message:'Ban chua yeu cau loai thong bao!! try again.'
+        })
+    } else {
+        SubscribeController.create(info,function (err, result) {
+            if (err){
+                SubscribeController.update(req.user._id,{idLoaiTinTuc: info.idLoaiTinTuc},function (err, result) {
+                    if (err){
+                        res.json({
+                            success: false,
+                            message:'Error'
+                        })
+                    }else {
+                        res.json({
+                            success: true,
+                            message:'thanh cong'
+                        })
+                    }
+                })
+            }else {
+                res.json({
+                    success:true,
+                    message:'thanh cong'
+                })
+            }
+        })
+    }
+});
 //=======================================================
 //diem tung mon hoc cu the
 router.get('/diem/:idlopmonhoc',auth.reqIsAuthenticate,function (req, res, next) {
