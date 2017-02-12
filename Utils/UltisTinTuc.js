@@ -7,9 +7,47 @@ var config = require('../Config/Config')
 var Entities = require('html-entities').AllHtmlEntities;
 entities = new Entities();
 var async = require('async');
-var utils = require('./UltisTinTuc')
 var TinTucController = require('../controllers/TinTucController')
 var LoaiTinTuc = require('../models/LoaiTinTuc');
+
+module.exports.test = function () {
+    async.waterfall([
+        function (callback) {
+            LoaiTinTuc.find({}).exec(function (err,result) {
+                var arr = []
+                for(let i=0;i<result.length;i++){
+                    var obj = {
+                        link :result[i].linkPage,
+                        role : result[i]._id
+                    }
+                    arr.push(obj)
+                }
+                callback(null,arr)
+            })
+        },
+        function (arrLoaiTinTuc,callback) {
+            getAllUrlTinTuc(arrLoaiTinTuc,callback)
+        },
+        function (arrTinTuc, callback) {
+            var arr = deleteDuplicate(arrTinTuc)
+            callback(null, arr)
+        },
+        function (arrTinTuc,callback) {
+            findInDatabaseAndDelete(arrTinTuc,callback);
+        },
+        function (arrTinTuc, callback) {
+            getPostAllForEachTinTuc(arrTinTuc, callback)
+        }
+    ],function (err,result) {
+        if (err) console.log(err)
+        if(result.length == 0){
+            //do'nt anything
+        }else{
+            //send notification
+        }
+    })
+}
+
 /**
  * parse trang chu để lấy dự liệu
  */
@@ -225,6 +263,10 @@ function getAllUrlTinTuc(list, callbackAll) {
  * @param callback
  */
 function getPostAllForEachTinTuc(result, callback) {
+    if(!result){
+        callback(null,null)
+    }
+    else {
     var stack = []
     stack.push(function (callback) {
         callback(null, result)
@@ -247,6 +289,8 @@ function getPostAllForEachTinTuc(result, callback) {
         }
         callback(null, result)
     })
+    }
+
 }
 //parser html to object
 //get link,ten,anh
@@ -415,6 +459,39 @@ var getMainHTML = function (body, callback) {
     }
     callback(null, result)
 }
+/**
+ * Tim kiem trong csdl
+ *  * neu nhu ton tai thi xoa ban ghi do di
+ *  * chua ton tai thi de nguyen
+ * @param arrTinTuc
+ * @param callback
+ */
+function findInDatabaseAndDelete(arrTinTuc,callback) {
+    console.log(arrTinTuc.length)
+    TinTucController.find({},function (err,result) {
+        var arrResult = [];
+        for(let pos = 0;pos<arrTinTuc.length;pos++){
+            var newTinTuc = arrTinTuc[pos];
+            let count = 0;
+            for(let sec = 0;sec<result.length;sec++){
+                var old = result[sec];
+                if(newTinTuc.link != old.link){
+                    count++;
+                }
+            }
+            if(count!=result.length-1){
+                arrResult.push(newTinTuc)
+            }
+        }
+
+
+        if(err) {
+            callback(err,null)
+            return;
+        }
+        callback(null,arrResult)
+    })
+}
 //tao request trong async
 function makeRequest(url, callback) {
     console.log(url)
@@ -433,159 +510,3 @@ function makeRequest(url, callback) {
         return;
     })
 }
-//============================================================
-//==========================================================
-//CACH XU LÝ CŨ
-//Taoj request
-// var getData = function (baseUrl, role, numberPage, callback) {
-//     var url = baseUrl;
-//     var arrUrl = []
-//     for (var i = 0; i < numberPage; i++) {
-//         arrUrl.push(url + '?page=' + i)
-//     }
-//     var arr = [];
-//     var dem = 0;
-//     for (var i = 0; i < numberPage; i++) {
-//         var fun1 = function (callback) {
-//             utils.parserHtmlTinTuc(arrUrl[dem++], role, callback)
-//         }
-//         arr.push(fun1)
-//     }
-//     async.parallel(arr, function (err, result) {
-//         if (err) {
-//             console.log(err)
-//             callback(err, null)
-//         }
-//         else {
-//             var list = []
-//             for (var i = 0; i < result.length; i++) {
-//                 for (var j = 0; j < result[i].length; j++) {
-//                     list.push(result[i][j])
-//                 }
-//             }
-//             callback(null, list)
-//         }
-//     })
-// }
-//delete duplicate
-// /**
-//  * import tin tuc tung trang
-//  */
-// module.exports.importTinTuc = function () {
-//     async.waterfall([
-//         function (callback) {
-//             getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/99", 0, 2, function (err, list) {
-//                 if (err) {
-//                     callback(err, null)
-//                     return;
-//                 }
-//                 callback(null, list)
-//             })
-//         },
-//         // function (data,callback) {
-//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/96",1,2,function (err,list) {
-//         //         if(err) {
-//         //             callback(err,null)
-//         //             return;
-//         //         }
-//         //         callback(null,list.concat(data))
-//         //     });
-//         // },
-//         // function (data,callback) {
-//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/101",2,27,function (err,list) {
-//         //         if(err) {
-//         //             callback(err,null)
-//         //             return;
-//         //         }
-//         //         callback(null,list.concat(data))
-//         //     });
-//         // },
-//         // function (data,callback) {
-//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/95",3,4,function (err,list) {
-//         //         if(err) {
-//         //             callback(err,null)
-//         //             return;
-//         //         }
-//         //         callback(null,list.concat(data))
-//         //     });
-//         // },
-//         // function (data,callback) {
-//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/94",4,11,function (err,list) {
-//         //         if(err) {
-//         //             callback(err,null)
-//         //             return;
-//         //         }
-//         //         callback(null,list.concat(data))
-//         //     });
-//         // },
-//         // function (data,callback) {
-//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/97",5,12,function (err,list) {
-//         //         if(err) {
-//         //             callback(err,null)
-//         //             return;
-//         //         }
-//         //         callback(null,list.concat(data))
-//         //     });
-//         // },
-//         // function (data,callback) {
-//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/98",6,3,function (err,list) {
-//         //         if(err) {
-//         //             callback(err,null)
-//         //             return;
-//         //         }
-//         //         callback(null,list.concat(data))
-//         //     });
-//         // },
-//         // function (data, callback) {
-//         //     getData("http://uet.vnu.edu.vn/coltech/taxonomy/term/99", 7, 2, function (err, list) {
-//         //         if (err) {
-//         //             callback(err, null)
-//         //             return;
-//         //         }
-//         //         callback(null, list.concat(data))
-//         //     });
-//         // },
-//         function (data, callback) {
-//             //xoa cacs baif bij trung
-//             var result = deleteDuplicate(data)
-//             callback(null, result)
-//         },
-//         /*
-//          * Chay tung ham de boc tac thoi gian nen mat kha nhieu thi gio
-//          */
-//         function (result, callback) {
-//             var stack = []
-//             var dem = 0;
-//             stack.push(function (callback) {
-//                 callback(null, result)
-//             })
-//             //make stack request to server
-//             for (var i = 0; i < result.length; i++) {
-//                 var prototype = function (data, callback) {
-//                     //gui request len server
-//                     detailRequest(result[dem++].link, function (err, date) {
-//                         data[--dem].postAt = date;
-//                         dem++;
-//                         callback(null, result)
-//                     })
-//                 }
-//                 stack.push(prototype)
-//             }
-//             async.waterfall(stack, function (err, result) {
-//                 if (err) {
-//                     console.log(err)
-//                     callback(err, null)
-//                 }
-//                 callback(null, result)
-//             })
-//         }
-//     ], function (err, result) {
-//         TinTucController.create(result, function (err, list) {
-//             if (err) {
-//                 console.log(err)
-//                 return;
-//             }
-//             else console.log("import success")
-//         })
-//     })
-// }
