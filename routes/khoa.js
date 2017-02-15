@@ -12,6 +12,12 @@ var KhoaController = require('../controllers/KhoaController');
 var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 var SubscribeController = require('../controllers/SubscribeController');
+var ThongBaoController = require('../controllers/ThongBaoController');
+//==========================================
+var fs = require('fs');
+var multipart  = require('connect-multiparty');
+var multipartMiddleware = multipart();
+//===========================================
 //========================================
 var gcm = require('node-gcm');
 var config = require('../Config/Config');
@@ -154,69 +160,191 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 //         console.log(subscribes.idLoaiThongBao);
 //     }
 // })
-router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
+
+//================================================================
+
+router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddleware,function (req, res) {
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
-    var tenFile = req.body.tenFile;
-    var linkFile = req.body.linkFile;
     var mucDoThongBao = req.body.mucDoThongBao;
-    var idLoaiThongBao = req.body.idLoaiThongBao;//gui 1 id loai thong bao
+    var idLoaiThongBao = req.body.idLoaiThongBao;
+    var file = req.files.file;
+    //===============================================
+    //===============================================
+    var message;
+    //==============================================
+    var sender = new gcm.Sender(config.serverKey);
+    var registerToken = [];
 
-    if(!tieuDe||!noiDung||!idLoaiThongBao){
-        res.json({
-            success:false,
-            message: 'Invalide tieu de va noi dung thong bao'
-        })
-    } else{
-        //============================================
-        var message;
-        //==============================================
-        var sender = new gcm.Sender(config.serverKey);
-        var registerToken = [];
-        message = new gcm.Message({
-            data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,idLoaiThongBao)
-        });
+    //===============================================
 
-        async.waterfall([
-            function (callback) {
-                Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
-                    if (err){
-                        callback(err,null)
-                    }else {
-                        callback(null,subscribes)
-                        console.log(subscribes)
-                    }
-                })
-            },
-            function (subscribes, callback) {
-                subscribes.forEach(function (subscribe) {
-                    registerToken.push(subscribe._id.tokenFirebase);
-                })
-                console.log(registerToken);
-                sender.send(message, registerToken, function (err, response) {
-                    console.log(response)
-                    if (err) {
-                        callback(err, null)
-                    }
-                    else {
-                        callback(null, "Success")
-                    }
-                })
-            }
-
-        ],function (err, result) {
-            if (err){
-                res.json({
+    async.waterfall([
+        function checkValidate(callback) {
+            if(!tieuDe||!noiDung||!idLoaiThongBao){
+                var object={
                     success:false,
-                    err:err
+                    message: 'Invalide tieu de va noi dung thong bao'
+                }
+                callback(object,null);
+            }else {
+                callback(null,'Check validate success');
+            }
+        },
+        function checkFile(result,callback) {
+            if (file){
+                // Tên file
+                var originalFilename = file.name;
+                // File type
+                var fileType         = file.type.split('/')[1];
+                // File size
+                var fileSize         = file.size;
+                //pipe save file
+                var pathUpload       = __dirname + '/files/' + originalFilename;
+                var objectFile ={
+                    tenFile: originalFilename,
+                    link: pathUpload
+                }
+                FileController.create(objectFile,function (err, result) {
+                    if (err){
+                        callback(err,null);
+                    }
+                    console.log('Create file success');
+                    //============================
+                    //create thong bao
+                    var infoThongBao={
+                        tieuDe: tieuDe,
+                        noiDung: noiDung,
+                        idFile: result._id,
+                        idLoaiThongBao: idLoaiThongBao,
+                        idMucDoThongBao: mucDoThongBao
+                    }
+                    ThongBaoController.create(infoThongBao,function (err, tb) {
+                        console.log(tb);
+                    })
+                    //============================
+                    callback(null,result);
                 })
             }
-            res.json({
-                success: true,
-                message: result
+            else{
+                callback(null,'Not found file');
+            }
+        },
+        function find(result,callback) {
+            Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    var object ={
+                        file: result,
+                        subscribes: subscribes
+                    }
+                    callback(null,object);
+                    //console.log(subscribes)
+                }
             })
+        },
+        function (result, callback) {
+            var urlFile ='localhost:3000/file/'+ result.file._id;
+            message = new gcm.Message({
+                data: dataNoti.createData(tieuDe,noiDung,urlFile,mucDoThongBao,idLoaiThongBao)
+            });
+
+            var subscribes= result.subscribes;
+            subscribes.forEach(function (subscribe) {
+                registerToken.push(subscribe._id.tokenFirebase);
+            })
+            console.log(registerToken);
+            sender.send(message, registerToken, function (err, response) {
+                console.log(response)
+                if (err) {
+                    callback(err, null)
+                }
+                else {
+                    callback(null, "Success")
+                }
+            })
+        }
+
+    ],function (err, result) {
+        if (err){
+            res.json({
+                success:false,
+                err:err
+            })
+        }
+        res.json({
+            success: true,
+            message: result
         })
-    }
-});
+    })
+
+})
+//===============================================
+
+
+// router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
+//     var tieuDe = req.body.tieuDe;
+//     var noiDung = req.body.noiDung;
+//     var tenFile = req.body.tenFile;
+//     var linkFile = req.body.linkFile;
+//     var mucDoThongBao = req.body.mucDoThongBao;
+//     var idLoaiThongBao = req.body.idLoaiThongBao;//gui 1 id loai thong bao
+//
+//     if(!tieuDe||!noiDung||!idLoaiThongBao){
+//         res.json({
+//             success:false,
+//             message: 'Invalide tieu de va noi dung thong bao'
+//         })
+//     } else{
+//         //============================================
+//         var message;
+//         //==============================================
+//         var sender = new gcm.Sender(config.serverKey);
+//         var registerToken = [];
+//         message = new gcm.Message({
+//             data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,idLoaiThongBao)
+//         });
+//
+//         async.waterfall([
+//             function (callback) {
+//                 Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
+//                     if (err){
+//                         callback(err,null)
+//                     }else {
+//                         callback(null,subscribes)
+//                         console.log(subscribes)
+//                     }
+//                 })
+//             },
+//             function (subscribes, callback) {
+//                 subscribes.forEach(function (subscribe) {
+//                     registerToken.push(subscribe._id.tokenFirebase);
+//                 })
+//                 console.log(registerToken);
+//                 sender.send(message, registerToken, function (err, response) {
+//                     console.log(response)
+//                     if (err) {
+//                         callback(err, null)
+//                     }
+//                     else {
+//                         callback(null, "Success")
+//                     }
+//                 })
+//             }
+//
+//         ],function (err, result) {
+//             if (err){
+//                 res.json({
+//                     success:false,
+//                     err:err
+//                 })
+//             }
+//             res.json({
+//                 success: true,
+//                 message: result
+//             })
+//         })
+//     }
+// });
 
 module.exports = router;
