@@ -1,5 +1,20 @@
 var TinTuc= require('../models/TinTuc');
-
+// {
+//     $or: [
+//         {
+//             $and:[
+//                 {loaiTinTuc : 0},
+//                 {$limit : 10}
+//             ]
+//         },
+//         {
+//             $and:[
+//                 {loaiTinTuc : 1},
+//                 {$limit : 10}
+//             ]
+//         }
+//     ]
+// }
 module.exports = {
     findOne : function (id,callback) {
         TinTuc.find({_id : id},function (err,tintuc) {
@@ -7,7 +22,6 @@ module.exports = {
                 callback(err,null)
                 return;
             }
-
             callback(null,tintuc)
         })
     },
@@ -15,10 +29,13 @@ module.exports = {
     findAndLimit : function (param,offset,callback) {
         TinTuc.find(param).limit(10).skip(offset).exec(callback);
     },
+    find : function (param,callback) {
+        TinTuc.find(param).exec(callback)
+    },
     findDetailTinTuc : function (param,callback) {
         TinTuc
             .find(param)
-            .limit(10).sort("postAt").populate('loaiTinTuc').exec(callback)
+            .limit(10).sort({"postAt" : -1}).populate('loaiTinTuc').exec(callback)
     },
     create: function (params, callback) {
         TinTuc.create(params,function (err, thongbao) {

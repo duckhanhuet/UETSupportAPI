@@ -1,5 +1,5 @@
 /**
- * Created by Administrator on 17/01/2017.
+ * Created by SmallMouse on 12/2/2017.
  */
 var cheerio = require('cheerio')
 var request = require('request');
@@ -7,114 +7,54 @@ var config = require('../Config/Config')
 var Entities = require('html-entities').AllHtmlEntities;
 entities = new Entities();
 var async = require('async');
-var TinTucController = require('../controllers/TinTucController')
-var LoaiTinTuc = require('../models/LoaiTinTuc');
-
-module.exports.test = function () {
-    async.waterfall([
-        function (callback) {
-            LoaiTinTuc.find({}).exec(function (err,result) {
-                var arr = []
-                for(let i=0;i<result.length;i++){
-                    var obj = {
-                        link :result[i].linkPage,
-                        role : result[i]._id
-                    }
-                    arr.push(obj)
-                }
-                callback(null,arr)
-            })
-        },
-        function (arrLoaiTinTuc,callback) {
-            getAllUrlTinTuc(arrLoaiTinTuc,callback)
-        },
-        function (arrTinTuc, callback) {
-            var arr = deleteDuplicate(arrTinTuc)
-            callback(null, arr)
-        },
-        function (arrTinTuc,callback) {
-            findInDatabaseAndDelete(arrTinTuc,callback);
-        },
-        function (arrTinTuc, callback) {
-            getPostAllForEachTinTuc(arrTinTuc, callback)
-        }
-    ],function (err,result) {
-        if (err) console.log(err)
-        if(result.length == 0){
-            //do'nt anything
-        }else{
-            //send notification
-        }
-    })
-}
-
+var ThongBaoController = require('../controllers/ThongBaoController')
+var LoaiThongBao = require('../models/LoaiThongBao');
 /**
  * parse trang chu để lấy dự liệu
  */
-module.exports.parseMainPage = function (mainUrl) {
+
+var IndexLast = 0;// bien toan cuc
+// page cuoi cung cua trang == lastIndicator
+//===========================
+// file phân tich trang thong bao Sinhvien http://uet.vnu.edu.vn/coltech/taxonomy/term/53
+// các trang như Tin tức sinh vien, gương mặt tiêu biểu làm tương tự ...
+module.exports.parseMainPage = function () {
+    var arr = [];
+    // bo qua viec phan tich Gương mặt tiêu biểu, Tin tức,Danh sách thi,Kết quả học tập,Học phí,Học bổng
+    // cac trang nay co cau truc hơi khác nhau nên k thể gộp lại phân tích cùng 1 lúc.
+    // hien tai fix cung 1 loai thong bao duy nhat la :TatCa
+    var loaithongbao0 = new LoaiThongBao({
+        _id: 0,
+        tenLoaiThongBao: 'TatCa',
+    });
+    arr.push(loaithongbao0);
     async.waterfall([
         function (callback) {
-            makeRequest(mainUrl, callback)
-        },
-        function (data, callback) {
-            parsePage(data, callback)
-        },
-        function (data, callback) {
-            var arr = [];
-            for (let i = 0; i < data.length; i++) {
-                var loaitintuc = new LoaiTinTuc({
-                    _id: i,
-                    linkPage: config.UetHostName + data[i].link,
-                    kind: data[i].loai
-                });
-                arr.push(loaitintuc)
-            }
             callback(null, arr)
         },
-        function (arrLoaiTinTuc, callback) {
-            var arr = []
-            for (let i = 0; i < arrLoaiTinTuc.length; i++) {
-                var fun = function (callback) {
-                    arrLoaiTinTuc[i].save(function (err) {
-                        if (err) callback(err, null)
-                        callback(null, arrLoaiTinTuc[i])
-                    })
-                }
-                arr.push(fun)
-            }
-            async.parallel(arr, function (err, result) {
-                if (err) callback(err, null)
-                callback(null, result)
-            })
+        function (arr, callback) {
+            // tim trang cuoi cung
+            parseUrlLastIndicator(arrLoaiThongBao, callback)
         },
-        function (arrLoaiTinTuc, callback) {
-            parseUrlLastIndicator(arrLoaiTinTuc, callback)
-        },
-        /**
-         * mảng obj có các trường
-         * link : url của main
-         * lastIndicator : trang cuối cùng của link
-         * kind : loại tin tức
-         */
-            function (list, callback) {
-            getAllUrlPageTinTuc(list, callback)
+        function (list, callback) {
+            getAllUrlPageThongBao(list, callback)
         },
         /**
          * mảng Url có các trường
          * http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
          */
             function (arrURL, callback) {
-            getAllUrlTinTuc(arrURL, callback)
+            getAllUrlThongBao(arrURL, callback)
         },
-        function (arrTinTuc, callback) {
-            var arr = deleteDuplicate(arrTinTuc)
+        function (arrThongBao, callback) {
+            var arr = deleteDuplicate(arrThongBao)
             callback(null, arr)
         },
-        function (arrTinTuc, callback) {
-            getPostAllForEachTinTuc(arrTinTuc, callback)
+        function (arrThongBao, callback) {
+            getPostAllForEachThongBao(arrThongBao, callback)
         }
     ], function (err, result) {
-        TinTucController.create(result, function (err, list) {
+        ThongBaoController.create(result, function (err, list) {
             if (err) {
                 console.log(err)
                 return;
@@ -124,107 +64,60 @@ module.exports.parseMainPage = function (mainUrl) {
     })
 }
 /**
- * get URL ca trang
- * Lấy link và tên của từng loại tin tức
- * @param data HTML của trang chủ tin tức
- * @param callback
- */
-function parsePage(data, callback) {
-    var list = [];
-    var $ = cheerio.load(data, {
-        normalizeWhitespace: true,
-        xmlMode: true
-    });
-    $('#block-menu-menu-tin-tuc-su-kien-r .menu .leaf').each(function (i, ele) {
-        var link = $('a', this).attr('href');
-        var loaitintuc = $('a', this).text();
-        var obj = {
-            link: link,
-            loai: loaitintuc
-        };
-        //bo qua cái cuối cùng tức là tin tức
-        //dang test
-        if (i == 0 || i == 8) {
-        } else {
-            list.push(obj);
-        }
-    });
-    callback(null, list);
-}
-/**
  * get All page by URL
  * Lấy tát cả các
- * @param arrLoaiTinTuc
+ * @param arrLoaiThongBao
  * @param callback
  *
  * đầu ra của hàm
- * link : loaiTinTuc.linkPage,
- * kind : loaiTinTuc.kind,
- * lastIndicator : last,  // số trang cuối cùng của từng loại
- * role : loaiTinTuc._id
+ * IndexLast : last,  // số trang cuối cùng của từng loại
  */
-function parseUrlLastIndicator(arrLoaiTinTuc, callback) {
-    var arr = []
-    for (let i = 0; i < arrLoaiTinTuc.length; i++) {
-        var fun = function (callback) {
-            getObjIndicator(arrLoaiTinTuc[i], function (err, result) {
-                callback(err, result)
-            })
-        }
-        arr.push(fun)
-    }
-    async.parallel(arr, function (err, result) {
-        if (err) console.log(err)
+function parseUrlLastIndicator(arrLoaiThongBao, callback) {
+    getObjIndicator(arrLoaiThongBao, function (err, result) {
         callback(err, result)
     })
 }
 //parse indicator for mainURLpage
-function getObjIndicator(loaiTinTuc, callbackall) {
+function getObjIndicator(arrLoaiThongBao, callback) {
     async.waterfall([
         function (callback) {
-            makeRequest(loaiTinTuc.linkPage, callback)
+            var linkthongbao = config.UetHostName + "/coltech/taxonomy/term/53";// fix cung trang
+            makeRequest(linkthongbao, callback)
         },
         function (body, callback) {
-            var list = [];
             var $ = cheerio.load(body, {
                 normalizeWhitespace: true,
                 xmlMode: true
             });
             var lastIndicator = $('.pager-last a').attr('href');
-            var last = lastIndicator.split('=')[1];
-            var obj = {
-                link: loaiTinTuc.linkPage,
-                kind: loaiTinTuc.kind,
-                lastIndicator: last,
-                role: loaiTinTuc._id
-            };
-            callback(null, obj)
+            // IndexLast la bien toan cuc , ham nay thay vi tra ve IndexLast thi se van tra ve arrLoaiThongBao
+            IndexLast = lastIndicator.split('=')[1];
+            callback(null, arrLoaiThongBao)
         }
     ], function (err, result) {
         if (err) console.log(err);
-        callbackall(null, result)
+        callback(null, result)
     })
 }
 /**
  * /lấy tất cả url của các trang bài viết
  * @param list
- * link : loaiTinTuc.linkPage,
- * kind : loaiTinTuc.kind,
+ * link : loaiThongBao.linkPage,
+ * kind : loaiThongBao.kind,
  * lastIndicator : last,
- * role : loaiTinTuc._id
+ * role : loaiThongBao._id
  * @param callback
  */
-function getAllUrlPageTinTuc(list, callback) {
+function getAllUrlPageThongBao(list, callback) {
     var arrUrl = []
-    for (let i = 0; i < list.length; i++) {
-        for (let indicator = 0; indicator <= list[i].lastIndicator; indicator++) {
-            var url = list[i].link + "?page=" + indicator; //http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
-            var obj = {
-                link: url,
-                role: list[i].role
-            }
-            arrUrl.push(obj)
+    for (let indicator = 0; indicator <= IndexLast; indicator++) {
+        var url =  config.UetHostName + "/coltech/taxonomy/term/53 "+"?page=" + indicator; //http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
+        var obj = {
+            link: url,
+            role: "TatCa",// fix cung la tat ca
         }
+        arrUrl.push(obj)
+        // mang tra ve tat ca cac trang
     }
     callback(null, arrUrl)
 }
@@ -236,7 +129,7 @@ function getAllUrlPageTinTuc(list, callback) {
  * role : list[i].role
  * @param callbackAll
  */
-function getAllUrlTinTuc(list, callbackAll) {
+function getAllUrlThongBao(list, callbackAll) {
     var arrFun = [];
     var firstFun = function (callback) {
         callback(null, []);
@@ -244,14 +137,14 @@ function getAllUrlTinTuc(list, callbackAll) {
     arrFun.push(firstFun);
     for (let i = 0; i < list.length; i++) {
         var fun = function (arr, callback) {
-            parserHtmlTinTuc(list[i].link, list[i].role, function (err, result) {
+            parserHtmlThongBao(list[i].link, list[i].role, function (err, result) {
                 if (err) callback(err, null);
-                callback(null, arr.concat(result))
+                callback(null, arr.concat(result))// mang arr noi tat ca cac result tra ve
             })
         };
         arrFun.push(fun)
     }
-    async.waterfall(arrFun, function (err, result) {
+    async.waterfall(arrFun, function (err, result) {// thuc hien tuan tu phan tich cac page
         if (err) callbackAll(err, null);
         callbackAll(null, result)
     })
@@ -262,11 +155,7 @@ function getAllUrlTinTuc(list, callbackAll) {
  * @param datas : mảng các tin tức
  * @param callback
  */
-function getPostAllForEachTinTuc(result, callback) {
-    if(!result){
-        callback(null,null)
-    }
-    else {
+function getPostAllForEachThongBao(result, callback) {
     var stack = []
     stack.push(function (callback) {
         callback(null, result)
@@ -276,7 +165,7 @@ function getPostAllForEachTinTuc(result, callback) {
         var prototype = function (data, callback) {
             //gui request len server
             detailRequest(result[i].link, function (err, date) {
-                data[i].postAt = date;
+                data[i].time = date;// postAt
                 callback(null, result)
             })
         }
@@ -289,12 +178,10 @@ function getPostAllForEachTinTuc(result, callback) {
         }
         callback(null, result)
     })
-    }
-
 }
 //parser html to object
-//get link,ten,anh
-function parserHtmlTinTuc(url, role, callbackall) {
+function parserHtmlThongBao(url, role, callbackall) {
+    // phan tich tung trang thong bao
     async.waterfall([
         function (callback) {
             makeRequest(url, callback)
@@ -306,11 +193,15 @@ function parserHtmlTinTuc(url, role, callbackall) {
                 xmlMode: true
             });
             $('.views-row').each(function (i, ele) {
+                //lay tieu de
                 var title = $('.field-content .title_term ', this).text();
+                //phan nay sau phai phan tich tieu de de chon ra loai thong bao
+                //..........
+                // lay link lien ket
                 var link_temp = $('.field-content > a', this).attr('href');
-                var imageLink = $('.field-content img', this).attr('src');
                 //====================================
                 var stringOnSpan = "";
+                // lay noi dung thong bao
                 $('div.views-field-teaser>div>div>span', this).each(function (sec, e) {
                     stringOnSpan += $('span').text();
                 })
@@ -332,13 +223,12 @@ function parserHtmlTinTuc(url, role, callbackall) {
                 //tao model
                 //link lấy về đoi khi cps kí tự dặc biệt
                 //phai decode sang string
-                if (title && link_temp && imageLink && container) {
+                if (title && link_temp && container) {
                     list.push({
-                        title: entities.decode(title).toLowerCase().trim(),
-                        link: (config.UetHostName + link_temp).trim().toLowerCase(),
-                        imageLink: imageLink.trim(),
-                        content: entities.decode(container).toLowerCase().trim(),
-                        loaiTinTuc: role
+                        tieuDe: entities.decode(title).toLowerCase().trim(),// title
+                        link: (config.UetHostName + link_temp).trim().toLowerCase(),// link thong bao
+                        noiDung: entities.decode(container).toLowerCase().trim(),//content
+                        idLoaiThongBao: role//loaiThongBao ("tatca")
                     });
                 }
             });
@@ -347,12 +237,13 @@ function parserHtmlTinTuc(url, role, callbackall) {
     ], callbackall)
 }
 function deleteDuplicate(a) {
+    // xoa trung lap
     var list = a;
     for (var i = 0; i < list.length; i++) {
         var obj = list[i];
         var copying = []
         for (var j = i + 1; j < list.length; j++) {
-            if (obj.link.toLowerCase().trim() == list[j].link.toLowerCase().trim()) {
+            if (obj.link.toLowerCase().trim() == list[j].link.toLowerCase().trim()) {// kiem tra link trung lap
                 copying.push(list[j])
             }
         }
@@ -399,6 +290,8 @@ function chuanHoaDate(string) {
 }
 //===================================================
 //tra lại body html
+// doan nay khong hieu lam ?? check lai
+
 module.exports.adapter = function (url, finish) {
     async.waterfall([
         function (callback) {
@@ -416,7 +309,7 @@ module.exports.adapter = function (url, finish) {
     })
 }
 /**
- * phan tich tràn detail TinTuc
+ * phan tich tràn detail ThongBao
  * code nay kha lằng nhằng
  * - chen them href cho các the a, img
  * - them css
@@ -458,39 +351,6 @@ var getMainHTML = function (body, callback) {
         main: main
     }
     callback(null, result)
-}
-/**
- * Tim kiem trong csdl
- *  * neu nhu ton tai thi xoa ban ghi do di
- *  * chua ton tai thi de nguyen
- * @param arrTinTuc
- * @param callback
- */
-function findInDatabaseAndDelete(arrTinTuc,callback) {
-    console.log(arrTinTuc.length)
-    TinTucController.find({},function (err,result) {
-        var arrResult = [];
-        for(let pos = 0;pos<arrTinTuc.length;pos++){
-            var newTinTuc = arrTinTuc[pos];
-            let count = 0;
-            for(let sec = 0;sec<result.length;sec++){
-                var old = result[sec];
-                if(newTinTuc.link != old.link){
-                    count++;
-                }
-            }
-            if(count!=result.length-1){
-                arrResult.push(newTinTuc)
-            }
-        }
-
-
-        if(err) {
-            callback(err,null)
-            return;
-        }
-        callback(null,arrResult)
-    })
 }
 //tao request trong async
 function makeRequest(url, callback) {

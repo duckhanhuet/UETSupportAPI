@@ -26,7 +26,10 @@ var ThongBaoSchema = mongoose.Schema({
     idMucDoThongBao:{
         type: Number,
         ref:'MucDoThongBao'
-    }
+    },
+    link:{
+        type: String
+    },
 });
 
 module.exports = mongoose.model('ThongBao',ThongBaoSchema);

@@ -10,6 +10,7 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
                 success:false
             })
         }
+        console.log(lopchinhs);
         res.json(lopchinhs);
     })
 });
