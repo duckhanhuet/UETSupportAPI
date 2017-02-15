@@ -5,14 +5,13 @@ var express = require('express');
 module.exports = {
     createData: function (tieuDe, noiDung, tenFile, linkFile, mucDoThongBao,idloaiThongBaos) {
          var data={
-
             tieuDe: tieuDe,
             noiDung: noiDung,
             tenFile: tenFile,
             linkFile: linkFile,
             mucDoThongBao: mucDoThongBao,
             idLoaiThongBao: idloaiThongBaos,
-            kind:0
+             kind: 1
         }
         return data;
     },

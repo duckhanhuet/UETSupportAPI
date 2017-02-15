@@ -184,7 +184,6 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
                         callback(err,null)
                     }else {
                         callback(null,subscribes)
-                        console.log(subscribes)
                     }
                 })
             },
@@ -194,7 +193,6 @@ router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
                 })
                 console.log(registerToken);
                 sender.send(message, registerToken, function (err, response) {
-                    console.log(response)
                     if (err) {
                         callback(err, null)
                     }
