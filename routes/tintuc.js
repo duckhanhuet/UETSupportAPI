@@ -54,9 +54,9 @@ router.get('/detail',function (req,res) {
 /**
  * Lập lick lấy gửi notifi
  */
-setInterval(function () {
-    utils.test();
-}, 1000 * 60 * 1);
+// setInterval(function () {
+//     utils.test();
+// }, 1000 * 60 * 1);
 //============================================================
 //ham nay de impot du lieu
 //CHAY LAN DAU ROI COMMENT NO LAI

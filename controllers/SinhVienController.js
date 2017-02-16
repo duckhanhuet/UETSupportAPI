@@ -1,6 +1,9 @@
 var SinhVien = require('../models/SinhVien');
 
 module.exports =  {
+    findSinhVienById(id, callback){
+        SinhVien.findById(id).exec(callback)
+    },
     find: function (params, callback) {
         SinhVien.find(params).populate([
             {

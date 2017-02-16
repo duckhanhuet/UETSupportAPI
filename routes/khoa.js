@@ -269,13 +269,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
             })
         },
         function (result, callback) {
-            var url ='';
-            if (result.file==null){
-                url=null;
-            }else {
-                url ='/thongbao/'+ result.thongbao._id;
-            }
-
+            var url = '/thongbao/' + result.thongbao._id;
             message = new gcm.Message({
                 data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind)
             });
