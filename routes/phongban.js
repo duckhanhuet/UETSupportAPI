@@ -85,7 +85,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     var noiDung = req.body.noiDung;
     var idMucDoThongBao = req.body.idMucDoThongBao;
     var idLoaiThongBao = req.body.idLoaiThongBao;
-    var kind=1;
+    var kind =1;
     var file;
     if(req.files)
     {
@@ -186,17 +186,11 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
             })
         },
         function (result, callback) {
-            var url ='';
-            if (result.file==null){
-                url=null;
-            }else {
-                url ='/thongbao/'+ result.thongbao._id;
-            }
-
+            var url = '/thongbao/' + result.thongbao._id;
             message = new gcm.Message({
                 data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind)
             });
-            //console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao));
+            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind));
             var subscribes= result.subscribes;
             subscribes.forEach(function (subscribe) {
                 registerToken.push(subscribe._id.tokenFirebase);
@@ -251,9 +245,9 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                     if (err) {
                         callback(err,null);
                     }
-                    callback(null,'Success');
                 })
             })
+            callback(null,'Success');
         }
         ,function findsubscribes(kq,callback) {
             Subscribe.find({}).populate('_id').exec(function (err, subscribes) {
@@ -282,7 +276,7 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
 
             objectDiems.forEach(function (objectDiem) {
                 if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
-                    var urlDiem = 'localhost:3000/sinhvien/diem/'+ objectDiem.tenLopMonHoc;
+                    var urlDiem = '/diemmonhoc/'+ objectDiem.tenLopMonHoc;
                     var message= new gcm.Message({
                         data: dataNoti.createDataDiem(
                             objectDiem.monHoc,
