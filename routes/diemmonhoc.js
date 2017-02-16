@@ -10,7 +10,10 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
                 message: 'not found diem mon hoc'
             })
         }
-        res.json(diemmonhocs);
+        res.json({
+            success: true,
+            metadata: diemmonhocs
+        });
     })
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
@@ -39,7 +42,5 @@ router.get('/lop/:idlop',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (req
         res.json(diemmonhoc);
     })
 });
-
-
 
 module.exports = router;

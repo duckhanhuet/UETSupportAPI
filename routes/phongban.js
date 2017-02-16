@@ -92,6 +92,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     if(req.files)
     {
         console.log('co file');
+        //console.log(req.files.file);
         file= req.files.file_0;
     }else {
         console.log('khong co file');

@@ -17,7 +17,13 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    ThongBaoController.abc(id, function (err, thongbao) {
+    ThongBaoController.findById(req.params.id, function (err, thongbao) {
+        if (err) {
+            res.json({
+                success: false,
+            })
+        }
+        res.json(thongbao);
     });
 });
 
