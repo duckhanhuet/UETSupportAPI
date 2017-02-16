@@ -13,6 +13,7 @@ var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var ThongBaoController = require('../controllers/ThongBaoController');
+var FileController=require('../controllers/FileController');
 //==========================================
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
@@ -164,6 +165,7 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 //================================================================
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddleware,function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var idMucDoThongBao = req.body.idMucDoThongBao;
@@ -173,7 +175,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
     if(req.files)
     {
         console.log('co file');
-        file= req.files.file;
+        file= req.files.file_0;
     }else {
         console.log('khong co file');
     }
@@ -294,7 +296,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
         if (err){
             res.json({
                 success:false,
-                err:err
+                err:err.message
             })
         }
         res.json({

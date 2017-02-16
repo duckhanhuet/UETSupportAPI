@@ -32,7 +32,7 @@ module.exports.parseMainPage = function () {
         function (callback) {
             callback(null, arr)
         },
-        function (arr, callback) {
+        function (arrLoaiThongBao, callback) {
             // tim trang cuoi cung
             parseUrlLastIndicator(arrLoaiThongBao, callback)
         },
@@ -50,6 +50,9 @@ module.exports.parseMainPage = function () {
             var arr = deleteDuplicate(arrThongBao)
             callback(null, arr)
         },
+        // function (arrThongBao, callback) {
+        //     findInDatabaseAndDelete(arrThongBao,callback);
+        // },
         function (arrThongBao, callback) {
             getPostAllForEachThongBao(arrThongBao, callback)
         }
@@ -111,7 +114,7 @@ function getObjIndicator(arrLoaiThongBao, callback) {
 function getAllUrlPageThongBao(list, callback) {
     var arrUrl = []
     for (let indicator = 0; indicator <= IndexLast; indicator++) {
-        var url =  config.UetHostName + "/coltech/taxonomy/term/53 "+"?page=" + indicator; //http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
+        var url = config.UetHostName + "/coltech/taxonomy/term/53" + "?page=" + indicator; //http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
         var obj = {
             link: url,
             role: "TatCa",// fix cung la tat ca
@@ -195,6 +198,7 @@ function parserHtmlThongBao(url, role, callbackall) {
             $('.views-row').each(function (i, ele) {
                 //lay tieu de
                 var title = $('.field-content .title_term ', this).text();
+                // console.log(title)
                 //phan nay sau phai phan tich tieu de de chon ra loai thong bao
                 //..........
                 // lay link lien ket
@@ -237,7 +241,7 @@ function parserHtmlThongBao(url, role, callbackall) {
     ], callbackall)
 }
 function deleteDuplicate(a) {
-    // xoa trung lap
+    // xoa trung lap  neu thong bao co tieu de trung lap da xuat hien
     var list = a;
     for (var i = 0; i < list.length; i++) {
         var obj = list[i];
@@ -255,6 +259,38 @@ function deleteDuplicate(a) {
     }
     return list;
 }
+
+function findInDatabaseAndDelete(arrThongBao, callback) {
+    console.log(arrThongBao.length)
+    ThongBaoController.find({}, function (err, result) {
+        var arrResult = [];
+        // for (let pos = 0; pos < arrTinTuc.length; pos++) {
+        //     var newTinTuc = arrTinTuc[pos];
+        //     let count = 0;
+        //     for (let sec = 0; sec < result.length; sec++) {
+        //         var old = result[sec];
+        //         if (newTinTuc.link != old.link) {
+        //             count++;
+        //         }
+        //     }
+        //     if (count != result.length - 1) {
+        //         arrResult.push(newTinTuc)
+        //     }
+        // }
+        arrResult=arrThongBao.filter(function (el) {
+            var result=result.indexOf(el);
+            return result<0;
+        })
+
+
+        if (err) {
+            callback(err, null)
+            return;
+        }
+        callback(null, arrResult)
+    })
+}
+
 function detailRequest(url, callback) {
     async.waterfall([
         function (callback) {
@@ -266,7 +302,7 @@ function detailRequest(url, callback) {
                 xmlMode: true
             });
             var stringDate = $('.node .submitted').text().trim();
-            console.log(stringDate);
+            // console.log(stringDate);
             var date = chuanHoaDate(stringDate);
             console.log(date);
             callback(null, date)
