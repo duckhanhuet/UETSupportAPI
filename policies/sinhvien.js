@@ -65,7 +65,7 @@ module.exports = {
         if (idLoaiThongBaos.indexOf(4)>-1){
             return true;
         }else {
-            return false;
+            return false ;
         }
     }
 }

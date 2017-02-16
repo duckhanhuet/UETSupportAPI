@@ -281,30 +281,38 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartM
 
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,function (req, res, next) {
     var objectDiems = JSON.parse(req.body.list);
-    //===============================================
-    //luu diem mon hoc vao database
-    //===============================================
-
-    objectDiems.forEach(function (object) {
-        var info = {
-            idSinhVien: object.MSV,
-            idLopMonHoc: object.tenLopMonHoc,
-            diemThanhPhan: Number(object.diemThanhPhan),
-            diemCuoiKi: Number(object.diemCuoiKi)
-        }
-        DiemMonHocController.create(info, function (err, result) {
-            if (err) {
-                console.log('error create diem mon hoc');
-            }
-        })
-    })
+    var mucdothongbao=1;
+    var loaithongbao=1;
+    var kind=2;
+    //console.log(objectDiems);
     //===============================================
     async.waterfall([
-        function findsubscribes(callback) {
+        function createDiem(callback) {
+            //===============================================
+            //luu diem mon hoc vao database
+            //===============================================
+
+            objectDiems.forEach(function (object) {
+                var info = {
+                    idSinhVien: object.MSV,
+                    idLopMonHoc: object.tenLopMonHoc,
+                    diemThanhPhan: Number(object.diemThanhPhan),
+                    diemCuoiKy: Number(object.diemCuoiKi)
+                }
+                DiemMonHocController.create(info, function (err, result) {
+                    if (err) {
+                        callback(err,null);
+                    }
+                })
+            })
+            callback(null,'Success');
+        }
+        ,function findsubscribes(kq,callback) {
             Subscribe.find({idLoaiThongBao:{$in:[1]}}).populate('_id').exec(function (err, subscribes) {
                 if (err) {
                     callback(err, null)
                 } else {
+                    console.log(subscribes);
                     callback(null, subscribes)
                 }
             })
@@ -313,17 +321,24 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,funct
             var arrayMSV = [];
             var sender = gcm.Sender(config.serverKey);
             results.forEach(function (sv) {
-                arrayMSV.push(sv._id);
+                arrayMSV.push(sv._id._id);
             });
+            //console.log(arrayMSV);
             objectDiems.forEach(function (objectDiem) {
                 if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
-                    var message = new gcm.Message({
-                        data: dataNoti.createDataDiem(
-                            objectDiem.MSV, objectDiem.tenLopMonHoc
-                            , objectDiem.tenKiHoc, objectDiem.tenGiangVien,
-                            objectDiem.monHoc, objectDiem.diemThanhPhan,
-                            objectDiem.diemCuoiKi, objectDiem.tongDiem)
-                    });
+                    //console.log(objectDiem.MSV);
+                    var urlDiem = '/diemmonhoc/lop/'+ objectDiem.tenLopMonHoc;
+                    var message= new gcm.Message({
+                        data: dataNoti.createData(
+                            'diem thi',
+                            'da co diem thi mon '+objectDiem.tenLopMonHoc,
+                            urlDiem,
+                            mucdothongbao,
+                            loaithongbao,
+                            kind
+                        )
+                    })
+
                     SinhVienController.findById(objectDiem.MSV, function (err, sv) {
                         if (err) {
                             console.log('find ' + objectDiem.MSV + ' fail');
@@ -332,6 +347,7 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,funct
                             if (err) {
                                 console.log('Send noti for sinhvien ' + objectDiem.MSV + ' fail');
                             }
+                            console.log(response);
                         })
                     })
                 }

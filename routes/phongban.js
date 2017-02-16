@@ -230,6 +230,7 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
     var mucdothongbao=1;
     var loaithongbao=1;
     var kind=2;
+    //console.log(objectDiems);
     //===============================================
     async.waterfall([
         function createDiem(callback) {
@@ -253,43 +254,44 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
             callback(null,'Success');
         }
         ,function findsubscribes(kq,callback) {
-            Subscribe.find({}).populate('_id').exec(function (err, subscribes) {
+            Subscribe.find({idLoaiThongBao:{$in:[1]}}).populate('_id').exec(function (err, subscribes) {
                 if (err) {
                     callback(err, null)
                 } else {
+                    //console.log(subscribes);
                     callback(null, subscribes)
                 }
             })
-        },
-        function svdkyDiem(results, callback) {
-            var dsSv = [];
-            results.forEach(function (subscribe) {
-                if (typeNoti.checkLoaiThongBaoDiem(subscribe)) {
-                    dsSv.push(subscribe);
-                }
-            })
-            callback(null, dsSv)
         },
         function sendThongBao(results, callback) {
             var arrayMSV = [];
             var sender = gcm.Sender(config.serverKey);
             results.forEach(function (sv) {
-                arrayMSV.push(sv._id);
+                arrayMSV.push(sv._id._id);
             });
-
+            //console.log(arrayMSV);
             objectDiems.forEach(function (objectDiem) {
                 if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
+                    //console.log(objectDiem.MSV);
                     var urlDiem = '/diemmonhoc/lop/'+ objectDiem.tenLopMonHoc;
                     var message= new gcm.Message({
                         data: dataNoti.createData(
-                            'diem thi',   //tieu de
-                            'da co diem thi mon '+objectDiem.monHoc, //noi dung
-                            urlDiem, //api router
-                            mucdothongbao, // id muc do thong bao: quang trong
-                            loaithongbao, // id loai thong bao : diem thi
-                            kind // kind
+                            'diem thi',
+                            'da co diem thi mon '+objectDiem.tenLopMonHoc,
+                            urlDiem,
+                            mucdothongbao,
+                            loaithongbao,
+                            kind
                         )
                     })
+                    // console.log(dataNoti.createData(
+                    //     'diem thi',
+                    //     'da co diem thi mon '+objectDiem.tenLopMonHoc,
+                    //     urlDiem,
+                    //     mucdothongbao,
+                    //     loaithongbao,
+                    //     kind
+                    // ))
                     SinhVienController.findById(objectDiem.MSV, function (err, sv) {
                         if (err) {
                             console.log('find ' + objectDiem.MSV + ' fail');
@@ -298,6 +300,7 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                             if (err) {
                                 console.log('Send noti for sinhvien ' + objectDiem.MSV + ' fail');
                             }
+                            console.log(response);
                         })
                     })
                 }
