@@ -13,6 +13,7 @@ var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var ThongBaoController = require('../controllers/ThongBaoController');
+var FileController=require('../controllers/FileController')
 //==========================================
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
@@ -164,11 +165,12 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 //================================================================
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddleware,function (req, res) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var mucDoThongBao = req.body.mucDoThongBao;
     var idLoaiThongBao = req.body.idLoaiThongBao;
-    var file = req.files.file;
+    var file = req.files.file_0;
     //===============================================
     //===============================================
     var message;

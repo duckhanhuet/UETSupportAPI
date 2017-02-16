@@ -8,6 +8,7 @@ var Subscribe   = require('../models/Subscribe');
 var DiemMonHocController=  require('../controllers/DiemMonHocController');
 var FileController      = require('../controllers/FileController');
 var ThongBaoController = require('../controllers/ThongBaoController');
+var FileController=require('../controllers/FileController')
 var async = require('async');
 //==========================================
 var fs = require('fs');
@@ -69,11 +70,12 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (re
 });
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,function (req, res) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var mucDoThongBao = req.body.mucDoThongBao;
     var idLoaiThongBao = req.body.idLoaiThongBao;
-    var file = req.files.file;
+    var file = req.files.file_0;
     //===============================================
     //===============================================
     var message;

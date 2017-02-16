@@ -5,6 +5,7 @@ var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var DiemMonHocController = require('../controllers/DiemMonHocController');
 var ThongBaoController = require('../controllers/ThongBaoController');
+var FileController=require('../controllers/FileController')
 var Subscribe   = require('../models/Subscribe');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
@@ -81,11 +82,13 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
  * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
  */
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    console.log(req.body);
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var mucDoThongBao = req.body.mucDoThongBao;
     var idLoaiThongBao = req.body.idLoaiThongBao;
-    var file = req.files.file;
+    var file = req.files.file_0;
     //===============================================
     //===============================================
     var message;
@@ -134,8 +137,9 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                         idLoaiThongBao: idLoaiThongBao,
                         idMucDoThongBao: mucDoThongBao
                     }
+                    console.log('infothongbao',infoThongBao)
                     ThongBaoController.create(infoThongBao,function (err, tb) {
-                        console.log(tb);
+                        console.log("tb: ",tb);
                     })
                     //============================
                     console.log('Create file success');
@@ -187,7 +191,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         if (err){
             res.json({
                 success:false,
-                err:err
+                message:err.message,
             })
         }
         res.json({
