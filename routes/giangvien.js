@@ -69,6 +69,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (re
 });
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var idMucDoThongBao = req.body.idMucDoThongBao;
@@ -78,7 +79,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartM
     if(req.files)
     {
         console.log('co file');
-        file= req.files.file;
+        file= req.files.file_0;
     }else {
         console.log('khong co file');
     }
@@ -205,7 +206,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartM
         if (err){
             res.json({
                 success:false,
-                err:err
+                err:err.message
             })
         }
         res.json({

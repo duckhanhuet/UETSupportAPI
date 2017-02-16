@@ -5,6 +5,7 @@ var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var DiemMonHocController = require('../controllers/DiemMonHocController');
 var ThongBaoController = require('../controllers/ThongBaoController');
+var FileController=require('../controllers/FileController');
 var Subscribe   = require('../models/Subscribe');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
@@ -81,6 +82,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
  * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
  */
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var idMucDoThongBao = req.body.idMucDoThongBao;
@@ -90,7 +92,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     if(req.files)
     {
         console.log('co file');
-        file= req.files.file;
+        file= req.files.file_0;
     }else {
         console.log('khong co file');
     }
@@ -148,7 +150,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                         if (err){
                             callback(err,null);
                         }
-                        //console.log(tb);
+                        console.log("tb",tb);
                         callback(null,tb);
                     })
                     //============================
@@ -217,7 +219,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         if (err){
             res.json({
                 success:false,
-                err:err
+                err:err.message
             })
         }
         res.json({
