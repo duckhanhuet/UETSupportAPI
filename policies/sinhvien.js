@@ -1,42 +1,70 @@
 module.exports = {
-    checkLoaiThongBaoDiem: function (sinhvien) {
+    checkLoaiThongBaoDiem: function (subscribe) {
         //Diem thi co id loai thong bao la 1
-        if (sinhvien.idLoaiThongBao==null||sinhvien.idLoaiThongBao.indexOf(0)>-1||sinhvien.idLoaiThongBao.
-            indexOf(1)>-1){
+        var idLoaiThongBaos= subscribe.idLoaiThongBao;
+        var arrayidtb =[];
+        idLoaiThongBaos.forEach(function (idloaithongbao) {
+            arrayidtb.push(idloaithongbao._id)
+        });
+        if (idLoaiThongBaos.indexOf(1)>-1){
             return true;
-        } else {
+        }else {
             return false;
         }
     },
     //id loai thong bao cho tat ca la 0
-    checkLoaiThongBaoTatCa: function (sinhvien) {
-        if (sinhvien.idLoaiThongBao.indexOf(0)>-1||sinhvien.idLoaiThongBao==null){
+    checkLoaiThongBaoTatCa: function (subscribe) {
+        //Diem thi co id loai thong bao la 1
+        var idLoaiThongBaos= subscribe.idLoaiThongBao;
+        var arrayidtb =[];
+        idLoaiThongBaos.forEach(function (idloaithongbao) {
+            arrayidtb.push(idloaithongbao._id)
+        });
+        if (idLoaiThongBaos.indexOf(0)>-1){
             return true;
         }else {
             return false;
         }
     },
     //id loai thong bao cua lich thi la 2
-    checkLoaiThongBaoLichThi: function (sinhvien) {
-        if (sinhvien.idLoaiThongBao==null||sinhvien.idLoaiThongBao.indexOf(2)>-1){
+    checkLoaiThongBaoLichThi: function (subscribe) {
+        //Diem thi co id loai thong bao la 1
+        var idLoaiThongBaos= subscribe.idLoaiThongBao;
+        var arrayidtb =[];
+        idLoaiThongBaos.forEach(function (idloaithongbao) {
+            arrayidtb.push(idloaithongbao._id)
+        });
+        if (idLoaiThongBaos.indexOf(2)>-1){
             return true;
         }else {
             return false;
         }
     },
     //id loai thogn bao lich hoc la 3
-    checkLoaiThongBaoLichHoc: function (sinhvien) {
-        if (sinhvien.idLoaiThongBao==null||sinhvien.idLoaiThongBao.indexOf(3)>-1){
+    checkLoaiThongBaoLichHoc: function (subscribe) {
+        //Diem thi co id loai thong bao la 1
+        var idLoaiThongBaos= subscribe.idLoaiThongBao;
+        var arrayidtb =[];
+        idLoaiThongBaos.forEach(function (idloaithongbao) {
+            arrayidtb.push(idloaithongbao._id)
+        });
+        if (idLoaiThongBaos.indexOf(3)>-1){
             return true;
-        } else {
+        }else {
             return false;
         }
     },
     //id loai thong bao dang ky tin chi la 4
-    checkLoaiThongBaoDangKiTinChi: function (sinhvien) {
-        if (sinhvien.idLoaiThongBao==null||sinhvien.idLoaiThongBao.indexOf(4)>-1){
+    checkLoaiThongBaoDangKiTinChi: function (subscribe) {
+        //Diem thi co id loai thong bao la 1
+        var idLoaiThongBaos= subscribe.idLoaiThongBao;
+        var arrayidtb =[];
+        idLoaiThongBaos.forEach(function (idloaithongbao) {
+            arrayidtb.push(idloaithongbao._id)
+        });
+        if (idLoaiThongBaos.indexOf(4)>-1){
             return true;
-        } else {
+        }else {
             return false;
         }
     }

@@ -6,7 +6,7 @@ var LoaiThongBaoController = require('../controllers/LoaiThongBaoController');
 var auth = require('../policies/auth');
 
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
-    SubscribeController.findById(req.user._id,function (err, subscribes) {
+    SubscribeController.find({},function (err, subscribes) {
         if (err){
             res.json({
                 success: false

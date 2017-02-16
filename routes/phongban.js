@@ -227,8 +227,9 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
 //Gui thong bao diem
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
     var objectDiems = JSON.parse(req.body.list);
-
-
+    var mucdothongbao=1;
+    var loaithongbao=1;
+    var kind=2;
     //===============================================
     async.waterfall([
         function createDiem(callback) {
@@ -278,12 +279,15 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
 
             objectDiems.forEach(function (objectDiem) {
                 if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
-                    var urlDiem = '/diemmonhoc/'+ objectDiem.tenLopMonHoc;
+                    var urlDiem = '/diemmonhoc/lop/'+ objectDiem.tenLopMonHoc;
                     var message= new gcm.Message({
-                        data: dataNoti.createDataDiem(
-                            objectDiem.monHoc,
-                            objectDiem.tenKiHoc,
-                            urlDiem
+                        data: dataNoti.createData(
+                            'diem thi',   //tieu de
+                            'da co diem thi mon '+objectDiem.monHoc, //noi dung
+                            urlDiem, //api router
+                            mucdothongbao, // id muc do thong bao: quang trong
+                            loaithongbao, // id loai thong bao : diem thi
+                            kind // kind
                         )
                     })
                     SinhVienController.findById(objectDiem.MSV, function (err, sv) {

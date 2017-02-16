@@ -74,7 +74,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartM
     var noiDung = req.body.noiDung;
     var idMucDoThongBao = req.body.idMucDoThongBao;
     var idLoaiThongBao = req.body.idLoaiThongBao;
-    var kind=1;
+    var kind =1;
     var file;
     if(req.files)
     {
@@ -175,17 +175,11 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartM
             })
         },
         function (result, callback) {
-            var url ='';
-            if (result.file==null){
-                url=null;
-            }else {
-                url ='/thongbao/'+ result.thongbao._id;
-            }
-
+            var url = '/thongbao/' + result.thongbao._id;
             message = new gcm.Message({
                 data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind)
             });
-            //console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao));
+            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind));
             var subscribes= result.subscribes;
             subscribes.forEach(function (subscribe) {
                 registerToken.push(subscribe._id.tokenFirebase);
@@ -215,7 +209,8 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartM
         })
     })
 
-})//=============================================================
+})
+//=============================================================
 //Giang Vien gui thong bao toi lop Mon Hoc,  thong bao nay mang tinh quan trong=> gui cho toan bo sinh vien trong lop
 // router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (req, res, next) {
 //     var tieuDe = req.body.tieuDe;
