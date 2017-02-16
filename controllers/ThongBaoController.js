@@ -7,7 +7,10 @@ module.exports =  {
                 path:'idFile'
             },
             {
-                path:'idThongBao'
+                path:'idLoaiThongBao'
+            },
+            {
+                path: 'idMucDoThongBao'
             }
         ]).exec(function (err, thongbaos) {
             if (err){
@@ -24,7 +27,10 @@ module.exports =  {
                 path:'idFile'
             },
             {
-                path:'idThongBao'
+                path:'idLoaiThongBao'
+            },
+            {
+                path: 'idMucDoThongBao'
             }
         ]).exec(function (err, thongbao) {
             if (err){

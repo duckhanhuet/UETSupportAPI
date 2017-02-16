@@ -3,15 +3,14 @@ var express = require('express');
 //kind=2: gui Diem Thi
 //kind=3: gui TIn Tuc
 module.exports = {
-    createData: function (tieuDe, noiDung,urlFile,mucDoThongBao,idloaiThongBaos) {
+    createData: function (tieuDe, noiDung,urlFile,mucDoThongBao,idloaiThongBaos,kind) {
          var data={
-
             tieuDe: tieuDe,
             noiDung: noiDung,
-            urlFile: urlFile,
-            mucDoThongBao: mucDoThongBao,
+            link: urlFile,
+            idMucDoThongBao: mucDoThongBao,
             idLoaiThongBao: idloaiThongBaos,
-            kind:0
+            kind: kind
         }
         return data;
     },
@@ -19,7 +18,7 @@ module.exports = {
         var data= {
             tieuDe:'da co diem mon hoc '+monHoc,
             tenKiHoc: tenkihoc,
-            urlDiem: urlDiem,
+            link: urlDiem,
             kind: 2
         }
         return data;
