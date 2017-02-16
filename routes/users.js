@@ -48,10 +48,14 @@ router.post('/authenticate', function (req, res) {
                     var token = jwt.sign(user, config.secret);
 
                     // return the information including token as JSON
-                    res.json({
-                        success: true,
-                        message: 'Enjoy your token!',
-                        token: token
+                    SinhVienController.findSinhVienById(user._id, function (err, sinhvien) {
+                        res.json({
+                            success: true,
+                            message: 'Enjoy your token!',
+                            token: token,
+                            sinhvien: sinhvien,
+                            user: user
+                        })
                     });
                 } else {
                     res.json({

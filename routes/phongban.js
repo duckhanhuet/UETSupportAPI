@@ -5,7 +5,6 @@ var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var DiemMonHocController = require('../controllers/DiemMonHocController');
 var ThongBaoController = require('../controllers/ThongBaoController');
-var FileController=require('../controllers/FileController')
 var Subscribe   = require('../models/Subscribe');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
@@ -82,13 +81,20 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
  * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
  */
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    console.log(req.body);
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
-    var mucDoThongBao = req.body.mucDoThongBao;
+    var idMucDoThongBao = req.body.idMucDoThongBao;
     var idLoaiThongBao = req.body.idLoaiThongBao;
-    var file = req.files.file_0;
+    var kind=1;
+    var file;
+    if(req.files)
+    {
+        console.log('co file');
+        file= req.files.file;
+    }else {
+        console.log('khong co file');
+    }
+    //var file = req.files.file;
     //===============================================
     //===============================================
     var message;
@@ -105,12 +111,12 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                     success:false,
                     message: 'Invalide tieu de va noi dung thong bao'
                 }
-                callback(object,null);
+                callback('err',null);
             }else {
-                callback(null,'Check validate success');
+                callback(null,'Success');
             }
         },
-        function checkFile(result,callback) {
+        function checkFile(ketqua,callback) {
             if (file){
                 // Tên file
                 var originalFilename = file.name;
@@ -124,31 +130,45 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                     tenFile: originalFilename,
                     link: pathUpload
                 }
-                FileController.create(objectFile,function (err, result) {
+                FileController.create(objectFile,function (err, filess) {
                     if (err){
                         callback(err,null);
                     }
+                    console.log('Create file success');
                     //============================
                     //create thong bao
                     var infoThongBao={
                         tieuDe: tieuDe,
                         noiDung: noiDung,
-                        idFile: result._id,
+                        idFile: filess._id,
                         idLoaiThongBao: idLoaiThongBao,
-                        idMucDoThongBao: mucDoThongBao
+                        idMucDoThongBao: idMucDoThongBao
                     }
-                    console.log('infothongbao',infoThongBao)
                     ThongBaoController.create(infoThongBao,function (err, tb) {
-                        console.log("tb: ",tb);
+                        if (err){
+                            callback(err,null);
+                        }
+                        //console.log(tb);
+                        callback(null,tb);
                     })
                     //============================
-                    console.log('Create file success');
 
-                    callback(null,result);
                 })
             }
             else{
-                callback(null,'Not found file');
+                var infoThongBao={
+                    tieuDe: tieuDe,
+                    noiDung: noiDung,
+                    idLoaiThongBao: idLoaiThongBao,
+                    idMucDoThongBao: idMucDoThongBao
+                }
+                ThongBaoController.create(infoThongBao,function (err, tb) {
+                    if (err){
+                        callback(err,null);
+                    }
+                    console.log(tb);
+                    callback(null,tb);
+                })
             }
         },
         function find(result,callback) {
@@ -157,7 +177,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                     callback(err,null)
                 }else {
                     var object ={
-                        file: result,
+                        thongbao: result,
                         subscribes: subscribes
                     }
                     callback(null,object);
@@ -166,16 +186,22 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
             })
         },
         function (result, callback) {
-            var urlFile ='localhost:3000/file/'+ result.file._id;
-            message = new gcm.Message({
-                data: dataNoti.createData(tieuDe,noiDung,urlFile,mucDoThongBao,idLoaiThongBao)
-            });
+            var url ='';
+            if (result.file==null){
+                url=null;
+            }else {
+                url ='/thongbao/'+ result.thongbao._id;
+            }
 
+            message = new gcm.Message({
+                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind)
+            });
+            //console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao));
             var subscribes= result.subscribes;
             subscribes.forEach(function (subscribe) {
                 registerToken.push(subscribe._id.tokenFirebase);
             })
-            console.log(registerToken);
+            //console.log(registerToken);
             sender.send(message, registerToken, function (err, response) {
                 console.log(response)
                 if (err) {
@@ -191,7 +217,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         if (err){
             res.json({
                 success:false,
-                message:err.message,
+                err:err
             })
         }
         res.json({
@@ -206,26 +232,30 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
     var objectDiems = JSON.parse(req.body.list);
 
-    //===============================================
-    //luu diem mon hoc vao database
-    //===============================================
 
-    objectDiems.forEach(function (object) {
-        var info = {
-            idSinhVien: object.MSV,
-            idLopMonHoc: object.tenLopMonHoc,
-            diemThanhPhan: Number(object.diemThanhPhan),
-            diemCuoiKy: Number(object.diemCuoiKi)
-        }
-        DiemMonHocController.create(info, function (err, result) {
-            if (err) {
-                console.log('error create diem mon hoc');
-            }
-        })
-    })
     //===============================================
     async.waterfall([
-        function findsubscribes(callback) {
+        function createDiem(callback) {
+            //===============================================
+            //luu diem mon hoc vao database
+            //===============================================
+
+            objectDiems.forEach(function (object) {
+                var info = {
+                    idSinhVien: object.MSV,
+                    idLopMonHoc: object.tenLopMonHoc,
+                    diemThanhPhan: Number(object.diemThanhPhan),
+                    diemCuoiKy: Number(object.diemCuoiKi)
+                }
+                DiemMonHocController.create(info, function (err, result) {
+                    if (err) {
+                        callback(err,null);
+                    }
+                    callback(null,'Success');
+                })
+            })
+        }
+        ,function findsubscribes(kq,callback) {
             Subscribe.find({}).populate('_id').exec(function (err, subscribes) {
                 if (err) {
                     callback(err, null)

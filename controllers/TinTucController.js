@@ -27,7 +27,13 @@ module.exports = {
     },
     //default limit = 10
     findAndLimit : function (param,offset,callback) {
-        TinTuc.find(param).limit(10).skip(offset).exec(callback);
+        TinTuc
+            .find(param)
+            .sort({"postAt": -1})
+            .limit(10)
+            .skip(offset)
+            .populate('loaiTinTuc')
+            .exec(callback);
     },
     find : function (param,callback) {
         TinTuc.find(param).exec(callback)
@@ -35,7 +41,10 @@ module.exports = {
     findDetailTinTuc : function (param,callback) {
         TinTuc
             .find(param)
-            .limit(10).sort({"postAt" : -1}).populate('loaiTinTuc').exec(callback)
+            .limit(10)
+            .sort({"postAt": -1})
+            .populate('loaiTinTuc')
+            .exec(callback)
     },
     create: function (params, callback) {
         TinTuc.create(params,function (err, thongbao) {

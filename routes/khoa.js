@@ -13,7 +13,6 @@ var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var ThongBaoController = require('../controllers/ThongBaoController');
-var FileController=require('../controllers/FileController')
 //==========================================
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
@@ -165,12 +164,20 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 //================================================================
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddleware,function (req, res) {
-    res.setHeader("Access-Control-Allow-Origin", "*");
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
-    var mucDoThongBao = req.body.mucDoThongBao;
+    var idMucDoThongBao = req.body.idMucDoThongBao;
     var idLoaiThongBao = req.body.idLoaiThongBao;
-    var file = req.files.file_0;
+    var kind =1;
+    var file;
+    if(req.files)
+    {
+        console.log('co file');
+        file= req.files.file;
+    }else {
+        console.log('khong co file');
+    }
+    //var file = req.files.file;
     //===============================================
     //===============================================
     var message;
@@ -187,12 +194,12 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
                     success:false,
                     message: 'Invalide tieu de va noi dung thong bao'
                 }
-                callback(object,null);
+                callback('err',null);
             }else {
-                callback(null,'Check validate success');
+                callback(null,'Success');
             }
         },
-        function checkFile(result,callback) {
+        function checkFile(ketqua,callback) {
             if (file){
                 // Tên file
                 var originalFilename = file.name;
@@ -206,7 +213,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
                     tenFile: originalFilename,
                     link: pathUpload
                 }
-                FileController.create(objectFile,function (err, result) {
+                FileController.create(objectFile,function (err, filess) {
                     if (err){
                         callback(err,null);
                     }
@@ -216,19 +223,35 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
                     var infoThongBao={
                         tieuDe: tieuDe,
                         noiDung: noiDung,
-                        idFile: result._id,
+                        idFile: filess._id,
                         idLoaiThongBao: idLoaiThongBao,
-                        idMucDoThongBao: mucDoThongBao
+                        idMucDoThongBao: idMucDoThongBao
                     }
                     ThongBaoController.create(infoThongBao,function (err, tb) {
-                        console.log(tb);
+                        if (err){
+                            callback(err,null);
+                        }
+                        //console.log(tb);
+                        callback(null,tb);
                     })
                     //============================
-                    callback(null,result);
+
                 })
             }
             else{
-                callback(null,'Not found file');
+                var infoThongBao={
+                    tieuDe: tieuDe,
+                    noiDung: noiDung,
+                    idLoaiThongBao: idLoaiThongBao,
+                    idMucDoThongBao: idMucDoThongBao
+                }
+                ThongBaoController.create(infoThongBao,function (err, tb) {
+                    if (err){
+                        callback(err,null);
+                    }
+                    console.log(tb);
+                    callback(null,tb);
+                })
             }
         },
         function find(result,callback) {
@@ -237,7 +260,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
                     callback(err,null)
                 }else {
                     var object ={
-                        file: result,
+                        thongbao: result,
                         subscribes: subscribes
                     }
                     callback(null,object);
@@ -246,16 +269,16 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
             })
         },
         function (result, callback) {
-            var urlFile ='localhost:3000/file/'+ result.file._id;
+            var url = '/thongbao/' + result.thongbao._id;
             message = new gcm.Message({
-                data: dataNoti.createData(tieuDe,noiDung,urlFile,mucDoThongBao,idLoaiThongBao)
+                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind)
             });
-
+            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind));
             var subscribes= result.subscribes;
             subscribes.forEach(function (subscribe) {
                 registerToken.push(subscribe._id.tokenFirebase);
             })
-            console.log(registerToken);
+            //console.log(registerToken);
             sender.send(message, registerToken, function (err, response) {
                 console.log(response)
                 if (err) {

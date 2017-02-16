@@ -17,12 +17,22 @@ router.get('/',function (req,res) {
 })
 //Tra json
 router.get('/test',function (req,res) {
-    var loaiTinTuc = req.query.loaitintuc;
-    TinTucController.findDetailTinTuc({
-        loaiTinTuc : loaiTinTuc
-    },function (err,tintuc) {
-        res.json(tintuc)
-    })
+    var loaiTinTuc = parseInt(req.query.loaitintuc);
+    var offset = parseInt(req.query.offset);
+    if (loaiTinTuc != -1) {
+        TinTucController.findAndLimit({
+            loaiTinTuc: loaiTinTuc
+        }, offset, function (err, tintuc) {
+            res.json(tintuc)
+        })
+    }
+    else {
+        TinTucController.findAndLimit({}, offset, function (err, tintuc) {
+            res.json(tintuc)
+        })
+    }
+    
+    
 })
 
 //phan tích lại tin tuc detail
@@ -44,9 +54,9 @@ router.get('/detail',function (req,res) {
 /**
  * Lập lick lấy gửi notifi
  */
-setInterval(function () {
-    utils.test();
-},1000*60*10);
+// setInterval(function () {
+//     utils.test();
+// }, 1000 * 60 * 1);
 //============================================================
 //ham nay de impot du lieu
 //CHAY LAN DAU ROI COMMENT NO LAI

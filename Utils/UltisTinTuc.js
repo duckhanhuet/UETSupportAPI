@@ -40,10 +40,12 @@ module.exports.test = function () {
         }
     ],function (err,result) {
         if (err) console.log(err)
-        if(result.length == 0){
+        if (result) {
+            if (result.length != 0) {
             //do'nt anything
-        }else{
-            //send notification
+            } else {
+                //send notification
+            }
         }
     })
 }
@@ -175,7 +177,13 @@ function parseUrlLastIndicator(arrLoaiTinTuc, callback) {
     }
     async.parallel(arr, function (err, result) {
         if (err) console.log(err)
-        callback(err, result)
+        if (result) {
+            if (result.length >= 0) {
+                callback(null, result)
+                return;
+            }
+        }
+        callback("err", null)
     })
 }
 //parse indicator for mainURLpage
@@ -202,7 +210,13 @@ function getObjIndicator(loaiTinTuc, callbackall) {
         }
     ], function (err, result) {
         if (err) console.log(err);
-        callbackall(null, result)
+        if (result) {
+            if (result.length >= 0) {
+                callback(null, result)
+                return;
+            }
+        }
+        callback("err", null)
     })
 }
 /**
@@ -253,7 +267,14 @@ function getAllUrlTinTuc(list, callbackAll) {
     }
     async.waterfall(arrFun, function (err, result) {
         if (err) callbackAll(err, null);
-        callbackAll(null, result)
+        if (result) {
+            if (result.length >= 0) {
+                callbackAll(null, result)
+                return;
+            }
+        }
+        callbackAll("err", null)
+        
     })
 }
 /**
@@ -267,28 +288,31 @@ function getPostAllForEachTinTuc(result, callback) {
         callback(null,null)
     }
     else {
-    var stack = []
-    stack.push(function (callback) {
-        callback(null, result)
-    })
-    //make stack request to server
-    for (let i = 0; i < result.length; i++) {
-        var prototype = function (data, callback) {
-            //gui request len server
-            detailRequest(result[i].link, function (err, date) {
-                data[i].postAt = date;
-                callback(null, result)
-            })
+        var stack = []
+        stack.push(function (callback) {
+            callback(null, result)
+        })
+        //make stack request to server
+        for (let i = 0; i < result.length; i++) {
+            var prototype = function (data, callback) {
+                //gui request len server
+                detailRequest(result[i].link, function (err, date) {
+                    data[i].postAt = date;
+                    callback(null, result)
+                })
+            }
+            stack.push(prototype)
         }
-        stack.push(prototype)
-    }
-    async.waterfall(stack, function (err, result) {
-        if (err) {
-            console.log(err);
-            callback(err, null)
-        }
-        callback(null, result)
-    })
+        async.waterfall(stack, function (err, result) {
+            if (err) {
+                console.log(err);
+                callback(err, null)
+            }
+            if (result) {
+                if (result.length >= 0)
+                    callback(null, result)
+            }
+        })
     }
 
 }
@@ -503,7 +527,7 @@ function makeRequest(url, callback) {
         maxRedirects: 10
     }, function (err, response, body) {
         if (err) {
-            callback(err, null)
+            //callback(err, null)
             return;
         }
         callback(null, body)

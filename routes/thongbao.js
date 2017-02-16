@@ -17,19 +17,8 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
-    ThongBaoController.findById(req.params.id,function (err,thongbao) {
-        if (err){
-            res.json({
-                success: false
-            })
-        }
-        else {
-            res.json({
-                success:true,
-                metadata:thongbao
-            })
-        }
-    })
+    ThongBaoController.abc(id, function (err, thongbao) {
+    });
 });
 
 router.get('/list/100thongbao',function (req, res, next) {
