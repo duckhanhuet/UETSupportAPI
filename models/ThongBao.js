@@ -11,9 +11,13 @@ var ThongBaoSchema = mongoose.Schema({
         type: Date,
         default: Date.now
     },
-    idUser:{
+    idSender:{
         type: String,
         //ref : ['GiangVien','Khoa','PhongBan']
+    },
+    idReceiver:{
+        type: String,
+        //ref: toan khoa, lop chinh, lop mon hoc , sinh vien.
     },
     idFile:{
         type: String,

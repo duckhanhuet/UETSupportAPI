@@ -83,13 +83,24 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
  */
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log('req',req.body)
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;
     var idMucDoThongBao = req.body.idMucDoThongBao;
     var idLoaiThongBao = req.body.idLoaiThongBao;
+    var idSender=req.user._id;
+
+    var idReceiver='';
+    if(req.body.categoryReceiver=='khoa')
+        idReceiver='toanKhoa'
+    if(req.body.categoryReceiver=='lop')
+        idReceiver=req.body.receiverLopchinh;
+    else if(req.body.categoryReceiver=='lopmonhoc');
+        idReceiver=req.body.receiverLopmonhoc;
+
     var kind =1;
     var file;
-    if(req.files)
+    if(req.body.file_length!=0)
     {
         console.log('co file');
         //console.log(req.files.file);
@@ -145,7 +156,9 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                         noiDung: noiDung,
                         idFile: filess._id,
                         idLoaiThongBao: idLoaiThongBao,
-                        idMucDoThongBao: idMucDoThongBao
+                        idMucDoThongBao: idMucDoThongBao,
+                        idSender:idSender,
+                        idReceiver:idReceiver,
                     }
                     ThongBaoController.create(infoThongBao,function (err, tb) {
                         if (err){
