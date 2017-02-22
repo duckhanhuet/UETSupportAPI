@@ -228,4 +228,19 @@ router.get('/diemrenluyen',auth.reqIsAuthenticate,function (req, res) {
 
 //=======================================================
 
+//xoa token firebase sinh vien
+router.put('/deletetokenfirebase',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (req, res, next) {
+
+    SinhVienController.update(req.user._id,{tokenFirebase:null},function (err, sinhvien) {
+        if (err){
+            res.json({
+                success: false,
+            })
+        }
+        res.json({
+            success: true,
+            sinhvien: sinhvien
+        })
+    })
+})
 module.exports = router;

@@ -298,14 +298,14 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                             kind
                         )
                     })
-                    // console.log(dataNoti.createData(
-                    //     'diem thi',
-                    //     'da co diem thi mon '+objectDiem.tenLopMonHoc,
-                    //     urlDiem,
-                    //     mucdothongbao,
-                    //     loaithongbao,
-                    //     kind
-                    // ))
+                    console.log(dataNoti.createData(
+                        'diem thi',
+                        'da co diem thi mon '+objectDiem.tenLopMonHoc,
+                        urlDiem,
+                        mucdothongbao,
+                        loaithongbao,
+                        kind
+                    ))
                     SinhVienController.findById(objectDiem.MSV, function (err, sv) {
                         if (err) {
                             console.log('find ' + objectDiem.MSV + ' fail');
