@@ -25,10 +25,6 @@ var gcm = require('node-gcm');
 //create database from file exels
 // require('../test/postDatabase');
 
-// UltisThongBao=require('../Utils/UltisThongBao');
-// UltisThongBao.parseMainPage();
-// UltisThongBao=require('../Utils/UltisTinTuc');
-// UltisThongBao.parseMainPage("http://uet.vnu.edu.vn/coltech/taxonomy/term/101");
 //=====================================================================
 //=====================================================================
 //api for login
@@ -53,8 +49,7 @@ router.post('/authenticate', function (req, res) {
                             success: true,
                             message: 'Enjoy your token!',
                             token: token,
-                            sinhvien: sinhvien,
-                            user: user
+                            sinhvien: sinhvien
                         })
                     });
                 } else {

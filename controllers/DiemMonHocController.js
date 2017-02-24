@@ -25,6 +25,34 @@ module.exports =  {
             callback(null,diemmonhocs)
         })
     },
+    findOne: function (params, callback) {
+        DiemMonHoc.find(params).populate([
+            {
+                path: 'idSinhVien',
+                populate: {
+                    path: 'idLopChinh',
+                    populate: {
+                        path: 'idKhoa'
+                    }
+                }
+            },
+            {
+                path: 'idLopMonHoc',
+                populate: {
+                    path: 'idGiangVien'
+                }
+            },
+            {
+                path: 'idKiHoc'
+            }
+        ]).exec(function (err, diemmonhocs) {
+            if (err) {
+                callback(err, null);
+                return;
+            }
+            callback(null, diemmonhocs)
+        })
+    },
     //====================================================
 
 

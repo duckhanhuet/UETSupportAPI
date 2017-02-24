@@ -272,7 +272,7 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                 if (err) {
                     callback(err, null)
                 } else {
-                    //console.log(subscribes);
+                    // console.log(subscribes);
                     callback(null, subscribes)
                 }
             })
@@ -281,12 +281,12 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
             var arrayMSV = [];
             var sender = gcm.Sender(config.serverKey);
             results.forEach(function (sv) {
-                arrayMSV.push(sv._id._id);
+                arrayMSV.push(parseInt(sv._id._id));
             });
-            //console.log(arrayMSV);
+            // console.log(arrayMSV);
             objectDiems.forEach(function (objectDiem) {
                 if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
-                    //console.log(objectDiem.MSV);
+                    console.log(objectDiem.MSV);
                     var urlDiem = '/diemmonhoc/lop/'+ objectDiem.tenLopMonHoc;
                     var message= new gcm.Message({
                         data: dataNoti.createData(

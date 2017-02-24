@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 var MucDoThongBaoController = require('../controllers/MucDoThongBaoController');
 var auth = require('../policies/auth');
-router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
+router.get('/', function (req, res, next) {
     MucDoThongBaoController.find({}, function (err, mucdothongbaos) {
         if (err) {
             res.json({
