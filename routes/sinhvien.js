@@ -46,6 +46,7 @@ router.get('/information/:id', auth.reqIsAuthenticate, function (req, res, next)
 
 //========================================================
 //getting profile of sinhvien
+//tra ve thong tin cua sinhvien
 router.get('/profile', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req, res) {
     SinhVienController.findById(req.user._id,function (err, sinhvien) {
         if (err){
@@ -58,6 +59,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req
 })
 //=============================================================
 //sinhvien post tokenfirebase
+//app gui token firebase len
 router.post('/guitokenfirebase', auth.reqIsAuthenticate, auth.reqIsSinhVien, function (req, res, next) {
     var tokenFirebase = req.body.tokenFirebase;
     if (!tokenFirebase) {
@@ -179,7 +181,7 @@ router.post('/guiloaitintuc', auth.reqIsAuthenticate, auth.reqIsSinhVien, functi
     }
 });
 //=======================================================
-//diem tung mon hoc cu the
+//diem tung mon hoc cu the cua sinh vien
 router.get('/diem/:idlopmonhoc',auth.reqIsAuthenticate,function (req, res, next) {
     DiemMonHocController.find({idSinhVien:req.user._id,idLopMonHoc: req.params.idlopmonhoc},function (err, diemmonhoc) {
         if (err){

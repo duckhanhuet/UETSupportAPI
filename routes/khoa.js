@@ -164,14 +164,21 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 
 //================================================================
 
+
+
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
+    //noi dung thong bao
     var noiDung = req.body.noiDung;
+    //muc do thong bao
     var idMucDoThongBao = req.body.idMucDoThongBao;
+    //loai thong bao gui di
     var idLoaiThongBao = req.body.idLoaiThongBao;
     var kind =1;
     var file;
+
     if(req.files)
     {
         console.log('co file');
