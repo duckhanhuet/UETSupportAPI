@@ -98,6 +98,8 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
 
     //kiem tra gui thong bao
     var idReceiver='';
+
+    var hasfile; // hasfile=0 : khong co file //hasfile=1 : co file
     if(req.body.categoryReceiver=='khoa')
         idReceiver='toanKhoa'
     if(req.body.categoryReceiver=='lop')
@@ -106,7 +108,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         idReceiver=req.body.receiverLopmonhoc;
     // kind=1 tuc la loai thong bao (kind=2 la loai diem,..)
     var kind =1;
-    var file;
+    var hasfile;
 
     //kiem tra xem co file dinh kem hay khong
     if(req.body.file_length!=0)
@@ -116,8 +118,10 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         //console.log(req.files.file);
         file= req.files.file_0;
         console.log(file);
+        hasfile=1;
     }else {
         console.log('khong co file');
+        hasfile=0;
     }
     //var file = req.files.file;
     //===============================================
@@ -232,9 +236,9 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
             var url = '/thongbao/' + result.thongbao._id;
             //gui tin nhan ts app
             message = new gcm.Message({
-                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind)
+                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile)
             });
-            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind));
+            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile));
             var subscribes= result.subscribes;
             subscribes.forEach(function (subscribe) {
                 registerToken.push(subscribe._id.tokenFirebase);
@@ -273,6 +277,7 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
     var mucdothongbao=1;
     var loaithongbao=1;
     var kind=2;
+    var hasfile=1;
     //console.log(objectDiems);
     //===============================================
     async.waterfall([
@@ -337,7 +342,8 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                             urlDiem,
                             mucdothongbao,
                             loaithongbao,
-                            kind
+                            kind,
+                            hasfile
                         )
                     })
                     console.log(dataNoti.createData(
@@ -346,7 +352,8 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                         urlDiem,
                         mucdothongbao,
                         loaithongbao,
-                        kind
+                        kind,
+                        hasfile
                     ))
                     //gui cho tung sinh vien mot
                     SinhVienController.findById(objectDiem.MSV, function (err, sv) {

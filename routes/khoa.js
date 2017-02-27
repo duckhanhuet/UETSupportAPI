@@ -178,13 +178,15 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
     var idLoaiThongBao = req.body.idLoaiThongBao;
     var kind =1;
     var file;
-
+    var hasfile;
     if(req.files)
     {
         console.log('co file');
         file= req.files.file_0;
+        hasfile=1;
     }else {
         console.log('khong co file');
+        hasfile=0;
     }
     //var file = req.files.file;
     //===============================================
@@ -280,9 +282,9 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
         function (result, callback) {
             var url = '/thongbao/' + result.thongbao._id;
             message = new gcm.Message({
-                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind)
+                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile)
             });
-            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind));
+            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile));
             var subscribes= result.subscribes;
             subscribes.forEach(function (subscribe) {
                 registerToken.push(subscribe._id.tokenFirebase);

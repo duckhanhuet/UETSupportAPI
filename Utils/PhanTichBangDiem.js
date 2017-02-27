@@ -144,7 +144,7 @@ sheet_name_list.forEach(function (y) { /* iterate through sheets */
                 gan[i] = String.fromCharCode(65 + i);
             }
             //console.log(gan[0]+kq.beginSV);
-            for (var i = kq.beginSV; i < kq.endSV; i++) {
+            for (var i = kq.beginSV; i <= kq.endSV; i++) {
                 // var dem=0;
                 var object = new Object({
                     STT: worksheet[gan[0] + i].v,
@@ -156,7 +156,7 @@ sheet_name_list.forEach(function (y) { /* iterate through sheets */
                     diemCuoiKi: worksheet[gan[6] + i].v,
                     tongDiem: worksheet[gan[7] + i].v
                 })
-                //console.log(object);
+                console.log(object);
                 Objects.push(object);
             }
             //console.log(mang.length);
