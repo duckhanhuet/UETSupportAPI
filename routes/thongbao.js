@@ -63,4 +63,5 @@ router.get('/list/diemthi',auth.reqIsAuthenticate,function (req, res) {
 
     })
 })
+
 module.exports = router;

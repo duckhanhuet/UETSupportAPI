@@ -370,4 +370,5 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,funct
 
 });
 
+
 module.exports = router;

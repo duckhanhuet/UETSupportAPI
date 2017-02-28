@@ -99,6 +99,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     //kiem tra gui thong bao
     var idReceiver='';
 
+    var files;
     var hasfile; // hasfile=0 : khong co file //hasfile=1 : co file
     if(req.body.categoryReceiver=='khoa')
         idReceiver='toanKhoa'
@@ -116,8 +117,8 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         console.log('co file');
         //console.log(req.files)
         //console.log(req.files.file);
-        file= req.files.file_0;
-        console.log(file);
+        files= req.files.files;
+        console.log(files);
         hasfile=1;
     }else {
         console.log('khong co file');
@@ -147,40 +148,19 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         },
         function checkFile(ketqua,callback) {
             //neu co file dinh kem
-            if (file){
-                // Tên file
-                var originalFilename = file.name;
-                // File type
-                var fileType         = file.type.split('/')[1];
-                // File size
-                var fileSize         = file.size;
-                //pipe save file
-                var pathUpload       = __dirname + '/files/' + originalFilename;
+            if (files){
+                var idFiles=[];
+                //function luu file vao database va callback lai idFiles
+                saveFile(files,idFiles);
 
-                fs.readFile(file.path, function(err, data) {
-                    if(!err) {
-                        fs.writeFile(pathUpload, data, function() {
-                            return;
-                        });
-                    }
-                });
-
-                var objectFile ={
-                    tenFile: originalFilename,
-                    link: pathUpload
-                }
-
-                FileController.create(objectFile,function (err, filess) {
-                    if (err){
-                        callback(err,null);
-                    }
-                    console.log('Create file success');
-                    //============================
+                //function luu thong bao voi idFile la mang idFiles tim duoc o tren
+                var functionTwo = function () {
+                    //console.log(idFiles);
                     //create thong bao
                     var infoThongBao={
                         tieuDe: tieuDe,
                         noiDung: noiDung,
-                        idFile: filess._id,
+                        idFile: idFiles,
                         idLoaiThongBao: idLoaiThongBao,
                         idMucDoThongBao: idMucDoThongBao,
                         idSender:idSender,
@@ -194,9 +174,10 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                         console.log("tb",tb);
                         callback(null,tb);
                     })
-                    //============================
-
-                })
+                }
+                //setTime cho functionTwo thuc hien sau 1s (settimeout de doi push idFile xong)
+                setTimeout(functionTwo,1000);
+                //============================
             }
             else{
                 //neu khong co file dinh kem
@@ -384,7 +365,41 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
 //===============================================
 
 
-//======================================================
+//========================================================
+//function savefile and callback idFiles
+function saveFile(files, idFiles) {
+    files.forEach(function (file) {
+        // Tên file
+        var originalFilename = file.name;
+        // File type
+        var fileType         = file.type.split('/')[1];
+        // File size
+        var fileSize         = file.size;
+        //pipe save file
+        var pathUpload       = __dirname + '/files/' + originalFilename;
+        //luu file vao trong dir files
+        fs.readFile(file.path, function(err, data) {
+            if(!err) {
+                fs.writeFile(pathUpload, data, function() {
+                    return;
+                });
+            }
+        });
+        var objectFile ={
+            tenFile: originalFilename,
+            link: pathUpload
+        }
+        FileController.create(objectFile,function (err, filess) {
+            if (err){
+                callback(err,null);
+            }
+            idFiles.push(filess._id);
+            console.log('Create file success');
+        })
+    })
+}
+//========================================================
+
 router.post('/postdatabase', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res) {
     require('../test/postDatabase');
     res.json({

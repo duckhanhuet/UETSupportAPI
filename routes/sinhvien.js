@@ -215,18 +215,6 @@ router.get('/diemrenluyen',auth.reqIsAuthenticate,function (req, res) {
 
 });
 //=======================================================
-//test deep-populate
-// SinhVien.findOne({_id:'14020234'}).populate({
-//     path:'idLopChinh',
-//     populate:{
-//         path:'idKhoa'
-//     }
-// }).exec(function (err, sinhvien) {
-//     if (err){
-//         console.log('err');
-//     }
-//     console.log(sinhvien);
-// })
 
 //=======================================================
 
@@ -244,5 +232,10 @@ router.put('/deletetokenfirebase',auth.reqIsAuthenticate,auth.reqIsSinhVien,func
             sinhvien: sinhvien
         })
     })
+})
+
+//sinh vien xem tat ca cac thong bao cua minh
+router.get('/listthongbao',auth.reqIsAuthenticate,function (req, res, next) {
+
 })
 module.exports = router;

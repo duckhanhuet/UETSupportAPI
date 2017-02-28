@@ -19,10 +19,10 @@ var ThongBaoSchema = mongoose.Schema({
         type: String,
         //ref: toan khoa, lop chinh, lop mon hoc , sinh vien.
     },
-    idFile:{
+    idFile:[{
         type: String,
         ref : 'File'
-    },
+    }],
     idLoaiThongBao:{
         type: Number,
         ref: 'LoaiThongBao'
