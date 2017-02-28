@@ -84,4 +84,9 @@ app.use('/diemmonhoc',diemmonhoc);
 //require('./Utils/PhanTichBangDiem');
 
 //require('./Utils/phanTichDiemFilePdf');
+
+//test gui thong bao
+// app.get('/test/guithongbao',function (req, res) {
+//     res.render('guithongbao')
+// })
 module.exports = app;

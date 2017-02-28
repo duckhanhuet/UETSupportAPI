@@ -82,7 +82,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 /**
  * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
  */
-router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
+router.post('/guithongbao',multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     console.log('req',req.body)
     //tieu de cua thong bao
@@ -376,7 +376,8 @@ function saveFile(files, idFiles) {
         // File size
         var fileSize         = file.size;
         //pipe save file
-        var pathUpload       = __dirname + '/files/' + originalFilename;
+        var pathUpload       = __dirname +'/../files/' + originalFilename;
+        console.log('path upload la:'+pathUpload)
         //luu file vao trong dir files
         fs.readFile(file.path, function(err, data) {
             if(!err) {
