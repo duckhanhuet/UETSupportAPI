@@ -9,6 +9,7 @@ var jwt = require('jsonwebtoken'); // used to create, sign, and verify tokens
 var UserController = require('../controllers/UserController');
 var SinhVienController = require('../controllers/SinhVienController');
 var KhoaController = require('../controllers/KhoaController');
+var Khoa        = require('../models/Khoa')
 var PhongBanController = require('../controllers/PhongBanController');
 var GiangVienController = require('../controllers/GiangVienController');
 var SubscribeController = require('../controllers/SubscribeController');
@@ -166,7 +167,7 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 
 
 
-router.post('/guithongbao',auth.reqIsAuthenticate,req.reqIsKhoa,multipartMiddleware,function (req, res) {
+router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     //console.log('req',req.body)
     //tieu de cua thong bao
@@ -285,7 +286,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,req.reqIsKhoa,multipartMiddlew
                     var listSubs=[]; // list gom tat ca cac sinh vien co idLoaiThongBao va cac sinh vien thuoc khoa post
                     //push all sinh vien co idKhoa= req.user._id
                     subscribes.forEach(function (subscribe) {
-                        if (subscribe._id.idLopChinh.idKhoa._id=='cntt'){
+                        if (subscribe._id.idLopChinh.idKhoa._id==req.user._id){
                             listSubs.push(subscribe)
                         }
                     })
@@ -302,6 +303,15 @@ router.post('/guithongbao',auth.reqIsAuthenticate,req.reqIsKhoa,multipartMiddlew
             })
         },
         function (result, callback) {
+            Khoa.findByIdAndUpdate(
+                req.user._id,
+                {$push: {"idThongBao": result.thongbao._id}},
+                {safe: true, upsert: true},
+                function(err, model) {
+                    console.log(err);
+                }
+            );
+
             //url de lay thong bao ve
             var url = '/thongbao/' + result.thongbao._id;
             //gui tin nhan ts app
@@ -337,10 +347,13 @@ router.post('/guithongbao',auth.reqIsAuthenticate,req.reqIsKhoa,multipartMiddlew
                 err:err.message
             })
         }
-        res.json({
-            success: true,
-            message: result
-        })
+        else {
+            res.json({
+                success: true,
+                message: result
+            })
+        }
+
     })
 
 })
@@ -382,6 +395,18 @@ function saveFile(files, idFiles) {
     })
 }
 //========================================================
+
+router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next) {
+    KhoaController.findById(req.user._id,function (err, khoa) {
+        if (err){
+            res.json({
+                success: false
+            })
+        }
+        res.json(khoa.idThongBao);
+
+    })
+})
 //===============================================
 
 

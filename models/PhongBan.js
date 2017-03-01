@@ -1,4 +1,5 @@
 var mongoose = require('mongoose');
+var Schema   = mongoose.Schema;
 
 var PhongBanSchema = mongoose.Schema({
     _id:{
@@ -9,7 +10,11 @@ var PhongBanSchema = mongoose.Schema({
     tenPhongBan:{
         type: String,
         required: true
-    }
+    },
+    idThongBao:[{
+        type: Schema.Types.ObjectId,
+        ref:'ThongBao'
+    }]
 });
 
 module.exports = mongoose.model('PhongBan',PhongBanSchema);

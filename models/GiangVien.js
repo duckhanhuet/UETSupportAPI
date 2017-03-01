@@ -17,7 +17,12 @@ var GiangVienSchema = mongoose.Schema({
     idLopMonHoc: [{
              type: String,
              ref : 'LopMonHoc'
-         }]
+    }],
+    //list thong bao da gui
+    idThongBao:[{
+        type: Schema.ObjectId,
+        ref:'ThongBao'
+    }]
 });
 
 module.exports = mongoose.model('GiangVien',GiangVienSchema);

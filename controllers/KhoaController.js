@@ -2,23 +2,37 @@ var Khoa= require('../models/Khoa');
 
 module.exports =  {
     find: function (params, callback) {
-        Khoa.find(params,function (err, khoas) {
+        Khoa.find(params).populate('idThongBao').exec(function (err, khoas) {
             if (err){
                 callback(err,null);
                 return;
             }
             callback(null,khoas);
         })
+        // Khoa.find(params,function (err, khoas) {
+        //     if (err){
+        //         callback(err,null);
+        //         return;
+        //     }
+        //     callback(null,khoas);
+        // })
     },
 
     findById: function (id, callback) {
-        Khoa.findById(id,function (err, khoa) {
+        Khoa.findById(id).populate('idThongBao').exec(function (err, khoa) {
             if (err){
                 callback(err,null);
                 return;
             }
             callback(null,khoa);
         })
+        // Khoa.findById(id,function (err, khoa) {
+        //     if (err){
+        //         callback(err,null);
+        //         return;
+        //     }
+        //     callback(null,khoa);
+        // })
     },
 
     create: function (params, callback) {

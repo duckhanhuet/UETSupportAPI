@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var PhongBanController = require('../controllers/PhongBanController');
+var PhongBan           = require('../models/PhongBan');
 var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var DiemMonHocController = require('../controllers/DiemMonHocController');
@@ -83,8 +84,9 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 /**
  * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
  */
-router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,cors(),function (req, res) {
-    console.log('req',req.body)
+router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    //console.log('req',req.body)
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
     //noi dung cua thong bao
@@ -106,7 +108,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     if(req.body.categoryReceiver=='lop')
         idReceiver=req.body.receiverLopchinh;
     else if(req.body.categoryReceiver=='lopmonhoc');
-        idReceiver=req.body.receiverLopmonhoc;
+    idReceiver=req.body.receiverLopmonhoc;
     // kind=1 tuc la loai thong bao (kind=2 la loai diem,..)
     var kind =1;
     var hasfile;
@@ -114,14 +116,11 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     //kiem tra xem co file dinh kem hay khong
     if(req.body.file_length!=0)
     {
-        console.log('co file');
-        //console.log(req.files)
-        //console.log(req.files.file);
         files= req.files.files;
-        console.log(files);
+        //console.log(files);
         hasfile=1;
     }else {
-        console.log('khong co file');
+        //console.log('khong co file');
         hasfile=0;
     }
     //var file = req.files.file;
@@ -131,7 +130,6 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     //==============================================
     var sender = new gcm.Sender(config.serverKey);
     var registerToken = [];
-
     //===============================================
 
     async.waterfall([
@@ -198,33 +196,45 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         },
         function find(result,callback) {
             //tim tat ca cac sinh vien muon nhan loai thong bao
-            Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
+            SubscribeController.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}},function (err,subscribes) {
                 if (err){
                     callback(err,null)
                 }else {
-                    //tra ve object sinh vien muon nhan thong bao va noi dung cua thong bao
+                    //tra ve object gom thong bao dang va list cac subcribes
                     var object ={
                         thongbao: result,
                         subscribes: subscribes
                     }
                     callback(null,object);
-                    //console.log(subscribes)
                 }
             })
         },
         function (result, callback) {
+            PhongBan.findByIdAndUpdate(
+                req.user._id,
+                {$push: {"idThongBao": result.thongbao._id}},
+                {safe: true, upsert: true},
+                function(err, model) {
+                    console.log(err);
+                }
+            );
+
             //url de lay thong bao ve
             var url = '/thongbao/' + result.thongbao._id;
             //gui tin nhan ts app
             message = new gcm.Message({
                 data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile)
             });
+            console.log('Thong tin gui di bao gom:');
             console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile));
             var subscribes= result.subscribes;
+
+            // pust list tokenFirebase vao mang registerToken
             subscribes.forEach(function (subscribe) {
                 registerToken.push(subscribe._id.tokenFirebase);
             })
-            //console.log(registerToken);
+            //list cac token ma server gui toi
+            console.log('list tokenFirebase la:'+ registerToken);
             //gui thong bao cho tung sinh vien
             sender.send(message, registerToken, function (err, response) {
                 console.log(response)
@@ -238,19 +248,19 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         }
 
     ],function (err, result) {
-        console.log("this is end");
         if (err){
-            // res.setHeader('Access-Control-Allow-Origin', '*');
             res.json({
                 success:false,
                 err:err.message
             })
-        }else {
+        }
+        else {
             res.json({
                 success: true,
                 message: result
             })
         }
+
     })
 
 })
@@ -366,8 +376,56 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
 
 });
 //===============================================
+router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next) {
+    PhongBanController.findById(req.user._id,function (err, phongbans) {
+        if (err){
+            res.json({
+                success: false
+            })
+        }
+        res.json(phongbans.idThongBao);
 
+    })
+})
 
+//====================================================
+//function savefile and callback idFiles
+function saveFile(files, idFiles) {
+    files.forEach(function (file) {
+        // Tên file
+        var originalFilename = file.name;
+        // File type
+        var fileType         = file.type.split('/')[1];
+        // File size
+        var fileSize         = file.size;
+        //pipe save file
+        var pathUpload       = __dirname +'/../files/' + originalFilename;
+        console.log('path upload la:'+pathUpload)
+        //doc file va luu file vao trong /files/
+        fs.readFile(file.path, function(err, data) {
+            if(!err) {
+                fs.writeFile(pathUpload, data, function() {
+                    return;
+                });
+            }
+        });
+
+        //tra ve object file de luu vao database
+        var objectFile ={
+            tenFile: originalFilename,
+            link: pathUpload
+        }
+        //luu file vao database
+        FileController.create(objectFile,function (err, filess) {
+            if (err){
+                callback(err,null);
+            }
+            idFiles.push(filess._id);
+            console.log('Create file success');
+        })
+    })
+}
+//========================================================
 //========================================================
 
 router.post('/postdatabase', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res) {

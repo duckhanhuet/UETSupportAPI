@@ -8,6 +8,9 @@ module.exports =  {
             },
             {
                 path:'idLopMonHoc'
+            },
+            {
+                path: 'idThongBao'
             }
         ]).exec(function (err, giangviens) {
             if (err){
