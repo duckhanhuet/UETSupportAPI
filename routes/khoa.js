@@ -180,7 +180,6 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
     var idLoaiThongBao = req.body.idLoaiThongBao;
     //nguoi gui thong bao
     var idSender=req.user._id;
-
     //kiem tra gui thong bao
     var idReceiver='';
 

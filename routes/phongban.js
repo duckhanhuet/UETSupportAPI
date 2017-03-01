@@ -84,6 +84,8 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 /**
  * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
  */
+
+
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     //console.log('req',req.body)

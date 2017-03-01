@@ -584,6 +584,7 @@ function saveFile(files, idFiles) {
     files.forEach(function (file) {
         // Tên file
         var originalFilename = file.name;
+
         // File type
         var fileType         = file.type.split('/')[1];
         // File size
