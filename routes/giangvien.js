@@ -69,218 +69,152 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (re
     })
 });
 
-router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,cors(),function (req, res) {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    var tieuDe = req.body.tieuDe;
-    var noiDung = req.body.noiDung;
-    var idMucDoThongBao = req.body.idMucDoThongBao;
-    var idLoaiThongBao = req.body.idLoaiThongBao;
-    var kind =1;
-    var file;
-    var hasfile;
-    if(req.files)
-    {
-        console.log('co file');
-        hasfile=1;
-        file= req.files.file_0;
-    }else {
-        console.log('khong co file');
-        hasfile=0;
-    }
-    //var file = req.files.file;
-    //===============================================
-    //===============================================
-    var message;
-    //==============================================
-    var sender = new gcm.Sender(config.serverKey);
-    var registerToken = [];
-
-    //===============================================
-
-    async.waterfall([
-        function checkValidate(callback) {
-            if(!tieuDe||!noiDung||!idLoaiThongBao){
-                var object={
-                    success:false,
-                    message: 'Invalide tieu de va noi dung thong bao'
-                }
-                callback('err',null);
-            }else {
-                callback(null,'Success');
-            }
-        },
-        function checkFile(ketqua,callback) {
-            if (file){
-                // Tên file
-                var originalFilename = file.name;
-                // File type
-                var fileType         = file.type.split('/')[1];
-                // File size
-                var fileSize         = file.size;
-                //pipe save file
-                var pathUpload       = __dirname + '/files/' + originalFilename;
-                var objectFile ={
-                    tenFile: originalFilename,
-                    link: pathUpload
-                }
-                FileController.create(objectFile,function (err, filess) {
-                    if (err){
-                        callback(err,null);
-                    }
-                    console.log('Create file success');
-                    //============================
-                    //create thong bao
-                    var infoThongBao={
-                        tieuDe: tieuDe,
-                        noiDung: noiDung,
-                        idFile: filess._id,
-                        idLoaiThongBao: idLoaiThongBao,
-                        idMucDoThongBao: idMucDoThongBao
-                    }
-                    ThongBaoController.create(infoThongBao,function (err, tb) {
-                        if (err){
-                            callback(err,null);
-                        }
-                        //console.log(tb);
-                        callback(null,tb);
-                    })
-                    //============================
-
-                })
-            }
-            else{
-                var infoThongBao={
-                    tieuDe: tieuDe,
-                    noiDung: noiDung,
-                    idLoaiThongBao: idLoaiThongBao,
-                    idMucDoThongBao: idMucDoThongBao
-                }
-                ThongBaoController.create(infoThongBao,function (err, tb) {
-                    if (err){
-                        callback(err,null);
-                    }
-                    console.log(tb);
-                    callback(null,tb);
-                })
-            }
-        },
-        function find(result,callback) {
-            Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
-                if (err){
-                    callback(err,null)
-                }else {
-                    var object ={
-                        thongbao: result,
-                        subscribes: subscribes
-                    }
-                    callback(null,object);
-                    //console.log(subscribes)
-                }
-            })
-        },
-        function (result, callback) {
-            var url = '/thongbao/' + result.thongbao._id;
-            message = new gcm.Message({
-                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile)
-            });
-            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile));
-            var subscribes= result.subscribes;
-            subscribes.forEach(function (subscribe) {
-                registerToken.push(subscribe._id.tokenFirebase);
-            })
-            //console.log(registerToken);
-            sender.send(message, registerToken, function (err, response) {
-                console.log(response)
-                if (err) {
-                    callback(err, null)
-                }
-                else {
-                    callback(null, "Success")
-                }
-            })
-        }
-
-    ],function (err, result) {
-        if (err){
-            res.json({
-                success:false,
-                err:err.message
-            })
-        }
-        res.json({
-            success: true,
-            message: result
-        })
-    })
-
-})
-//=============================================================
-//Giang Vien gui thong bao toi lop Mon Hoc,  thong bao nay mang tinh quan trong=> gui cho toan bo sinh vien trong lop
-// router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (req, res, next) {
+// router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,cors(),function (req, res) {
+//     res.setHeader('Access-Control-Allow-Origin', '*');
 //     var tieuDe = req.body.tieuDe;
 //     var noiDung = req.body.noiDung;
-//     var tenFile = req.body.tenFile;
-//     var linkFile = req.body.linkFile;
-//     var mucDoThongBao = req.body.mucDoThongBao;
-//     var idLoaiThongBao = req.body.idLoaiThongBao;//gui 1 id loai thong bao
-//
-//     if(!tieuDe||!noiDung||!idLoaiThongBao){
-//         res.json({
-//             success:false,
-//             message: 'Invalide tieu de va noi dung thong bao'
-//         })
-//     } else{
-//         //============================================
-//         var message;
-//         //==============================================
-//         var sender = new gcm.Sender(config.serverKey);
-//         var registerToken = [];
-//         message = new gcm.Message({
-//             data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,idLoaiThongBao)
-//         });
-//
-//         async.waterfall([
-//             function (callback) {
-//                 Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
-//                     if (err){
-//                         callback(err,null)
-//                     }else {
-//                         callback(null,subscribes)
-//                         console.log(subscribes)
-//                     }
-//                 })
-//             },
-//             function (subscribes, callback) {
-//                 subscribes.forEach(function (subscribe) {
-//                     registerToken.push(subscribe._id.tokenFirebase);
-//                 })
-//                 console.log(registerToken);
-//                 sender.send(message, registerToken, function (err, response) {
-//                     console.log(response)
-//                     if (err) {
-//                         callback(err, null)
-//                     }
-//                     else {
-//                         callback(null, "Success")
-//                     }
-//                 })
-//             }
-//
-//         ],function (err, result) {
-//             if (err){
-//                 res.json({
-//                     success:false,
-//                     err:err
-//                 })
-//             }
-//             res.json({
-//                 success: true,
-//                 message: result
-//             })
-//         })
+//     var idMucDoThongBao = req.body.idMucDoThongBao;
+//     var idLoaiThongBao = req.body.idLoaiThongBao;
+//     var kind =1;
+//     var file;
+//     var hasfile;
+//     if(req.files)
+//     {
+//         console.log('co file');
+//         hasfile=1;
+//         file= req.files.file_0;
+//     }else {
+//         console.log('khong co file');
+//         hasfile=0;
 //     }
-// });
-//============================================================================
+//     //var file = req.files.file;
+//     //===============================================
+//     //===============================================
+//     var message;
+//     //==============================================
+//     var sender = new gcm.Sender(config.serverKey);
+//     var registerToken = [];
+//
+//     //===============================================
+//
+//     async.waterfall([
+//         function checkValidate(callback) {
+//             if(!tieuDe||!noiDung||!idLoaiThongBao){
+//                 var object={
+//                     success:false,
+//                     message: 'Invalide tieu de va noi dung thong bao'
+//                 }
+//                 callback('err',null);
+//             }else {
+//                 callback(null,'Success');
+//             }
+//         },
+//         function checkFile(ketqua,callback) {
+//             if (file){
+//                 // Tên file
+//                 var originalFilename = file.name;
+//                 // File type
+//                 var fileType         = file.type.split('/')[1];
+//                 // File size
+//                 var fileSize         = file.size;
+//                 //pipe save file
+//                 var pathUpload       = __dirname + '/files/' + originalFilename;
+//                 var objectFile ={
+//                     tenFile: originalFilename,
+//                     link: pathUpload
+//                 }
+//                 FileController.create(objectFile,function (err, filess) {
+//                     if (err){
+//                         callback(err,null);
+//                     }
+//                     console.log('Create file success');
+//                     //============================
+//                     //create thong bao
+//                     var infoThongBao={
+//                         tieuDe: tieuDe,
+//                         noiDung: noiDung,
+//                         idFile: filess._id,
+//                         idLoaiThongBao: idLoaiThongBao,
+//                         idMucDoThongBao: idMucDoThongBao
+//                     }
+//                     ThongBaoController.create(infoThongBao,function (err, tb) {
+//                         if (err){
+//                             callback(err,null);
+//                         }
+//                         //console.log(tb);
+//                         callback(null,tb);
+//                     })
+//                     //============================
+//
+//                 })
+//             }
+//             else{
+//                 var infoThongBao={
+//                     tieuDe: tieuDe,
+//                     noiDung: noiDung,
+//                     idLoaiThongBao: idLoaiThongBao,
+//                     idMucDoThongBao: idMucDoThongBao
+//                 }
+//                 ThongBaoController.create(infoThongBao,function (err, tb) {
+//                     if (err){
+//                         callback(err,null);
+//                     }
+//                     console.log(tb);
+//                     callback(null,tb);
+//                 })
+//             }
+//         },
+//         function find(result,callback) {
+//             Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
+//                 if (err){
+//                     callback(err,null)
+//                 }else {
+//                     var object ={
+//                         thongbao: result,
+//                         subscribes: subscribes
+//                     }
+//                     callback(null,object);
+//                     //console.log(subscribes)
+//                 }
+//             })
+//         },
+//         function (result, callback) {
+//             var url = '/thongbao/' + result.thongbao._id;
+//             message = new gcm.Message({
+//                 data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile)
+//             });
+//             console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile));
+//             var subscribes= result.subscribes;
+//             subscribes.forEach(function (subscribe) {
+//                 registerToken.push(subscribe._id.tokenFirebase);
+//             })
+//             //console.log(registerToken);
+//             sender.send(message, registerToken, function (err, response) {
+//                 console.log(response)
+//                 if (err) {
+//                     callback(err, null)
+//                 }
+//                 else {
+//                     callback(null, "Success")
+//                 }
+//             })
+//         }
+//
+//     ],function (err, result) {
+//         if (err){
+//             res.json({
+//                 success:false,
+//                 err:err.message
+//             })
+//         }
+//         res.json({
+//             success: true,
+//             message: result
+//         })
+//     })
+//
+// })
+
 //============================================================================
 
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,function (req, res, next) {
