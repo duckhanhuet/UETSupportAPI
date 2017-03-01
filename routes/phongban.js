@@ -14,6 +14,7 @@ var typeNoti = require('../policies/sinhvien');
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
 var multipartMiddleware = multipart();
+var cors = require('cors')
 //===========================================
 //========================================================
 var gcm = require('node-gcm');
@@ -82,8 +83,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 /**
  * vIET HAM DAI QUA, CHIA THANH CAC HAM NHO HON ĐÊ
  */
-router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
-    //res.setHeader('Access-Control-Allow-Origin', '*');
+router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,cors(),function (req, res) {
     console.log('req',req.body)
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
@@ -238,16 +238,19 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         }
 
     ],function (err, result) {
+        console.log("this is end");
         if (err){
+            // res.setHeader('Access-Control-Allow-Origin', '*');
             res.json({
                 success:false,
                 err:err.message
             })
+        }else {
+            res.json({
+                success: true,
+                message: result
+            })
         }
-        res.json({
-            success: true,
-            message: result
-        })
     })
 
 })

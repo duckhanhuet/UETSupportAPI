@@ -274,7 +274,7 @@ function getAllUrlTinTuc(list, callbackAll) {
             }
         }
         callbackAll("err", null)
-        
+
     })
 }
 /**
