@@ -369,40 +369,6 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
 
 
 //========================================================
-//function savefile and callback idFiles
-function saveFile(files, idFiles) {
-    files.forEach(function (file) {
-        // Tên file
-        var originalFilename = file.name;
-        // File type
-        var fileType         = file.type.split('/')[1];
-        // File size
-        var fileSize         = file.size;
-        //pipe save file
-        var pathUpload       = __dirname +'/../files/' + originalFilename;
-        console.log('path upload la:'+pathUpload)
-        //luu file vao trong dir files
-        fs.readFile(file.path, function(err, data) {
-            if(!err) {
-                fs.writeFile(pathUpload, data, function() {
-                    return;
-                });
-            }
-        });
-        var objectFile ={
-            tenFile: originalFilename,
-            link: pathUpload
-        }
-        FileController.create(objectFile,function (err, filess) {
-            if (err){
-                callback(err,null);
-            }
-            idFiles.push(filess._id);
-            console.log('Create file success');
-        })
-    })
-}
-//========================================================
 
 router.post('/postdatabase', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req, res) {
     require('../test/postDatabase');
