@@ -13,6 +13,7 @@ var async = require('async');
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
 var multipartMiddleware = multipart();
+var cors = require('cors');
 //===========================================
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
@@ -68,7 +69,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsGiangVien, function (re
     })
 });
 
-router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,function (req, res) {
+router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,cors(),function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     var tieuDe = req.body.tieuDe;
     var noiDung = req.body.noiDung;

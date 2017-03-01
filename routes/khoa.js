@@ -18,6 +18,7 @@ var FileController=require('../controllers/FileController');
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
 var multipartMiddleware = multipart();
+var cors = require('cors');
 //===========================================
 //========================================
 var gcm = require('node-gcm');
@@ -166,7 +167,7 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 
 
 
-router.post('/guithongbao',auth.reqIsAuthenticate,req.reqIsKhoa,multipartMiddleware,function (req, res) {
+router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddleware,cors(),function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     //console.log('req',req.body)
     //tieu de cua thong bao
