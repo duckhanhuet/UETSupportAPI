@@ -9,7 +9,7 @@ module.exports =  {
             {
                 path:'idLopChinh',
                 populate:{
-                    path:'idKhoa'
+                    path:'idKhoa',
                 }
             },
             {
@@ -17,6 +17,9 @@ module.exports =  {
                 populate:{
                     path:'idGiangVien'
                 }
+            },
+            {
+                path: 'idThongBao'
             }
         ]).exec(function (err, sinhviens) {
             if (err){
@@ -32,13 +35,19 @@ module.exports =  {
             {
                 path:'idLopChinh',
                 populate:{
-                    path:'idKhoa'
+                    path:'idKhoa',
+                    populate:{
+                        path:'idThongBao'
+                    }
                 }
             },
             {
                 path:'idLopMonHoc',
                 populate:{
-                    path:'idGiangVien'
+                    path:'idGiangVien',
+                    populate:{
+                        path:'idThongBao'
+                    }
                 }
             }
         ]).exec(function (err, sinhvien) {

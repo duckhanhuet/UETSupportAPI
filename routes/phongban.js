@@ -11,6 +11,7 @@ var DiemMonHoc = require('../models/DiemMonHoc');
 var Subscribe   = require('../models/Subscribe');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
+var bodyParser = require('body-parser');
 //==========================================
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
@@ -88,6 +89,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log(req.files);
     //console.log('req',req.body)
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
@@ -103,7 +105,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     //kiem tra gui thong bao
     var idReceiver='';
 
-    var files;
+    var files=[];
     var hasfile; // hasfile=0 : khong co file //hasfile=1 : co file
     if(req.body.categoryReceiver=='khoa')
         idReceiver='toanKhoa'
@@ -119,7 +121,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     if(req.body.file_length!=0)
     {
         files= req.files.files;
-        //console.log(files);
+
         hasfile=1;
     }else {
         //console.log('khong co file');

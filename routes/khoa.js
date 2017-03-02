@@ -169,6 +169,7 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
+    console.log('file la:'+req.files);
     //console.log('req',req.body)
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
