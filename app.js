@@ -76,8 +76,6 @@ app.use('/diemmonhoc',diemmonhoc);
 //   });
 // });
 
-// require('./test/postDatabase');
-
 //================================================
 //================================================
 //Phan tich File xlsx
@@ -89,4 +87,9 @@ app.use('/diemmonhoc',diemmonhoc);
 // app.get('/test/guithongbao',function (req, res) {
 //     res.render('guithongbao')
 // })
+
+
+
+//post database
+//require('./Utils/postdb')
 module.exports = app;

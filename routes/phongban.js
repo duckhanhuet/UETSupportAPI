@@ -380,14 +380,16 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
 
 });
 //===============================================
-router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next) {
+router.get('/list/thongbaodagui',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
     PhongBanController.findById(req.user._id,function (err, phongbans) {
         if (err){
             res.json({
                 success: false
             })
         }
-        res.json(phongbans.idThongBao);
+        else {
+            res.json(phongbans.idThongBao);
+        }
 
     })
 })

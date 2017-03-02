@@ -8,7 +8,7 @@ var LoaiThongBaoSchema= mongoose.Schema({
     },
     tenLoaiThongBao:{
         type: String,
-        enum: ['DiemThi','LichThi','LichHoc','DangKiTinChi','TatCa','ThongBaoKhac'],
+        //enum: ['DiemThi','LichThi','LichHoc','DangKiTinChi','TatCa','ThongBaoKhac'],
         default: 'TatCa'
     }
 });
