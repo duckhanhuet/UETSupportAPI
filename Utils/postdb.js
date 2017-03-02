@@ -1,31 +1,5 @@
 var express = require('express');
 var bodyParser = require('body-parser');
-var User = require('../models/User');
-SinhVien = require('../models/SinhVien');
-Khoa = require('../models/Khoa');
-PhongBan = require('../models/PhongBan');
-GiangVien = require('../models/GiangVien');
-LopMonHoc = require('../models/LopMonHoc');
-KiHoc = require('../models/KiHoc');
-LopChinh = require('../models/LopChinh');
-LoaiThongBao = require('../models/LoaiThongBao');
-MucDoThongBao= require('../models/MucDoThongBao');
-ThongBao = require('../models/ThongBao');
-File     = require('../models/File');
-
-var UserController = require('../controllers/UserController');
-var SinhVienController = require('../controllers/SinhVienController');
-var KhoaController = require('../controllers/KhoaController');
-var PhongBanController = require('../controllers/PhongBanController');
-var GiangVienController = require('../controllers/GiangVienController');
-var LopChinhController = require('../controllers/LopChinhController');
-var LopMonHocController = require('../controllers/LopMonHocController');
-var KiHocController = require('../controllers/KiHocController');
-var SubscribeController = require('../controllers/SubscribeController');
-var LoaiThongBaoController = require('../controllers/LoaiThongBaoController');
-var FileController  = require('../controllers/FileController');
-var ThongBaoController        = require('../controllers/ThongBaoController');
-var MucDoThongBaoController   = require('../controllers/MucDoThongBaoController');
 
 var async = require('async');
 

@@ -16,7 +16,7 @@ module.exports ={
                 //console.log('ten loai thong bao:'+typeof info._id+'va '+ typeof info.tenLoaiThongBao)
                 LoaiThongBaoController.create(info,function (err, info) {
                     if (err){
-                        console.log('khong create dk loai thong bao')
+                        //console.log('khong create dk loai thong bao')
                     }
                     //console.log('ten loai thong bao:'+info._id)
                 })
