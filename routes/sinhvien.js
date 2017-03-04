@@ -240,64 +240,6 @@ router.put('/deletetokenfirebase',auth.reqIsAuthenticate,auth.reqIsSinhVien,func
     })
 })
 
-//sinh vien xem tat ca cac thong bao cua minh
-//id sender co the la khoa, lopmon hoc, hoac co the la phongban
-router.get('/listthongbao/:idSender',auth.reqIsAuthenticate,function (req, res, next) {
-    if (req.params.idSender=='phongban'){
-        async.waterfall([
-            function findphongban(callback) {
-                PhongBanController.find({},function (err, pbs) {
-                    if (err){
-                        callback(err,null)
-                    }else {
-                        callback(null,pbs)
-                    }
-                })
-            },
-            function (phongbans, callback) {
-                var listTb =[];
-                phongbans.forEach(function (phongban) {
-                    var tenpb= phongban.tenPhongBan;
-                    var pb= { 'id': phongban._id,
-                              'ten phong ban:' :tenpb,
-                              'list thong bao :': phongban.idThongBao }
-                    listTb.push(pb);
-                })
-                callback(null,listTb)
-            }
-        ],function (err, response) {
-            if (err){
-                res.json({
-                    success: false
-                })
-            }else {
-                res.json(response)
-            }
-        })
-    }
-    else if (req.params.idSender=='khoa'){
-        SinhVienController.findById(req.user._id,function (err, sv) {
-            if (err){
-                res.json({
-                    success: false
-                })
-            }else {
-                res.json(sv.idLopChinh.idKhoa.idThongBao)
-            }
-        })
-    }
-    else if (req.params.idSender=='giangvien'){
-        SinhVienController.findById(req.user._id,function (err, sv) {
-            if (err){
-                res.json({
-                    success: false
-                })
-            }else {
-                res.json(sv.idLopMonHoc.idGiangVien.idThongBao)
-            }
-        })
-    }
-})
 
 //sinh vien gui feedback
 router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res, next) {
@@ -449,4 +391,66 @@ router.get('/list/thongbao',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (
         }
     })
 })
+
+//==============================================
+//sinh vien xem tat ca cac thong bao cua minh
+//id sender co the la khoa, lopmon hoc, hoac co the la phongban
+
+
+// router.get('/listthongbao/:idSender',auth.reqIsAuthenticate,function (req, res, next) {
+//     if (req.params.idSender=='phongban'){
+//         async.waterfall([
+//             function findphongban(callback) {
+//                 PhongBanController.find({},function (err, pbs) {
+//                     if (err){
+//                         callback(err,null)
+//                     }else {
+//                         callback(null,pbs)
+//                     }
+//                 })
+//             },
+//             function (phongbans, callback) {
+//                 var listTb =[];
+//                 phongbans.forEach(function (phongban) {
+//                     var tenpb= phongban.tenPhongBan;
+//                     var pb= { 'id': phongban._id,
+//                         'ten phong ban:' :tenpb,
+//                         'list thong bao :': phongban.idThongBao }
+//                     listTb.push(pb);
+//                 })
+//                 callback(null,listTb)
+//             }
+//         ],function (err, response) {
+//             if (err){
+//                 res.json({
+//                     success: false
+//                 })
+//             }else {
+//                 res.json(response)
+//             }
+//         })
+//     }
+//     else if (req.params.idSender=='khoa'){
+//         SinhVienController.findById(req.user._id,function (err, sv) {
+//             if (err){
+//                 res.json({
+//                     success: false
+//                 })
+//             }else {
+//                 res.json(sv.idLopChinh.idKhoa.idThongBao)
+//             }
+//         })
+//     }
+//     else if (req.params.idSender=='giangvien'){
+//         SinhVienController.findById(req.user._id,function (err, sv) {
+//             if (err){
+//                 res.json({
+//                     success: false
+//                 })
+//             }else {
+//                 res.json(sv.idLopMonHoc.idGiangVien.idThongBao)
+//             }
+//         })
+//     }
+// })
 module.exports = router;
