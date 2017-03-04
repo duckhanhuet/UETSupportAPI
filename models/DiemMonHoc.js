@@ -10,6 +10,10 @@ var DiemMonHocSchema = mongoose.Schema({
         type: Number,
         required: true
     },
+    tongDiem:{
+        type: Number,
+    }
+    ,
     idSinhVien:{
         type:String,
         ref : 'SinhVien'

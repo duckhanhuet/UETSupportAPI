@@ -255,6 +255,10 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
 //Gui thong bao diem
 router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
     var objectDiems = JSON.parse(req.body.list);
+    //console.log(objectDiems)
+    var infoLopMonHoc= JSON.parse(req.body.infoLopMonHoc);
+    var tenLopMonHoc = infoLopMonHoc.tenLopMonHoc;
+    var tenGiangVien = infoLopMonHoc.tenGiangVien;
     var mucdothongbao=1;
     var loaithongbao=1;
     var kind=2;
@@ -270,7 +274,8 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                     idSinhVien: object.MSV,
                     idLopMonHoc: object.tenLopMonHoc,
                     diemThanhPhan: Number(object.diemThanhPhan),
-                    diemCuoiKy: Number(object.diemCuoiKi)
+                    diemCuoiKy: Number(object.diemCuoiKi),
+                    tongDiem: Number(object.tongDiem)
                 }
                 //check sv in lopmonhoc existed??
                 //if havenot so insert else update
@@ -300,47 +305,52 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
         },
         //gui thogn bao cho tung sinh vien
         function sendThongBao(results, callback) {
+            var urlDiem = '/diemmonhoc/lop/'+tenLopMonHoc;
             var arrayMSV = [];
+            var registerToken=[];
             var sender = gcm.Sender(config.serverKey);
+            //message gui ts app
+            var message= new gcm.Message({
+                data: dataNoti.createData(
+                    'diem thi',
+                    'da co diem thi mon '+tenLopMonHoc,
+                    urlDiem, mucdothongbao, loaithongbao,
+                    kind,hasfile
+                )
+            })
+            console.log(dataNoti.createData(
+                    'diem thi',
+                    'da co diem thi mon '+tenLopMonHoc,
+                    urlDiem, mucdothongbao, loaithongbao,
+                    kind,hasfile
+                ));
+
             //get array ma sinh vien
             results.forEach(function (sv) {
-                arrayMSV.push(parseInt(sv._id._id));
+                arrayMSV.push(sv._id._id);
             });
             //tim cac sinh vien co trong danh sach diem thi de gui notification
             objectDiems.forEach(function (objectDiem) {
-
                 if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
                     console.log('sinh vien co la:'+objectDiem.MSV);
-                    var urlDiem = '/diemmonhoc/lop/'+ objectDiem.tenLopMonHoc;
-                    //message gui ts app
-                    var message= new gcm.Message({
-                        data: dataNoti.createData(
-                            'diem thi',
-                            'da co diem thi mon '+objectDiem.tenLopMonHoc,
-                            urlDiem, mucdothongbao, loaithongbao,
-                            kind,hasfile
-                        )
-                    })
-                    console.log(dataNoti.createData(
-                        'diem thi',
-                        'da co diem thi mon '+objectDiem.tenLopMonHoc,
-                        urlDiem,mucdothongbao,
-                        loaithongbao, kind, hasfile
-                    ))
-                    //gui cho tung sinh vien mot
                     SinhVienController.findById(objectDiem.MSV, function (err, sv) {
                         if (err) {
                             console.log('find ' + objectDiem.MSV + ' fail');
                         }
-                        sender.send(message, sv.tokenFirebase, function (err, response) {
-                            if (err) {
-                                console.log('Send noti for sinhvien ' + objectDiem.MSV + ' fail');
-                            }
-                            console.log(response);
-                        })
+                        registerToken.push(sv.tokenFirebase);
                     })
                 }
             })
+            var sendMessage =function () {
+                console.log('list token firebase:'+registerToken)
+                sender.send(message,registerToken, function (err, response) {
+                    if (err) {
+                        console.log('fail')
+                    }
+                    console.log(response);
+                })
+            }
+            setTimeout(sendMessage,700);
             callback(null, 'success');
         }
     ], function (err, result) {
