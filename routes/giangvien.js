@@ -502,14 +502,23 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
 })
 //====================================================
 router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next) {
-    GiangVienController.findById(req.user._id,function (err, giangvien) {
+    // GiangVienController.findById(req.user._id,function (err, giangvien) {
+    //     if (err){
+    //         res.json({
+    //             success: false
+    //         })
+    //     }
+    //     res.json(giangvien.idThongBao);
+    //
+    // })
+    ThongBaoController.find({idSender: req.user._id},function (err, thongbaos) {
         if (err){
             res.json({
                 success: false
             })
+        }else {
+            res.json(thongbaos)
         }
-        res.json(giangvien.idThongBao);
-
     })
 })
 //====================================================

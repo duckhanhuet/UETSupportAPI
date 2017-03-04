@@ -381,16 +381,25 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
 });
 //===============================================
 router.get('/list/thongbaodagui',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
-    PhongBanController.findById(req.user._id,function (err, phongbans) {
+    // PhongBanController.findById(req.user._id,function (err, phongbans) {
+    //     if (err){
+    //         res.json({
+    //             success: false
+    //         })
+    //     }
+    //     else {
+    //         res.json(phongbans.idThongBao);
+    //     }
+    //
+    // })
+    ThongBaoController.find({idSender: req.user._id},function (err, thongbaos) {
         if (err){
             res.json({
                 success: false
             })
+        }else {
+            res.json(thongbaos)
         }
-        else {
-            res.json(phongbans.idThongBao);
-        }
-
     })
 })
 

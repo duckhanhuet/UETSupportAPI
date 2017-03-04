@@ -397,14 +397,23 @@ function saveFile(files, idFiles) {
 //========================================================
 
 router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next) {
-    KhoaController.findById(req.user._id,function (err, khoa) {
+    // KhoaController.findById(req.user._id,function (err, khoa) {
+    //     if (err){
+    //         res.json({
+    //             success: false
+    //         })
+    //     }
+    //     res.json(khoa.idThongBao);
+    //
+    // })
+    ThongBaoController.find({idSender: req.user._id},function (err, thongbaos) {
         if (err){
             res.json({
                 success: false
             })
+        }else {
+            res.json(thongbaos)
         }
-        res.json(khoa.idThongBao);
-
     })
 })
 //===============================================
