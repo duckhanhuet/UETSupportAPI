@@ -13,6 +13,9 @@ var DiemRenLuyenController = require('../controllers/DiemRenLuyenController');
 var LopMonHocController = require('../controllers/LopMonHocController');
 var PhongBanController    = require('../controllers/PhongBanController');
 var KhoaController  =require('../controllers/KhoaController')
+var UserController  = require('../controllers/UserController')
+var FeedbackController = require('../controllers/FeedbackController')
+var ThongBaoController = require('../controllers/ThongBaoController')
 var auth = require('../policies/auth');
 var async= require('async');
 //==========================================
@@ -94,7 +97,7 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
     var arrayObject= req.body.srrayObj;
     console.log(arrayObject);
     //phaan tich string to arrayInt
-    arrayObject = arrayObject.trim().substring(1,arrayObject.length-1);
+    //arrayObject = arrayObject.trim().substring(1,arrayObject.length-1);
 
     var arr = arrayObject.split(',');
     for (let i=0;i<arr.length;i++){
@@ -294,5 +297,156 @@ router.get('/listthongbao/:idSender',auth.reqIsAuthenticate,function (req, res, 
             }
         })
     }
+})
+
+//sinh vien gui feedback
+router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res, next) {
+    var idReceiver = req.params.id;
+    var body = req.body.noiDung;
+    //=============================================
+    //=============================================
+    //create feedback
+    FeedbackController.create({idSender: req.user._id,idReceiver:idReceiver
+        ,noiDung:body},function (err, fb) {
+        if (err){
+            res.json({
+                success: false
+            })
+        }else {
+            res.json({
+                success: true,
+                feedback: fb
+            })
+        }
+    })
+})
+
+router.get('/list/thongbao',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (req, res, next) {
+    async.waterfall([
+        function (callback) {
+            SubscribeController.findById(req.user._id,function (err, subscribe) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    callback(null,subscribe)
+                }
+            })
+        },
+        // tim tat ca cac thong bao ma lop mon hoc nhan duoc
+        function (subscribe, callback) {
+            //callback(null,subscribe)
+            console.log('subscribe:'+subscribe)
+            //callback lai list tat ca cac thong bao
+            var listTbs=[];
+            var listLoaiThongBao = subscribe.idLoaiThongBao;
+            var listIdLoaiTb=[];
+            var listIdLopMonHoc=[];
+
+            //lay ra cac loai thong bao ma sinh vien muon nhan
+            listLoaiThongBao.forEach(function (list) {
+                listIdLoaiTb.push(list._id)
+            })
+            //console.log('list id loai thong bao:'+listIdLoaiTb)
+            var lopMonHoc = subscribe._id.idLopMonHoc;
+
+            //lay ra tat cac cac lop mon hoc ma sinh vien hoc
+            lopMonHoc.forEach(function (list) {
+                listIdLopMonHoc.push(list._id)
+            })
+
+            //tim kiem tat ca cac thong bao cua lop mon hoc kem theo dieu kien sinh vienmuon nhan thong bao ay
+            ThongBaoController.find({idReceiver:{$in:listIdLopMonHoc},idLoaiThongBao:{$in:listIdLoaiTb}},function (err, tbs) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    var object={
+                        subscribe: subscribe,
+                        lopmonhoc:tbs,
+                        listtbsvnhan:listIdLoaiTb
+                    }
+                    callback(null,object)
+                }
+            })
+        },
+        // tim cac thong bao ma khoa gui toi
+        function (result, callback) {
+            var khoa     = result.subscribe._id.idLopChinh.idKhoa._id;
+            console.log('khoa cua sinh vien la:'+khoa)
+            ThongBaoController.find({idSender:khoa,idLoaiThongBao:{$in:result.listtbsvnhan}},function (err, tbs) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    result.khoa =tbs;
+                    callback(null,result)
+                }
+            })
+        },
+        // Tim cac thong bao lop chinh quy nhan duoc
+        function (result, callback) {
+            var lopChinh = result.subscribe._id.idLopChinh._id;
+            console.log('lop chinh quy sinh vien hoc la:'+lopChinh)
+            ThongBaoController.find({idReceiver:lopChinh,idLoaiThongBao:{$in:result.listtbsvnhan}},function (err, tbs) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    result.lopchinh =tbs;
+                    callback(null,result)
+                }
+            })
+        },
+        // tim tat ca thong bao cua nha truong
+        function (result, callback) {
+            //gui toi toan truong
+            ThongBaoController.find({idLoaiThongBao:{$in:result.listtbsvnhan}},function (err, tbs) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    result.toantruong =tbs;
+                    callback(null,result)
+                }
+            })
+        },
+        //tra ve list cac id cua phong ban
+        function (result, callback) {
+            PhongBanController.find({},function (err, pbs) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    var listidphongban=[];
+                    pbs.forEach(function (pb) {
+                        listidphongban.push(pb._id)
+                    })
+                    result.listidpb= listidphongban;
+                    callback(null,result)
+                }
+            })
+        },
+        //list cac thong bao ma phong ban gui
+        function (result, callback) {
+            ThongBaoController.find({idLoaiThongBao:{$in:result.listtbsvnhan},idSender:{$in: result.listidpb}},function (err, tbs) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    result.phongban =tbs;
+                    callback(null,result)
+                }
+            })
+        }
+    ],function (err, response) {
+        if (err){
+            res.json({
+                error: err
+            })
+        }else {
+            res.json({
+                success: true,
+                'toantruong': response.toantruong,
+                'khoa':response.khoa,
+                'phongban': response.phongban,
+                'lopmonhoc': response.lopmonhoc,
+                'lopchinh': response.lopchinh
+            })
+        }
+    })
 })
 module.exports = router;

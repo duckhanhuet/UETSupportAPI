@@ -13,6 +13,7 @@ var KhoaSchema = new mongoose.Schema({
         required: true,
         unique:true
     },
+    //cai nay khong dung toi nhe
     idThongBao:[{
         type: Schema.Types.ObjectId,
         ref:'ThongBao'

@@ -223,14 +223,14 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
             })
         },
         function (result, callback) {
-            PhongBan.findByIdAndUpdate(
-                req.user._id,
-                {$push: {"idThongBao": result.thongbao._id}},
-                {safe: true, upsert: true},
-                function(err, model) {
-                    console.log(err);
-                }
-            );
+            // PhongBan.findByIdAndUpdate(
+            //     req.user._id,
+            //     {$push: {"idThongBao": result.thongbao._id}},
+            //     {safe: true, upsert: true},
+            //     function(err, model) {
+            //         console.log(err);
+            //     }
+            // );
 
             //url de lay thong bao ve
             var url = '/thongbao/' + result.thongbao._id;

@@ -11,6 +11,7 @@ var PhongBanSchema = mongoose.Schema({
         type: String,
         required: true
     },
+    //cai nay k dung ts nhe
     idThongBao:[{
         type: Schema.Types.ObjectId,
         ref:'ThongBao'

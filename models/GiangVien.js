@@ -18,7 +18,7 @@ var GiangVienSchema = mongoose.Schema({
              type: String,
              ref : 'LopMonHoc'
     }],
-    //list thong bao da gui
+    //cai nay khong dung ts nhe
     idThongBao:[{
         type: Schema.ObjectId,
         ref:'ThongBao'

@@ -456,14 +456,14 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
         function (result, callback) {
             //========================================
             //luu idThongBao vao phongban
-            GiangVien.findByIdAndUpdate(
-                req.user._id,
-                {$push: {"idThongBao": result.thongbao._id}},
-                {safe: true, upsert: true},
-                function(err, model) {
-                    console.log(err);
-                }
-            );
+            // GiangVien.findByIdAndUpdate(
+            //     req.user._id,
+            //     {$push: {"idThongBao": result.thongbao._id}},
+            //     {safe: true, upsert: true},
+            //     function(err, model) {
+            //         console.log(err);
+            //     }
+            // );
             //==========================================
             //url de lay thong bao ve
             var url = '/thongbao/' + result.thongbao._id;
