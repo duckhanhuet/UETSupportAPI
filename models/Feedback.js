@@ -9,11 +9,11 @@ var FeedbackSchema = mongoose.Schema({
         type: String,
         require: true
     }
-    ,
-    idReceiver:{
-        type:String,
-        require:true
-    }
+    // ,
+    // idReceiver:{
+    //     type:String,
+    //     require:true
+    // }
 });
 
 module.exports = mongoose.model('Feedback',FeedbackSchema);

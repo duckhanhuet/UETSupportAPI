@@ -16,6 +16,7 @@ var KhoaController  =require('../controllers/KhoaController')
 var UserController  = require('../controllers/UserController')
 var FeedbackController = require('../controllers/FeedbackController')
 var ThongBaoController = require('../controllers/ThongBaoController')
+var ThongBao            = require('../models/ThongBao')
 var auth = require('../policies/auth');
 var async= require('async');
 //==========================================
@@ -243,21 +244,43 @@ router.put('/deletetokenfirebase',auth.reqIsAuthenticate,auth.reqIsSinhVien,func
 
 //sinh vien gui feedback
 router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res, next) {
-    var idReceiver = req.params.id;
     var body = req.body.noiDung;
     //=============================================
     //=============================================
     //create feedback
-    FeedbackController.create({idSender: req.user._id,idReceiver:idReceiver
-        ,noiDung:body},function (err, fb) {
+    async.waterfall([
+        function (callback) {
+            FeedbackController.create({idSender: req.user._id
+                ,noiDung:body},function (err, fb) {
+                if (err){
+                    callback(err,null)
+                }else {
+                    callback(null,fb)
+                }
+            })
+        },
+        function (feedback, callback) {
+            //luu idThongBao vao phongban
+            ThongBao.findByIdAndUpdate(
+                req.params.idthongbao,{$push: {"idFeedback": feedback._id}},{safe: true, upsert: true},
+                function(err, model) {
+                    if (err){
+                        callback(err,null)
+                    }
+                    else {
+                        callback(null,'success')
+                    }
+                }
+            );
+        }
+    ],function (err, response) {
         if (err){
             res.json({
                 success: false
             })
         }else {
             res.json({
-                success: true,
-                feedback: fb
+                success: true
             })
         }
     })

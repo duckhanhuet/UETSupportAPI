@@ -34,6 +34,9 @@ var ThongBaoSchema = mongoose.Schema({
     link:{
         type: String
     },
+    idFeedback:[{
+        type: Schema.Types.ObjectId
+    }]
 });
 
 module.exports = mongoose.model('ThongBao',ThongBaoSchema);
