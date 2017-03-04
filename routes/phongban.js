@@ -90,9 +90,6 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    //console.log(req.files);
-    //console.log(typeof req.files.files)
-    //console.log('req',req.body)
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
     //noi dung cua thong bao
@@ -122,30 +119,22 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     //kiem tra xem co file dinh kem hay khong
     if(req.body.file_length!=0)
     {
-
+        //check files la array or object
         if (req.files.files instanceof Array){
-            //console.log('la array')
             files= req.files.files;
         }else {
-            //console.log('la object')
             files.push(req.files.files)
-            //console.log(files)
-
         }
         hasfile=1;
     }else {
-        //console.log('khong co file');
         hasfile=0;
     }
-    //var file = req.files.file;
-    //===============================================
-    //===============================================
+    //==============================================
     var message;
     //==============================================
     var sender = new gcm.Sender(config.serverKey);
     var registerToken = [];
-    //===============================================
-
+    //==============================================
     async.waterfall([
         function checkValidate(callback) {
             if(!tieuDe||!noiDung||!idLoaiThongBao){
@@ -159,23 +148,18 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
             }
         },
         function checkFile(ketqua,callback) {
-            //neu co file dinh kem
             if (files){
                 var idFiles=[];
-                //function luu file vao database va callback lai idFiles
+                //save file
                 storage_file.saveFile(files,idFiles);
                 //function luu thong bao voi idFile la mang idFiles tim duoc o tren
                 var functionTwo = function () {
                     //console.log(idFiles);
                     //create thong bao
                     var infoThongBao={
-                        tieuDe: tieuDe,
-                        noiDung: noiDung,
-                        idFile: idFiles,
-                        idLoaiThongBao: idLoaiThongBao,
-                        idMucDoThongBao: idMucDoThongBao,
-                        idSender:idSender,
-                        idReceiver:idReceiver,
+                        tieuDe: tieuDe, noiDung: noiDung, idFile: idFiles,
+                        idLoaiThongBao: idLoaiThongBao, idMucDoThongBao: idMucDoThongBao,
+                        idSender:idSender, idReceiver:idReceiver,
                     }
                     //luu thong bao vua gui
                     ThongBaoController.create(infoThongBao,function (err, tb) {
@@ -186,15 +170,14 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                         callback(null,tb);
                     })
                 }
-                //setTime cho functionTwo thuc hien sau 1s (settimeout de doi push idFile xong)
+                //setTime for functionTwo proccess after 1s (wait push idFile done)
                 setTimeout(functionTwo,1000);
                 //============================
             }
             else{
                 //neu khong co file dinh kem
                 var infoThongBao={
-                    tieuDe: tieuDe,
-                    noiDung: noiDung,
+                    tieuDe: tieuDe, noiDung: noiDung,
                     idLoaiThongBao: idLoaiThongBao,
                     idMucDoThongBao: idMucDoThongBao
                 }
@@ -281,8 +264,6 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
     async.waterfall([
         function createDiem(callback) {
             //===============================================
-            //luu diem mon hoc vao database
-            //===============================================
             //lay ra thong tin diem cua tung sinh vien
             objectDiems.forEach(function (object) {
                 var info = {
@@ -291,8 +272,8 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                     diemThanhPhan: Number(object.diemThanhPhan),
                     diemCuoiKy: Number(object.diemCuoiKi)
                 }
-                //check xem sinh vien trong lop mon hoc do da co trong DiemMonHoc hay chua
-                //neu chua co thi insert hoac neu co roi thi update lai
+                //check sv in lopmonhoc existed??
+                //if havenot so insert else update
                 DiemMonHoc.update(
                     {idLopMonHoc:info.idLopMonHoc,idSinhVien:info.idSinhVien},
                     {$setOnInsert: info},
@@ -337,21 +318,15 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                         data: dataNoti.createData(
                             'diem thi',
                             'da co diem thi mon '+objectDiem.tenLopMonHoc,
-                            urlDiem,
-                            mucdothongbao,
-                            loaithongbao,
-                            kind,
-                            hasfile
+                            urlDiem, mucdothongbao, loaithongbao,
+                            kind,hasfile
                         )
                     })
                     console.log(dataNoti.createData(
                         'diem thi',
                         'da co diem thi mon '+objectDiem.tenLopMonHoc,
-                        urlDiem,
-                        mucdothongbao,
-                        loaithongbao,
-                        kind,
-                        hasfile
+                        urlDiem,mucdothongbao,
+                        loaithongbao, kind, hasfile
                     ))
                     //gui cho tung sinh vien mot
                     SinhVienController.findById(objectDiem.MSV, function (err, sv) {
