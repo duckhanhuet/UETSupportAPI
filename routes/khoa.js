@@ -19,6 +19,8 @@ var FileController=require('../controllers/FileController');
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
 var multipartMiddleware = multipart();
+var storage_file = require('../Utils/storage_file');
+var cors = require('cors');
 //===========================================
 //========================================
 var gcm = require('node-gcm');
@@ -144,24 +146,6 @@ router.post('/addsinhvien', auth.reqIsAuthenticate, auth.reqIsKhoa, function (re
         })
     }
 });
-/**
- * XEM LẠI CAU TRUY VẤN ĐỂ KHOA CHI GỬI CHO CÁC SINH VIÊN TRONG KHOA
- */
-// Subscribe.find({idLoaiThongBao:{$in:[1]}}).populate('_id').exec(function (err, res) {
-//     if (err){
-//         console.log(err);
-//     }else {
-//         console.log(res)
-//     }
-// })
-// SubscribeController.find({idLoaiThongBao:{$in:[1]}},function (err, subscribes) {
-//     if (err){
-//         console.log('err');
-//     }
-//     else {
-//         console.log(subscribes.idLoaiThongBao);
-//     }
-// })
 
 //================================================================
 
@@ -205,16 +189,12 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
         }else {
             //console.log('la object')
             files.push(req.files.files)
-            //console.log(files)
-
         }
         hasfile=1;
     }else {
         //console.log('khong co file');
         hasfile=0;
     }
-    //var file = req.files.file;
-    //===============================================
     //===============================================
     var message;
     //==============================================
@@ -239,8 +219,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
             if (files){
                 var idFiles=[];
                 //function luu file vao database va callback lai idFiles
-                saveFile(files,idFiles);
-
+                storage_file.saveFile(files,idFiles);
                 //function luu thong bao voi idFile la mang idFiles tim duoc o tren
                 var functionTwo = function () {
                     //console.log(idFiles);
@@ -310,15 +289,6 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
             })
         },
         function (result, callback) {
-            // Khoa.findByIdAndUpdate(
-            //     req.user._id,
-            //     {$push: {"idThongBao": result.thongbao._id}},
-            //     {safe: true, upsert: true},
-            //     function(err, model) {
-            //         console.log(err);
-            //     }
-            // );
-
             //url de lay thong bao ve
             var url = '/thongbao/' + result.thongbao._id;
             //gui tin nhan ts app
@@ -365,54 +335,8 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
 
 })
 //======================================================
-//function savefile and callback idFiles
-function saveFile(files, idFiles) {
-    files.forEach(function (file) {
-        // Tên file
-        var originalFilename = file.name;
-        // File type
-        var fileType         = file.type.split('/')[1];
-        // File size
-        var fileSize         = file.size;
-        //pipe save file
-        var pathUpload       = __dirname +'/../files/' + originalFilename;
-        console.log('path upload la:'+pathUpload)
-        //doc file va luu file vao trong /files/
-        fs.readFile(file.path, function(err, data) {
-            if(!err) {
-                fs.writeFile(pathUpload, data, function() {
-                    return;
-                });
-            }
-        });
-
-        //tra ve object file de luu vao database
-        var objectFile ={
-            tenFile: originalFilename,
-            link: pathUpload
-        }
-        //luu file vao database
-        FileController.create(objectFile,function (err, filess) {
-            if (err){
-                callback(err,null);
-            }
-            idFiles.push(filess._id);
-            console.log('Create file success');
-        })
-    })
-}
-//========================================================
 
 router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next) {
-    // KhoaController.findById(req.user._id,function (err, khoa) {
-    //     if (err){
-    //         res.json({
-    //             success: false
-    //         })
-    //     }
-    //     res.json(khoa.idThongBao);
-    //
-    // })
     ThongBaoController.find({idSender: req.user._id},function (err, thongbaos) {
         if (err){
             res.json({
@@ -424,71 +348,5 @@ router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next
     })
 })
 //===============================================
-
-
-// router.post('/guithongbao', auth.reqIsAuthenticate, auth.reqIsKhoa, function (req, res, next) {
-//     var tieuDe = req.body.tieuDe;
-//     var noiDung = req.body.noiDung;
-//     var tenFile = req.body.tenFile;
-//     var linkFile = req.body.linkFile;
-//     var mucDoThongBao = req.body.mucDoThongBao;
-//     var idLoaiThongBao = req.body.idLoaiThongBao;//gui 1 id loai thong bao
-//
-//     if(!tieuDe||!noiDung||!idLoaiThongBao){
-//         res.json({
-//             success:false,
-//             message: 'Invalide tieu de va noi dung thong bao'
-//         })
-//     } else{
-//         //============================================
-//         var message;
-//         //==============================================
-//         var sender = new gcm.Sender(config.serverKey);
-//         var registerToken = [];
-//         message = new gcm.Message({
-//             data: dataNoti.createData(tieuDe,noiDung,tenFile,linkFile,mucDoThongBao,idLoaiThongBao)
-//         });
-//
-//         async.waterfall([
-//             function (callback) {
-//                 Subscribe.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}}).populate('_id').exec(function (err, subscribes) {
-//                     if (err){
-//                         callback(err,null)
-//                     }else {
-//                         callback(null,subscribes)
-//                         console.log(subscribes)
-//                     }
-//                 })
-//             },
-//             function (subscribes, callback) {
-//                 subscribes.forEach(function (subscribe) {
-//                     registerToken.push(subscribe._id.tokenFirebase);
-//                 })
-//                 console.log(registerToken);
-//                 sender.send(message, registerToken, function (err, response) {
-//                     console.log(response)
-//                     if (err) {
-//                         callback(err, null)
-//                     }
-//                     else {
-//                         callback(null, "Success")
-//                     }
-//                 })
-//             }
-//
-//         ],function (err, result) {
-//             if (err){
-//                 res.json({
-//                     success:false,
-//                     err:err
-//                 })
-//             }
-//             res.json({
-//                 success: true,
-//                 message: result
-//             })
-//         })
-//     }
-// });
 
 module.exports = router;

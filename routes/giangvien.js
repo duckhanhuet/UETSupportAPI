@@ -14,6 +14,7 @@ var fs = require('fs');
 var multipart  = require('connect-multiparty');
 var multipartMiddleware = multipart();
 var cors = require('cors');
+var storage_file = require('../Utils/storage_file');
 //===========================================
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
@@ -383,7 +384,7 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
             if (files){
                 var idFiles=[];
                 //function luu file vao database va callback lai idFiles
-                saveFile(files,idFiles);
+                storage_file.saveFile(files,idFiles);
 
                 //function luu thong bao voi idFile la mang idFiles tim duoc o tren
                 var functionTwo = function () {
@@ -526,44 +527,7 @@ router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next
         }
     })
 })
-//====================================================
-//function savefile and callback idFiles
-function saveFile(files, idFiles) {
-    files.forEach(function (file) {
-        // Tên file
-        var originalFilename = file.name;
 
-        // File type
-        var fileType         = file.type.split('/')[1];
-        // File size
-        var fileSize         = file.size;
-        //pipe save file
-        var pathUpload       = __dirname +'/../files/' + originalFilename;
-        console.log('path upload la:'+pathUpload)
-        //doc file va luu file vao trong /files/
-        fs.readFile(file.path, function(err, data) {
-            if(!err) {
-                fs.writeFile(pathUpload, data, function() {
-                    return;
-                });
-            }
-        });
-
-        //tra ve object file de luu vao database
-        var objectFile ={
-            tenFile: originalFilename,
-            link: pathUpload
-        }
-        //luu file vao database
-        FileController.create(objectFile,function (err, filess) {
-            if (err){
-                callback(err,null);
-            }
-            idFiles.push(filess._id);
-            console.log('Create file success');
-        })
-    })
-}
 //========================================================
 
 module.exports = router;
