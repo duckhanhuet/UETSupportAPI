@@ -199,8 +199,15 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
     //kiem tra xem co file dinh kem hay khong
     if(req.body.file_length!=0)
     {
-        files= req.files.files;
-        //console.log(files);
+        if (req.files.files instanceof Array){
+            //console.log('la array')
+            files= req.files.files;
+        }else {
+            //console.log('la object')
+            files.push(req.files.files)
+            //console.log(files)
+
+        }
         hasfile=1;
     }else {
         //console.log('khong co file');

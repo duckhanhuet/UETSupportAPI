@@ -89,7 +89,8 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    console.log(req.files);
+    //console.log(req.files);
+    //console.log(typeof req.files.files)
     //console.log('req',req.body)
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
@@ -120,8 +121,16 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     //kiem tra xem co file dinh kem hay khong
     if(req.body.file_length!=0)
     {
-        files= req.files.files;
 
+        if (req.files.files instanceof Array){
+            //console.log('la array')
+            files= req.files.files;
+        }else {
+            //console.log('la object')
+            files.push(req.files.files)
+            //console.log(files)
+
+        }
         hasfile=1;
     }else {
         //console.log('khong co file');

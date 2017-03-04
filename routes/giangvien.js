@@ -311,7 +311,7 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,funct
 
 router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    console.log('req',req.body)
+    //console.log('req',req.body)
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
     //noi dung cua thong bao
@@ -342,10 +342,15 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
     if(req.body.file_length!=0)
     {
         console.log('co file');
-        //console.log(req.files)
-        //console.log(req.files.file);
-        files= req.files.files;
-        console.log(files);
+        if (req.files.files instanceof Array){
+            //console.log('la array')
+            files= req.files.files;
+        }else {
+            //console.log('la object')
+            files.push(req.files.files)
+            //console.log(files)
+
+        }
         hasfile=1;
     }else {
         console.log('khong co file');
