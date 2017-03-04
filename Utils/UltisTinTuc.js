@@ -74,19 +74,9 @@ module.exports.parseMainPage = function (mainUrl) {
             callback(null, arr)
         },
         function (arrLoaiTinTuc, callback) {
-            var arr = []
-            for (let i = 0; i < arrLoaiTinTuc.length; i++) {
-                var fun = function (callback) {
-                    arrLoaiTinTuc[i].save(function (err) {
-                        if (err) callback(err, null)
-                        callback(null, arrLoaiTinTuc[i])
-                    })
-                }
-                arr.push(fun)
-            }
-            async.parallel(arr, function (err, result) {
-                if (err) callback(err, null)
-                callback(null, result)
+            LoaiTinTuc.create(arrLoaiTinTuc, function (err, result) {
+
+                callback(null, arrLoaiTinTuc)
             })
         },
         function (arrLoaiTinTuc, callback) {
@@ -117,6 +107,7 @@ module.exports.parseMainPage = function (mainUrl) {
         }
     ], function (err, result) {
         TinTucController.create(result, function (err, list) {
+
             if (err) {
                 console.log(err)
                 return;
@@ -165,7 +156,7 @@ function parsePage(data, callback) {
  * lastIndicator : last,  // số trang cuối cùng của từng loại
  * role : loaiTinTuc._id
  */
-function parseUrlLastIndicator(arrLoaiTinTuc, callback) {
+function parseUrlLastIndicator(arrLoaiTinTuc, callbackall) {
     var arr = []
     for (let i = 0; i < arrLoaiTinTuc.length; i++) {
         var fun = function (callback) {
@@ -176,14 +167,17 @@ function parseUrlLastIndicator(arrLoaiTinTuc, callback) {
         arr.push(fun)
     }
     async.parallel(arr, function (err, result) {
-        if (err) console.log(err)
+        if (err) {
+            callbackall("err", null)
+            return;
+        }
         if (result) {
             if (result.length >= 0) {
-                callback(null, result)
+                callbackall(null, result)
                 return;
             }
         }
-        callback("err", null)
+
     })
 }
 //parse indicator for mainURLpage
@@ -209,14 +203,16 @@ function getObjIndicator(loaiTinTuc, callbackall) {
             callback(null, obj)
         }
     ], function (err, result) {
-        if (err) console.log(err);
-        if (result) {
-            if (result.length >= 0) {
-                callback(null, result)
+
+        if (err) {
+            {
+                callbackall("err", null)
                 return;
             }
         }
-        callback("err", null)
+        console.log(result)
+        callbackall(null, result)
+        return;
     })
 }
 /**
@@ -239,6 +235,7 @@ function getAllUrlPageTinTuc(list, callback) {
             }
             arrUrl.push(obj)
         }
+
     }
     callback(null, arrUrl)
 }

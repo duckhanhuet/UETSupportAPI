@@ -25,7 +25,7 @@ module.exports =  {
             callback(null,diemmonhocs)
         })
     },
-    findOne: function (params, callback) {
+    findAllByIdLopMonHoc: function (params, callback) {
         DiemMonHoc.find(params).populate([
             {
                 path: 'idSinhVien',
@@ -34,7 +34,8 @@ module.exports =  {
                     populate: {
                         path: 'idKhoa'
                     }
-                }
+                },
+                select: '_id tenSinhVien idLopChinh'
             },
             {
                 path: 'idLopMonHoc',

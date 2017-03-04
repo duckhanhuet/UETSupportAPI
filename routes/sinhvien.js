@@ -98,7 +98,7 @@ router.post('/guiloaithongbao', auth.reqIsAuthenticate, auth.reqIsSinhVien, func
     var arrayObject= req.body.srrayObj;
     console.log(arrayObject);
     //phaan tich string to arrayInt
-    //arrayObject = arrayObject.trim().substring(1,arrayObject.length-1);
+    arrayObject = arrayObject.trim().substring(1, arrayObject.length - 1);
 
     var arr = arrayObject.split(',');
     for (let i=0;i<arr.length;i++){

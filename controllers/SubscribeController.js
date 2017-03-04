@@ -58,6 +58,15 @@ module.exports =  {
             callback(null,subscribe);
         })
     },
+    findByIdNoRelationship: function (id, callback) {
+        Subscribe.findById(id).exec(function (err, subscribe) {
+            if (err) {
+                callback(err, null);
+                return;
+            }
+            callback(null, subscribe);
+        })
+    },
 
     create: function (params, callback) {
         Subscribe.create(params,function (err, subscribe) {

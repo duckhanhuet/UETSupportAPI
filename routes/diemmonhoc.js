@@ -33,13 +33,13 @@ router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
     })
 });
 router.get('/lop/:idlop',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (req, res) {
-    DiemMonHocController.findOne({idSinhVien: req.user._id, idLopMonHoc: req.params.idlop}, function (err, diemmonhoc) {
+    DiemMonHocController.findAllByIdLopMonHoc({idLopMonHoc: req.params.idlop}, function (err, diemmonhoc) {
         if (err){
             res.json({
                 success: false
             })
         }
-        res.json(diemmonhoc[0]);
+        res.json(diemmonhoc);
     })
 });
 

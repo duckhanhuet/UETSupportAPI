@@ -60,7 +60,7 @@ router.get('/detail',function (req,res) {
 //============================================================
 //ham nay de impot du lieu
 //CHAY LAN DAU ROI COMMENT NO LAI
-//utils.parseMainPage('http://uet.vnu.edu.vn/coltech/taxonomy/term/101');
+// utils.parseMainPage('http://uet.vnu.edu.vn/coltech/taxonomy/term/101');
 
 // utils.test();
 

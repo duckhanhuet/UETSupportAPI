@@ -294,7 +294,6 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                 if (err) {
                     callback(err, null)
                 } else {
-                    //console.log(subscribes);
                     callback(null, subscribes)
                 }
             })
@@ -305,11 +304,11 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
             var sender = gcm.Sender(config.serverKey);
             //get array ma sinh vien
             results.forEach(function (sv) {
-                arrayMSV.push(sv._id._id);
+                arrayMSV.push(parseInt(sv._id._id));
             });
-            //console.log(arrayMSV);
             //tim cac sinh vien co trong danh sach diem thi de gui notification
             objectDiems.forEach(function (objectDiem) {
+
                 if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
                     console.log('sinh vien co la:'+objectDiem.MSV);
                     var urlDiem = '/diemmonhoc/lop/'+ objectDiem.tenLopMonHoc;
