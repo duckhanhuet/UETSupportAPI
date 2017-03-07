@@ -219,10 +219,31 @@ router.get('/alldiem',auth.reqIsAuthenticate,function (req, res, next) {
 //=======================================================
 //get diemrenluyen
 router.get('/diemrenluyen',auth.reqIsAuthenticate,function (req, res) {
-
+    DiemRenLuyenController.find({idSinhVien: req.user._id},function (err, diemrenluyens) {
+        if (err){
+            res.json({
+                success: false
+            })
+        }else {
+            res.json(diemrenluyens)
+        }
+    })
 });
 //=======================================================
-
+//get diem ren luyen cua tung ki
+router.get('/diemrenluyen/:idki',auth.reqIsAuthenticate,function (req, res) {
+    var idKi = req.params.idki;
+    DiemRenLuyenController.find({idSinhVien: req.user._id,idKi: idKi},function (err, diemrenluyen) {
+        if (err){
+            res.json({
+                success: false
+            })
+        }
+        else {
+            res.json(diemrenluyen)
+        }
+    })
+})
 //=======================================================
 
 //xoa token firebase sinh vien

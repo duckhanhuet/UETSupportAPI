@@ -5,9 +5,11 @@ var PhongBan           = require('../models/PhongBan');
 var SinhVienController = require('../controllers/SinhVienController');
 var SubscribeController = require('../controllers/SubscribeController');
 var DiemMonHocController = require('../controllers/DiemMonHocController');
+var DiemRenLuyenController = require('../controllers/DiemRenLuyenController');
 var ThongBaoController = require('../controllers/ThongBaoController');
 var FileController=require('../controllers/FileController');
 var DiemMonHoc = require('../models/DiemMonHoc');
+var DiemRenLuyen = require('../models/DiemRenLuyen');
 var Subscribe   = require('../models/Subscribe');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
@@ -361,8 +363,9 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
         }
         res.json(result);
     })
-
 });
+
+//phong ban co the xem nhung thong bao da gui
 //===============================================
 router.get('/list/thongbaodagui',auth.reqIsAuthenticate,auth.reqIsPhongBan,function (req, res, next) {
     ThongBaoController.find({idSender: req.user._id},function (err, thongbaos) {
@@ -375,5 +378,114 @@ router.get('/list/thongbaodagui',auth.reqIsAuthenticate,auth.reqIsPhongBan,funct
         }
     })
 })
+
+
+//phong ban post diem ren luyen thong bao cho sinh vien biet
+router.post('/guithongbao/diemrenluyen',auth.reqIsAuthenticate,function (req, res, next) {
+    // mang cac object diem ren luyen
+    var objectDiemRenLuyens = JSON.parse(req.body.list);
+    //ki hoc
+    var idKi = req.body.idKi;
+    var mucdothongbao=1; //quan trong
+    var loaithongbao=1; // la loai thong bao
+    var kind=7; // loai thong bao gui diem ren luyen
+    var hasfile=0;
+    //===============================================
+    async.waterfall([
+        function createDiemRenLuyen(callback) {
+            //===============================================
+            //lay ra thong tin diem cua tung sinh vien
+            objectDiemRenLuyens.forEach(function (object) {
+                var info = {
+                    idSinhVien: object.MSV,
+                    idKi: object.idKi,
+                    diemRenLuyen: Number(object.diemRenLuyen)
+                }
+                //check sv in lopmonhoc existed??
+                //if havenot so insert else update
+                DiemRenLuyen.update(
+                    {idKi:info.idKi,idSinhVien:info.idSinhVien},
+                    {$setOnInsert: info},
+                    {upsert: true},
+                    function(err, numAffected) {
+                        if (err)
+                        {
+                            callback(err,null);
+                        }
+                    }
+                );
+            })
+            callback(null,'Success');
+        }
+        ,function findsubscribes(kq,callback) {
+            //tim ra tat ca cac sinh vien co loai thong bao la 2: (thong bao la 2: diem mon hoc)
+            Subscribe.find({idLoaiThongBao:{$in:[kind]}}).populate('_id').exec(function (err, subscribes) {
+                if (err) {
+                    callback(err, null)
+                } else {
+                    callback(null, subscribes)
+                }
+            })
+        },
+        //gui thogn bao cho tung sinh vien
+        function sendThongBao(results, callback) {
+            var url = 'sinhvien/diemrenluyen/'+idKi;
+            var arrayMSV = [];
+            var registerToken=[];
+            var sender = gcm.Sender(config.serverKey);
+            //message gui ts app
+            var message= new gcm.Message({
+                data: dataNoti.createData(
+                    'diem ren luyen',
+                    'da co diem ren luyen ki hoc '+idKi,
+                    url, mucdothongbao, loaithongbao,
+                    kind,hasfile
+                )
+            })
+            console.log(dataNoti.createData(
+                'diem ren luyen',
+                'da co diem ren luyen ki hoc '+idKi,
+                url, mucdothongbao, loaithongbao,
+                kind,hasfile
+            ));
+
+            //get array ma sinh vien
+            results.forEach(function (sv) {
+                arrayMSV.push(sv._id._id);
+            });
+            //tim cac sinh vien co trong danh sach diem thi de gui notification
+            objectDiemRenLuyens.forEach(function (objectDiem) {
+                if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
+                    console.log('sinh vien co la:'+objectDiem.MSV);
+                    SinhVienController.findById(objectDiem.MSV, function (err, sv) {
+                        if (err) {
+                            console.log('find ' + objectDiem.MSV + ' fail');
+                        }
+                        registerToken.push(sv.tokenFirebase);
+                    })
+                }
+            })
+            var sendMessage =function () {
+                console.log('list token firebase:'+registerToken)
+                sender.send(message,registerToken, function (err, response) {
+                    if (err) {
+                        console.log('fail')
+                    }
+                    console.log(response);
+                })
+            }
+            setTimeout(sendMessage,700);
+            callback(null, 'success');
+        }
+    ], function (err, result) {
+        if (err) {
+            res.json({
+                success: false
+            })
+        }
+        res.json(result);
+    })
+})
+
 
 module.exports = router;
