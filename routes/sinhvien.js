@@ -415,6 +415,21 @@ router.get('/list/thongbao',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (
     })
 })
 
+// tim kiem tat ca cac sinh vien trong 1 lop mon hoc
+
+router.get('/lopmonhoc/:id',auth.reqIsAuthenticate,function (req, res, next) {
+    var idLopMonHoc = req.params.id;
+    SinhVienController.find({idLopMonHoc:idLopMonHoc},function (err, sinhviens) {
+        if (err){
+            res.json({
+                success: false
+            })
+        }else {
+            res.json(sinhviens)
+        }
+    })
+})
+
 //==============================================
 //sinh vien xem tat ca cac thong bao cua minh
 //id sender co the la khoa, lopmon hoc, hoac co the la phongban

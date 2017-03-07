@@ -6,7 +6,8 @@ var FileSchema = mongoose.Schema({
     },
     link:{
         type: String
-    }
+    },
+    img: { data: Buffer, contentType: String }
 });
 
 module.exports = mongoose.model('File',FileSchema);
