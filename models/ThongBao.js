@@ -55,6 +55,7 @@ var ThongBaoSchema = mongoose.Schema({
                 type: String,
                 require: true,
                 refPath: 'feedback.kind'
+
             },
             time:{
                 type: Date,

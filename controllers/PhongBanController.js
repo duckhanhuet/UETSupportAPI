@@ -18,6 +18,7 @@ module.exports =  {
         PhongBan.findById(id).populate('idThongBao').exec(function (err, phongban) {
             if (err){
                 callback(err,null);
+
                 return;
             }
             callback(null,phongban);

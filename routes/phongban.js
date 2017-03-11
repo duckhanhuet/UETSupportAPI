@@ -546,6 +546,7 @@ router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res
                 //push token firebase vao registerToken
                 feedbacks.forEach(function (feedback) {
                     if (feedback.kind=='SinhVien'){
+
                         //console.log(feedback);
                         //moi tokenFirebase chi push 1 lan (tranh tinh trang gui nhieu thong bao voi 1 subject giong nhau)
                         if (registerToken.indexOf(feedback.idComment.tokenFirebase)<=-1){

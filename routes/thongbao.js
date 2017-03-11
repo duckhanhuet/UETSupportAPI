@@ -18,6 +18,7 @@ router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
 });
 router.get('/:id', auth.reqIsAuthenticate, function (req, res, next) {
     ThongBaoController.findById(req.params.id, function (err, thongbao) {
+
         if (err) {
             res.json({
                 success: false,

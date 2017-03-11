@@ -23,6 +23,7 @@ var SinhVienSchema =new  mongoose.Schema({
     tokenFirebase:{
       type: String
     }
+
     // nhanLoaiThongBao:[{
     //     type: String,
     //     enum:['DiemThi','LichThi','DangKiTinChi','LichHoc','ThongBaoKhac'],

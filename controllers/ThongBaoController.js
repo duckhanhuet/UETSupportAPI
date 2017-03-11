@@ -46,6 +46,7 @@ module.exports =  {
                 path:'idSender'
             }
         ]).exec(function (err, thongbao) {
+
             if (err){
                 callback(err,null);
                 return;

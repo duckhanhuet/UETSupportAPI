@@ -16,6 +16,7 @@ var PhongBanSchema = mongoose.Schema({
         type: Schema.Types.ObjectId,
         ref:'ThongBao'
     }]
+
 });
 
 module.exports = mongoose.model('PhongBan',PhongBanSchema);
