@@ -11,6 +11,12 @@ module.exports =  {
             },
             {
                 path: 'idMucDoThongBao'
+            },
+            {
+                path:'feedback.idComment'
+            },
+            {
+                path:'idSender'
             }
         ]).exec(function (err, thongbaos) {
             if (err){
@@ -31,6 +37,13 @@ module.exports =  {
             },
             {
                 path: 'idMucDoThongBao'
+            },
+            {
+                path:'feedback.idComment',
+                select: '_id tenSinhVien tokenFirebase'
+            },
+            {
+                path:'idSender'
             }
         ]).exec(function (err, thongbao) {
             if (err){

@@ -8,12 +8,11 @@ var FeedbackSchema = mongoose.Schema({
     idSender:{
         type: String,
         require: true
+    },
+    time:{
+        type: Date,
+        default: Date.now
     }
-    // ,
-    // idReceiver:{
-    //     type:String,
-    //     require:true
-    // }
 });
 
 module.exports = mongoose.model('Feedback',FeedbackSchema);

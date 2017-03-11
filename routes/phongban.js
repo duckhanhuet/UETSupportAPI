@@ -14,6 +14,7 @@ var Subscribe   = require('../models/Subscribe');
 var auth = require('../policies/auth');
 var typeNoti = require('../policies/sinhvien');
 var bodyParser = require('body-parser');
+var ThongBao = require('../models/ThongBao');
 //==========================================
 var fs = require('fs');
 var multipart  = require('connect-multiparty');
@@ -106,6 +107,8 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     //kiem tra gui thong bao
     var idReceiver='';
 
+    var kindSender='PhongBan'
+
     var files=[];
     var hasfile; // hasfile=0 : khong co file //hasfile=1 : co file
     if(req.body.categoryReceiver=='khoa')
@@ -161,7 +164,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                     var infoThongBao={
                         tieuDe: tieuDe, noiDung: noiDung, idFile: idFiles,
                         idLoaiThongBao: idLoaiThongBao, idMucDoThongBao: idMucDoThongBao,
-                        idSender:idSender, idReceiver:idReceiver,
+                        idSender:idSender, idReceiver:idReceiver,kindIdSender:kindSender
                     }
                     //luu thong bao vua gui
                     ThongBaoController.create(infoThongBao,function (err, tb) {
@@ -274,7 +277,7 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
             objectDiems.forEach(function (object) {
                 var info = {
                     idSinhVien: object.MSV,
-                    idLopMonHoc: object.tenLopMonHoc,
+                    idLopMonHoc: infoLopMonHoc.tenLopMonHoc,
                     diemThanhPhan: Number(object.diemThanhPhan),
                     diemCuoiKy: Number(object.diemCuoiKi),
                     tongDiem: Number(object.tongDiem)
@@ -321,19 +324,19 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsPhongBan,functi
                 )
             })
             console.log(dataNoti.createData(
-                    'diem thi',
-                    'da co diem thi mon '+tenLopMonHoc,
-                    urlDiem, mucdothongbao, loaithongbao,
-                    kind,hasfile
-                ));
+                'diem thi',
+                'da co diem thi mon '+tenLopMonHoc,
+                urlDiem, mucdothongbao, loaithongbao,
+                kind,hasfile
+            ));
 
             //get array ma sinh vien
             results.forEach(function (sv) {
-                arrayMSV.push(sv._id._id);
+                arrayMSV.push(parseInt(sv._id._id));
             });
             //tim cac sinh vien co trong danh sach diem thi de gui notification
             objectDiems.forEach(function (objectDiem) {
-                if (arrayMSV.indexOf(objectDiem.MSV) > -1) {
+                if (arrayMSV.indexOf(parseInt(objectDiem.MSV)) > -1) {
                     console.log('sinh vien co la:'+objectDiem.MSV);
                     SinhVienController.findById(objectDiem.MSV, function (err, sv) {
                         if (err) {
@@ -487,5 +490,91 @@ router.post('/guithongbao/diemrenluyen',auth.reqIsAuthenticate,function (req, re
     })
 })
 
+// phong ban gui phan hoi toi sinh vien
+
+router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res, next) {
+    var body = req.body.noiDung;
+    var kindUser = 'PhongBan';
+    var registerToken=[];
+    var mucdothongbao=1;// quan trong
+    var loaithongbao=1;// la loai thong bao
+    var kind= 7; // kind feedback
+    var hasfile=0;
+    var url ='/sinhvien/listfeedback/'+ req.params.idthongbao;
+    var sender = gcm.Sender(config.serverKey);
+    if (!body){
+        res.json({
+            success: false,
+            message:'chua co noi dung gui di'
+        })
+    }else {
+        //push feedback cua phong ban vao thong bao
+        ThongBao.findByIdAndUpdate(
+            req.params.idthongbao,
+            {$push: {"feedback": {kind:kindUser,noiDung:body,idComment: req.user._id}}},
+            {safe: true,upsert:true},function (err, thongbao) {
+                if (err){
+                    res.json({
+                        success: false
+                    })
+                }
+            })
+
+        //message gui ts app
+        var message= new gcm.Message({
+            data: dataNoti.createData(
+                'Phan hoi feedback',
+                'Ban co 1 feedback thongbao tu  '+req.user._id,
+                url, mucdothongbao, loaithongbao,
+                kind,hasfile
+            )
+        })
+
+        console.log('data gui di la:');
+        console.log(dataNoti.createData(
+            'Phan hoi feedback',
+            'Ban co 1 feedback thongbao tu  '+req.user._id,
+            url, mucdothongbao, loaithongbao,
+            kind,hasfile
+        ))
+        ThongBaoController.findById(req.params.idthongbao,function (err, thongbaos) {
+            if (err){
+                console.log('err')
+            }else {
+                var listMSV=[];
+                var feedbacks = thongbaos.feedback;
+                //push token firebase vao registerToken
+                feedbacks.forEach(function (feedback) {
+                    if (feedback.kind=='SinhVien'){
+                        //console.log(feedback);
+                        //moi tokenFirebase chi push 1 lan (tranh tinh trang gui nhieu thong bao voi 1 subject giong nhau)
+                        if (registerToken.indexOf(feedback.idComment.tokenFirebase)<=-1){
+                            registerToken.push(feedback.idComment.tokenFirebase)
+                        }
+                    }
+                })
+
+                //gui thong bao di
+                var sendMessage =function () {
+                    console.log('list token firebase:'+registerToken)
+                    sender.send(message,registerToken, function (err, response) {
+                        if (err) {
+                            res.json({
+                                success: false
+                            })
+                        }
+                        else {
+                            console.log(response);
+                            res.json({
+                                success: true
+                            })
+                        }
+                    })
+                }
+                setTimeout(sendMessage,700);
+            }
+        })
+    }
+})
 
 module.exports = router;

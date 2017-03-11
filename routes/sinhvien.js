@@ -264,48 +264,88 @@ router.put('/deletetokenfirebase',auth.reqIsAuthenticate,auth.reqIsSinhVien,func
 
 
 //sinh vien gui feedback
+// router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res, next) {
+//     var body = req.body.noiDung;
+//     //=============================================
+//     //=============================================
+//     //create feedback
+//     async.waterfall([
+//         function (callback) {
+//             FeedbackController.create({idSender: req.user._id
+//                 ,noiDung:body},function (err, fb) {
+//                 if (err){
+//                     callback(err,null)
+//                 }else {
+//                     callback(null,fb)
+//                 }
+//             })
+//         },
+//         function (feedback, callback) {
+//             //luu idThongBao vao phongban
+//             ThongBao.findByIdAndUpdate(
+//                 req.params.idthongbao,{$push: {"idFeedback": feedback._id}},{safe: true, upsert: true},
+//                 function(err, model) {
+//                     if (err){
+//                         callback(err,null)
+//                     }
+//                     else {
+//                         callback(null,'success')
+//                     }
+//                 }
+//             );
+//         }
+//     ],function (err, response) {
+//         if (err){
+//             res.json({
+//                 success: false
+//             })
+//         }else {
+//             res.json({
+//                 success: true
+//             })
+//         }
+//     })
+// })
+
+
 router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res, next) {
     var body = req.body.noiDung;
-    //=============================================
-    //=============================================
-    //create feedback
-    async.waterfall([
-        function (callback) {
-            FeedbackController.create({idSender: req.user._id
-                ,noiDung:body},function (err, fb) {
+    var kind = 'SinhVien'
+    if (!body){
+        res.json({
+            success: false,
+            message:'chua co noi dung gui di'
+        })
+    }else {
+        ThongBao.findByIdAndUpdate(
+            req.params.idthongbao,
+            {$push: {"feedback": {kind:kind,noiDung:body,idComment: req.user._id}}},
+            {safe: true,upsert:true},function (err, thongbao) {
                 if (err){
-                    callback(err,null)
+                    res.json({
+                        success: false
+                    })
                 }else {
-                    callback(null,fb)
+                    res.json({
+                        success: true
+                    })
                 }
             })
-        },
-        function (feedback, callback) {
-            //luu idThongBao vao phongban
-            ThongBao.findByIdAndUpdate(
-                req.params.idthongbao,{$push: {"idFeedback": feedback._id}},{safe: true, upsert: true},
-                function(err, model) {
-                    if (err){
-                        callback(err,null)
-                    }
-                    else {
-                        callback(null,'success')
-                    }
-                }
-            );
-        }
-    ],function (err, response) {
+    }
+});
+router.get('/listfeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res, next) {
+    var idthongbao= req.params.idthongbao;
+    ThongBaoController.findById(idthongbao,function (err, thongbao) {
         if (err){
             res.json({
                 success: false
             })
         }else {
-            res.json({
-                success: true
-            })
+            res.json(thongbao)
         }
     })
 })
+
 
 router.get('/list/thongbao',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (req, res, next) {
     async.waterfall([

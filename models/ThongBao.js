@@ -1,6 +1,11 @@
 var mongoose = require('mongoose');
+var Feedback = require('./Feedback')
 var Schema   = mongoose.Schema;
 var ThongBaoSchema = mongoose.Schema({
+    kindIdSender:{
+        type: String,
+        enum: ['PhongBan','Khoa','GiangVien']
+    },
     tieuDe:{
         type: String
     },
@@ -13,6 +18,7 @@ var ThongBaoSchema = mongoose.Schema({
     },
     idSender:{
         type: String,
+        refPath: 'kindIdSender'
         //ref : ['GiangVien','Khoa','PhongBan']
     },
     idReceiver:{
@@ -34,9 +40,28 @@ var ThongBaoSchema = mongoose.Schema({
     link:{
         type: String
     },
-    idFeedback:[{
-        type: Schema.Types.ObjectId
-    }]
+    feedback:[
+        {
+            kind:{
+              type: String,
+              enum:['Khoa','PhongBan','GiangVien','SinhVien'],
+              require: true
+            },
+            noiDung :{
+                type: String,
+                require: true
+            },
+            idComment:{
+                type: String,
+                require: true,
+                refPath: 'feedback.kind'
+            },
+            time:{
+                type: Date,
+                default: Date.now
+            }
+        }
+    ]
 });
 
 module.exports = mongoose.model('ThongBao',ThongBaoSchema);
