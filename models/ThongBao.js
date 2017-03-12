@@ -38,7 +38,8 @@ var ThongBaoSchema = mongoose.Schema({
         ref:'MucDoThongBao'
     },
     link:{
-        type: String
+        type: String,
+        unique: true
     },
     feedback:[
         {

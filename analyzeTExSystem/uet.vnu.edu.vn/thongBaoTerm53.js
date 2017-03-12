@@ -3,68 +3,106 @@
  */
 var cheerio = require('cheerio')
 var request = require('request');
-var config = require('../Config/Config')
+var config = require('../../Config/Config')
 var Entities = require('html-entities').AllHtmlEntities;
 entities = new Entities();
 var async = require('async');
-var ThongBaoController = require('../controllers/ThongBaoController')
-var LoaiThongBao = require('../models/LoaiThongBao');
+var ThongBaoController = require('../../controllers/ThongBaoController')
+var LoaiThongBao = require('../../models/LoaiThongBao');
 /**
  * parse trang chu để lấy dự liệu
  */
-
+const PageFirst="http://uet.vnu.edu.vn/coltech/taxonomy/term/53?page=0";
 var IndexLast = 0;// bien toan cuc
 // page cuoi cung cua trang == lastIndicator
 //===========================
 // file phân tich trang thong bao Sinhvien http://uet.vnu.edu.vn/coltech/taxonomy/term/53
 // các trang như Tin tức sinh vien, gương mặt tiêu biểu làm tương tự ...
-module.exports.parseMainPage = function () {
-    var arr = [];
-    // bo qua viec phan tich Gương mặt tiêu biểu, Tin tức,Danh sách thi,Kết quả học tập,Học phí,Học bổng
-    // cac trang nay co cau truc hơi khác nhau nên k thể gộp lại phân tích cùng 1 lúc.
-    // hien tai fix cung 1 loai thong bao duy nhat la :TatCa
-    var loaithongbao0 = new LoaiThongBao({
-        _id: 0,
-        tenLoaiThongBao: 'TatCa',
-    });
-    arr.push(loaithongbao0);
-    async.waterfall([
-        function (callback) {
-            callback(null, arr)
-        },
-        function (arrLoaiThongBao, callback) {
-            // tim trang cuoi cung
-            parseUrlLastIndicator(arrLoaiThongBao, callback)
-        },
-        function (list, callback) {
-            getAllUrlPageThongBao(list, callback)
-        },
-        /**
-         * mảng Url có các trường
-         * http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
-         */
-            function (arrURL, callback) {
-            getAllUrlThongBao(arrURL, callback)
-        },
-        function (arrThongBao, callback) {
-            var arr = deleteDuplicate(arrThongBao)
-            callback(null, arr)
-        },
-        // function (arrThongBao, callback) {
-        //     findInDatabaseAndDelete(arrThongBao,callback);
-        // },
-        function (arrThongBao, callback) {
-            getPostAllForEachThongBao(arrThongBao, callback)
-        }
-    ], function (err, result) {
-        ThongBaoController.create(result, function (err, list) {
-            if (err) {
-                console.log(err)
-                return;
+module.exports ={
+    analyzeAtFirst:function () {
+        var arrLoaiThongBao = [];
+        // bo qua viec phan tich Gương mặt tiêu biểu, Tin tức,Danh sách thi,Kết quả học tập,Học phí,Học bổng
+        // cac trang nay co cau truc hơi khác nhau nên k thể gộp lại phân tích cùng 1 lúc.
+        // hien tai fix cung 1 loai thong bao duy nhat la :TatCa
+        var loaithongbao0 = new LoaiThongBao({
+            _id: 0,
+            tenLoaiThongBao: 'TatCa',
+        });
+        arrLoaiThongBao.push(loaithongbao0);
+        async.waterfall([
+            function (callback) {
+                callback(null, arrLoaiThongBao)
+            },
+            function (arrLoaiThongBao, callback) {
+                // tim trang cuoi cung , ket qua duoc luu tru trong bien IndexLast
+                parseUrlLastIndicator(arrLoaiThongBao, callback)
+            },
+            function (arrLoaiThongBao, callback) {
+                getAllUrlPageThongBao(arrLoaiThongBao, callback)
+            },
+            /**
+             * mảng Url có các trường
+             * http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
+             */
+            function (arrURL,arrLoaiThongBao, callback) {
+                getAllUrlThongBao(arrURL,arrLoaiThongBao, callback)
+            },
+            function (arrThongBao, callback) {
+                var arr = deleteDuplicate(arrThongBao)
+                callback(null, arr)
+            },
+            // function (arrThongBao, callback) {
+            //     findInDatabaseAndDelete(arrThongBao,callback);
+            // },
+            function (arrThongBao, callback) {
+                getPostAllForEachThongBao(arrThongBao, callback)
             }
-            else console.log("import success")
+        ], function (err, result) {
+            ThongBaoController.create(result, function (err, list) {
+                if (err) {
+                    console.log(err)
+                    return;
+                }
+                else console.log("import success")
+            })
         })
-    })
+    },
+    analyze:function () {
+        var arrLoaiThongBao = [];
+
+        // hien tai fix cung 1 loai thong bao duy nhat la :TatCa
+        var loaithongbao0 = new LoaiThongBao({
+            _id: 0,
+            tenLoaiThongBao: 'TatCa',
+        });
+        arrLoaiThongBao.push(loaithongbao0);
+        async.waterfall([
+            function (callback) {
+                callback(null,[{link:PageFirst}],arrLoaiThongBao );
+            },
+            function (arrURL,arrLoaiThongBao, callback) {
+                getAllUrlThongBao(arrURL,arrLoaiThongBao, callback)
+            },
+            function (arrThongBao, callback) {
+                var arr = deleteDuplicate(arrThongBao)
+                callback(null, arr)
+            },
+            // function (arrThongBao, callback) {
+            //     findInDatabaseAndDelete(arrThongBao,callback);
+            // },
+            function (arrThongBao, callback) {
+                getPostAllForEachThongBao(arrThongBao, callback)
+            }
+        ], function (err, result) {
+            ThongBaoController.create(result, function (err, list) {
+                if (err) {
+                    console.log(err)
+                    return;
+                }
+                else console.log("import success")
+            })
+        })
+    }
 }
 /**
  * get All page by URL
@@ -111,18 +149,19 @@ function getObjIndicator(arrLoaiThongBao, callback) {
  * role : loaiThongBao._id
  * @param callback
  */
-function getAllUrlPageThongBao(list, callback) {
+function getAllUrlPageThongBao(arrLoaiThongBao, callback) {
     var arrUrl = []
     for (let indicator = 0; indicator <= IndexLast; indicator++) {
         var url = config.UetHostName + "/coltech/taxonomy/term/53" + "?page=" + indicator; //http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
+        // console.log(url);
         var obj = {
             link: url,
-            role: "TatCa",// fix cung la tat ca
+            role: 0,// fix cung la tat ca
         }
         arrUrl.push(obj)
         // mang tra ve tat ca cac trang
     }
-    callback(null, arrUrl)
+    callback(null, arrUrl,arrLoaiThongBao)
 }
 /**
  * lấy tất cả các url của tất cả trnag bài viết
@@ -132,7 +171,7 @@ function getAllUrlPageThongBao(list, callback) {
  * role : list[i].role
  * @param callbackAll
  */
-function getAllUrlThongBao(list, callbackAll) {
+function getAllUrlThongBao(list,arrLoaiThongBao, callbackAll) {
     var arrFun = [];
     var firstFun = function (callback) {
         callback(null, []);
@@ -140,7 +179,7 @@ function getAllUrlThongBao(list, callbackAll) {
     arrFun.push(firstFun);
     for (let i = 0; i < list.length; i++) {
         var fun = function (arr, callback) {
-            parserHtmlThongBao(list[i].link, list[i].role, function (err, result) {
+            parserHtmlThongBao(list[i].link,arrLoaiThongBao, function (err, result) {
                 if (err) callback(err, null);
                 callback(null, arr.concat(result))// mang arr noi tat ca cac result tra ve
             })
@@ -167,9 +206,9 @@ function getPostAllForEachThongBao(result, callback) {
     for (let i = 0; i < result.length; i++) {
         var prototype = function (data, callback) {
             //gui request len server
-            detailRequest(result[i].link, function (err, date) {
+            detailRequest(data[i].link, function (err, date) {
                 data[i].time = date;// postAt
-                callback(null, result)
+                callback(null, data)
             })
         }
         stack.push(prototype)
@@ -183,7 +222,7 @@ function getPostAllForEachThongBao(result, callback) {
     })
 }
 //parser html to object
-function parserHtmlThongBao(url, role, callbackall) {
+function parserHtmlThongBao(url,arrLoaiThongBao, callbackall) {
     // phan tich tung trang thong bao
     async.waterfall([
         function (callback) {
@@ -198,17 +237,21 @@ function parserHtmlThongBao(url, role, callbackall) {
             $('.views-row').each(function (i, ele) {
                 //lay tieu de
                 var title = $('.field-content .title_term ', this).text();
-                // console.log(title)
-                //phan nay sau phai phan tich tieu de de chon ra loai thong bao
+                //phan nay sau phai phan tich tieu de de chon ra loai thong bao, su dung arrLoaiThongBao
                 //..........
+
+
                 // lay link lien ket
                 var link_temp = $('.field-content > a', this).attr('href');
                 //====================================
+                // console.log($('div.views-field-teaser',this).text());
+
                 var stringOnSpan = "";
                 // lay noi dung thong bao
                 $('div.views-field-teaser>div>div>span', this).each(function (sec, e) {
                     stringOnSpan += $('span').text();
                 })
+                stringOnSpan +=$('div.views-field-teaser>div>div>a>span>span', this).text();
                 //====================================
                 //====================================
                 if (stringOnSpan == "") {
@@ -221,7 +264,8 @@ function parserHtmlThongBao(url, role, callbackall) {
                     stringOnSpan = $('div.views-field-teaser span', this).text();
                 }
                 //====================================
-                var container = $('div.views-field-teaser>div>div>span>span>span', this).text()
+                var container =$('div.views-field-teaser',this).text()
+                    ||$('div.views-field-teaser>div>div>span>span>span', this).text()
                     || $('div.views-field-teaser>div>div>span>span', this).text()
                     || stringOnSpan;
                 //tao model
@@ -232,7 +276,7 @@ function parserHtmlThongBao(url, role, callbackall) {
                         tieuDe: entities.decode(title).toLowerCase().trim(),// title
                         link: (config.UetHostName + link_temp).trim().toLowerCase(),// link thong bao
                         noiDung: entities.decode(container).toLowerCase().trim(),//content
-                        idLoaiThongBao: role//loaiThongBao ("tatca")
+                        idLoaiThongBao: 0 ,//mac dinh loai thong bao tat ca, 0
                     });
                 }
             });
@@ -302,9 +346,7 @@ function detailRequest(url, callback) {
                 xmlMode: true
             });
             var stringDate = $('.node .submitted').text().trim();
-            // console.log(stringDate);
             var date = chuanHoaDate(stringDate);
-            console.log(date);
             callback(null, date)
         }
     ], function (err, result) {
@@ -390,7 +432,7 @@ var getMainHTML = function (body, callback) {
 }
 //tao request trong async
 function makeRequest(url, callback) {
-    console.log(url)
+    // console.log(url)
     request({
         uri: url,
         method: "GET",
