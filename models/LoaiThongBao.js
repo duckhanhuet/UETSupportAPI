@@ -10,7 +10,10 @@ var LoaiThongBaoSchema= mongoose.Schema({
         type: String,
         //enum: ['DiemThi','LichThi','LichHoc','DangKiTinChi','TatCa','ThongBaoKhac'],
         default: 'TatCa'
-    }
+    },
+    keyword:[{
+        type:String,
+    }]
 });
 
 module.exports = mongoose.model('LoaiThongBao', LoaiThongBaoSchema);

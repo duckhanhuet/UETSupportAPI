@@ -8,6 +8,8 @@ var Entities = require('html-entities').AllHtmlEntities;
 entities = new Entities();
 var async = require('async');
 
+var File=require('../../models/File')
+
 var ThongBaoController = require('../../controllers/ThongBaoController')
 var FileController=require('../../controllers/FileController');
 var LoaiThongBao = require('../../models/LoaiThongBao');
@@ -110,16 +112,20 @@ function InsertDatabase(result) {
     for (let i = 0; i < result.length; i++) {
         var prototype = function (data, callback) {
             //luu tru vao csdl
-            ThongBaoController.create(data[i], function (err, list) {
+            ThongBaoController.create(data[i], function (err, result) {
                 if (err) {
-                    console.log("data exist")
+                    console.log("notif exist")
+
                 }
                 else {
+                    console.log("import notif success")
+                    // luu file cua thong bao
+                    FileController.create(result.idFile,function (err) {
+                    })
                     /**
                      * thuc hien viec gui thong bao den dien thoai tai day
                      * thong la moi va da dc import  vao csdl
                      * */
-                    console.log("import success")
                 }
                 callback(null,data);
             })
@@ -330,17 +336,15 @@ function detailRequest(url, callback) {
             $('.rtejustify a').each(function (i, elem) {
                 name=entities.decode($(this).text()).toLowerCase().trim();
                 link=$(this).attr('href');
-                attachment.push({tenFile:name,link:link});
+                attachment.push(new File({tenFile:name,link:link}));
             })
 
             $('#attachments a').each(function (i, elem) {
                 name=entities.decode($(this).text()).toLowerCase().trim();
                 link=$(this).attr('href');
-                attachment.push({tenFile:name,link:link});
+                attachment.push(new File({tenFile:name,link:link}));
             });
-            FileController.create(attachment,function (err,result) {
-                callback(null,{date:date,content:content,attachment:result} );
-            })
+            callback(null,{date:date,content:content,attachment:attachment} );
         }
     ], function (err, result) {
         if (err) {
