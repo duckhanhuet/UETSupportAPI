@@ -26,7 +26,7 @@ var ThongBaoSchema = mongoose.Schema({
         //ref: toan khoa, lop chinh, lop mon hoc , sinh vien.
     },
     idFile:[{
-        type: String,
+        type: Schema.Types.ObjectId,
         ref : 'File'
     }],
     idLoaiThongBao:{

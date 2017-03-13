@@ -6,6 +6,8 @@ var term53 =require('../analyzeTExSystem/uet.vnu.edu.vn/thongBaoTerm53');
 try {
     var job = new CronJob('00 30 * * * *', function() {
 
+
+
         }, function () {
             /* This function is executed when the job stops */
 

@@ -7,12 +7,15 @@ var config = require('../../Config/Config')
 var Entities = require('html-entities').AllHtmlEntities;
 entities = new Entities();
 var async = require('async');
+
 var ThongBaoController = require('../../controllers/ThongBaoController')
+var FileController=require('../../controllers/FileController');
 var LoaiThongBao = require('../../models/LoaiThongBao');
 /**
  * parse trang chu để lấy dự liệu
  */
 const PageFirst="http://uet.vnu.edu.vn/coltech/taxonomy/term/53?page=0";
+const LinkPrint="http://uet.vnu.edu.vn/coltech/print/";
 var IndexLast = 0;// bien toan cuc
 // page cuoi cung cua trang == lastIndicator
 //===========================
@@ -45,17 +48,17 @@ module.exports ={
              * http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
              */
             function (arrURL,arrLoaiThongBao, callback) {
+                // lay tat ca cac tieu de va link thong bao. set idloaithongbao
                 getAllUrlThongBao(arrURL,arrLoaiThongBao, callback)
             },
             function (arrThongBao, callback) {
+                // kiem tra trung lap
                 var arr = deleteDuplicate(arrThongBao)
                 callback(null, arr)
             },
-            // function (arrThongBao, callback) {
-            //     findInDatabaseAndDelete(arrThongBao,callback);
-            // },
             function (arrThongBao, callback) {
-                getPostAllForEachThongBao(arrThongBao, callback)
+                // lay time and content thong bao
+                getDateContentThongBao(arrThongBao, callback)
             }
         ], function (err, result) {
             ThongBaoController.create(result, function (err, list) {
@@ -63,7 +66,9 @@ module.exports ={
                     console.log(err)
                     return;
                 }
-                else console.log("import success")
+                else {
+                    console.log("import success")
+                }
             })
         })
     },
@@ -87,22 +92,46 @@ module.exports ={
                 var arr = deleteDuplicate(arrThongBao)
                 callback(null, arr)
             },
-            // function (arrThongBao, callback) {
-            //     findInDatabaseAndDelete(arrThongBao,callback);
-            // },
             function (arrThongBao, callback) {
-                getPostAllForEachThongBao(arrThongBao, callback)
+                getDateContentThongBao(arrThongBao, callback)
             }
         ], function (err, result) {
-            ThongBaoController.create(result, function (err, list) {
-                if (err) {
-                    console.log(err)
-                    return;
-                }
-                else console.log("import success")
-            })
+            InsertDatabase(result);
         })
     }
+}
+
+function InsertDatabase(result) {
+    var stack = []
+    stack.push(function (callback) {
+        callback(null, result)
+    })
+    //make stack request to server
+    for (let i = 0; i < result.length; i++) {
+        var prototype = function (data, callback) {
+            //luu tru vao csdl
+            ThongBaoController.create(data[i], function (err, list) {
+                if (err) {
+                    console.log("data exist")
+                }
+                else {
+                    /**
+                     * thuc hien viec gui thong bao den dien thoai tai day
+                     * thong la moi va da dc import  vao csdl
+                     * */
+                    console.log("import success")
+                }
+                callback(null,data);
+            })
+        }
+        stack.push(prototype)
+    }
+    async.waterfall(stack, function (err, result) {
+        if (err) {
+            console.log(err);
+        }
+        console.log("import done!");
+    })
 }
 /**
  * get All page by URL
@@ -192,12 +221,9 @@ function getAllUrlThongBao(list,arrLoaiThongBao, callbackAll) {
     })
 }
 /**
- * vì trong trang mail ko có thời gian post các bài viết nên
- * phair vào từng trang để lấy nên mất khá nhiều thì giờ
- * @param datas : mảng các tin tức
- * @param callback
+ * lay noi dung va thoi gian cua thong bao theo tuan tu tung thong bao
  */
-function getPostAllForEachThongBao(result, callback) {
+function  getDateContentThongBao(result, callback) {
     var stack = []
     stack.push(function (callback) {
         callback(null, result)
@@ -206,8 +232,10 @@ function getPostAllForEachThongBao(result, callback) {
     for (let i = 0; i < result.length; i++) {
         var prototype = function (data, callback) {
             //gui request len server
-            detailRequest(data[i].link, function (err, date) {
-                data[i].time = date;// postAt
+            detailRequest(data[i].link, function (err, dateAndContent) {
+                data[i].time = dateAndContent.date;
+                data[i].noiDung = entities.decode(dateAndContent.content).toLowerCase().trim();
+                data[i].idFile =dateAndContent.attachment;
                 callback(null, data)
             })
         }
@@ -243,39 +271,14 @@ function parserHtmlThongBao(url,arrLoaiThongBao, callbackall) {
 
                 // lay link lien ket
                 var link_temp = $('.field-content > a', this).attr('href');
-                //====================================
-                // console.log($('div.views-field-teaser',this).text());
 
-                var stringOnSpan = "";
-                // lay noi dung thong bao
-                $('div.views-field-teaser>div>div>span', this).each(function (sec, e) {
-                    stringOnSpan += $('span').text();
-                })
-                stringOnSpan +=$('div.views-field-teaser>div>div>a>span>span', this).text();
-                //====================================
-                //====================================
-                if (stringOnSpan == "") {
-                    stringOnSpan = $('div.views-field-teaser>div>div>div>span', this).text();
-                }
-                if (stringOnSpan == "") {
-                    stringOnSpan = $('div.views-field-teaser>div>p', this).text();
-                }
-                if (stringOnSpan == "") {
-                    stringOnSpan = $('div.views-field-teaser span', this).text();
-                }
-                //====================================
-                var container =$('div.views-field-teaser',this).text()
-                    ||$('div.views-field-teaser>div>div>span>span>span', this).text()
-                    || $('div.views-field-teaser>div>div>span>span', this).text()
-                    || stringOnSpan;
                 //tao model
                 //link lấy về đoi khi cps kí tự dặc biệt
                 //phai decode sang string
-                if (title && link_temp && container) {
+                if (title && link_temp) {
                     list.push({
                         tieuDe: entities.decode(title).toLowerCase().trim(),// title
                         link: (config.UetHostName + link_temp).trim().toLowerCase(),// link thong bao
-                        noiDung: entities.decode(container).toLowerCase().trim(),//content
                         idLoaiThongBao: 0 ,//mac dinh loai thong bao tat ca, 0
                     });
                 }
@@ -304,41 +307,12 @@ function deleteDuplicate(a) {
     return list;
 }
 
-function findInDatabaseAndDelete(arrThongBao, callback) {
-    console.log(arrThongBao.length)
-    ThongBaoController.find({}, function (err, result) {
-        var arrResult = [];
-        // for (let pos = 0; pos < arrTinTuc.length; pos++) {
-        //     var newTinTuc = arrTinTuc[pos];
-        //     let count = 0;
-        //     for (let sec = 0; sec < result.length; sec++) {
-        //         var old = result[sec];
-        //         if (newTinTuc.link != old.link) {
-        //             count++;
-        //         }
-        //     }
-        //     if (count != result.length - 1) {
-        //         arrResult.push(newTinTuc)
-        //     }
-        // }
-        arrResult=arrThongBao.filter(function (el) {
-            var result=result.indexOf(el);
-            return result<0;
-        })
-
-
-        if (err) {
-            callback(err, null)
-            return;
-        }
-        callback(null, arrResult)
-    })
-}
 
 function detailRequest(url, callback) {
+    var urlPrint=getLinkPrint(url);
     async.waterfall([
         function (callback) {
-            makeRequest(url, callback)
+            makeRequest(urlPrint, callback)
         },
         function (body, callback) {
             var $ = cheerio.load(body, {
@@ -347,7 +321,26 @@ function detailRequest(url, callback) {
             });
             var stringDate = $('.node .submitted').text().trim();
             var date = chuanHoaDate(stringDate);
-            callback(null, date)
+            var content="";
+            $('div.content .rtejustify').each(function (i, elem) {
+                content+="\n";
+                content+=$(this).text().trim();
+            });
+            var attachment=[], name,link;
+            $('.rtejustify a').each(function (i, elem) {
+                name=entities.decode($(this).text()).toLowerCase().trim();
+                link=$(this).attr('href');
+                attachment.push({tenFile:name,link:link});
+            })
+
+            $('#attachments a').each(function (i, elem) {
+                name=entities.decode($(this).text()).toLowerCase().trim();
+                link=$(this).attr('href');
+                attachment.push({tenFile:name,link:link});
+            });
+            FileController.create(attachment,function (err,result) {
+                callback(null,{date:date,content:content,attachment:result} );
+            })
         }
     ], function (err, result) {
         if (err) {
@@ -356,6 +349,12 @@ function detailRequest(url, callback) {
         }
         callback(null, result)
     })
+}
+function getLinkPrint(url) {
+    var split=url.toString().split("/");
+    var item=split[split.length-1];
+    var link=LinkPrint+item;
+    return link;
 }
 function chuanHoaDate(string) {
     //string dang MM,DD,YYYY
