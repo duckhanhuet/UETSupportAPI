@@ -1,5 +1,5 @@
 /**
- * Created by SmallMouse on 12/2/2017.
+ * Created by sm on 12/2/2017.
  */
 var cheerio = require('cheerio')
 var request = require('request');
@@ -16,8 +16,8 @@ var LoaiThongBao = require('../../models/LoaiThongBao');
 /**
  * parse trang chu để lấy dự liệu
  */
-const PageFirst="http://uet.vnu.edu.vn/coltech/taxonomy/term/53?page=0";
-const LinkPrint="http://uet.vnu.edu.vn/coltech/print/";
+const PageFirst=config.UetHostName + "/coltech/taxonomy/term/53";
+const LinkPrint=config.UetHostName+"/coltech/print/";
 var IndexLast = 0;// bien toan cuc
 // page cuoi cung cua trang == lastIndicator
 //===========================
@@ -98,6 +98,7 @@ module.exports ={
                 getDateContentThongBao(arrThongBao, callback)
             }
         ], function (err, result) {
+            if(!err)
             InsertDatabase(result);
         })
     }
@@ -121,6 +122,7 @@ function InsertDatabase(result) {
                     console.log("import notif success")
                     // luu file cua thong bao
                     FileController.create(result.idFile,function (err) {
+
                     })
                     /**
                      * thuc hien viec gui thong bao den dien thoai tai day
@@ -157,7 +159,7 @@ function parseUrlLastIndicator(arrLoaiThongBao, callback) {
 function getObjIndicator(arrLoaiThongBao, callback) {
     async.waterfall([
         function (callback) {
-            var linkthongbao = config.UetHostName + "/coltech/taxonomy/term/53";// fix cung trang
+            var linkthongbao = PageFirst;// fix cung trang
             makeRequest(linkthongbao, callback)
         },
         function (body, callback) {
@@ -187,7 +189,7 @@ function getObjIndicator(arrLoaiThongBao, callback) {
 function getAllUrlPageThongBao(arrLoaiThongBao, callback) {
     var arrUrl = []
     for (let indicator = 0; indicator <= IndexLast; indicator++) {
-        var url = config.UetHostName + "/coltech/taxonomy/term/53" + "?page=" + indicator; //http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=0
+        var url = PageFirst+ "?page=" + indicator; //http://uet.vnu.edu.vn/coltech/taxonomy/term/93?page=?
         // console.log(url);
         var obj = {
             link: url,

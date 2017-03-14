@@ -4,6 +4,7 @@
 var CronJob = require('cron').CronJob;
 var term53 = require('../analyzeTExSystem/uet.vnu.edu.vn/thongBaoTerm53');
 var config = require('../Config/Config');
+var parseRSS= require('./parseRSS/parseRSS');
 module.exports=function () {
     try {
 
