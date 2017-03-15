@@ -44,7 +44,7 @@ module.exports={
                     }
                 })
                 InsertDatabase(arrNews);
-            }
+            } else console.log("parse rss false")
         });
     }
 }

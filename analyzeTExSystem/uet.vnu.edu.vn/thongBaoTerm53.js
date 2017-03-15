@@ -100,6 +100,7 @@ module.exports ={
         ], function (err, result) {
             if(!err)
             InsertDatabase(result);
+            else console.log('import Wrong')
         })
     }
 }
@@ -173,8 +174,11 @@ function getObjIndicator(arrLoaiThongBao, callback) {
             callback(null, arrLoaiThongBao)
         }
     ], function (err, result) {
-        if (err) console.log(err);
-        callback(null, result)
+        if (err){
+            console.log(err);
+            callback(err,null)
+        }
+        else callback(null, result)
     })
 }
 /**
@@ -217,15 +221,15 @@ function getAllUrlThongBao(list,arrLoaiThongBao, callbackAll) {
     for (let i = 0; i < list.length; i++) {
         var fun = function (arr, callback) {
             parserHtmlThongBao(list[i].link,arrLoaiThongBao, function (err, result) {
-                if (err) callback(err, null);
-                callback(null, arr.concat(result))// mang arr noi tat ca cac result tra ve
+                if (err) callback(err, null)
+                else callback(null, arr.concat(result))// mang arr noi tat ca cac result tra ve
             })
         };
         arrFun.push(fun)
     }
     async.waterfall(arrFun, function (err, result) {// thuc hien tuan tu phan tich cac page
         if (err) callbackAll(err, null);
-        callbackAll(null, result)
+        else callbackAll(null, result)
     })
 }
 /**
@@ -287,7 +291,7 @@ function parserHtmlThongBao(url,arrLoaiThongBao, callbackall) {
                     list.push({
                         tieuDe: entities.decode(title).toLowerCase().trim(),// title
                         link: (config.UetHostName + link_temp).trim().toLowerCase(),// link thong bao
-                        idLoaiThongBao: 0 ,//mac dinh loai thong bao tat ca, 0
+                        idLoaiThongBao: arrLoaiThongBao[0]._id ,//mac dinh loai thong bao tat ca, 0
                     });
                 }
             });
@@ -351,9 +355,10 @@ function detailRequest(url, callback) {
     ], function (err, result) {
         if (err) {
             console.log(err)
+            callback(err,null);
             return;
         }
-        callback(null, result)
+        else callback(null, result)
     })
 }
 function getLinkPrint(url) {
@@ -373,7 +378,6 @@ function chuanHoaDate(string) {
 }
 //===================================================
 //tra lại body html
-// doan nay khong hieu lam ?? check lai
 
 module.exports.adapter = function (url, finish) {
     async.waterfall([
@@ -449,7 +453,6 @@ function makeRequest(url, callback) {
             callback(err, null)
             return;
         }
-        callback(null, body)
-        return;
+        else callback(null, body)
     })
 }
