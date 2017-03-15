@@ -6,6 +6,10 @@ var ThongBaoSchema = mongoose.Schema({
         type: String,
         enum: ['PhongBan','Khoa','GiangVien']
     },
+    kindIdReceiver:{
+        type: String,
+        enum:['SinhVien','Khoa','LopMonHoc','LopChinh']
+    },
     tieuDe:{
         type: String
     },
@@ -23,6 +27,7 @@ var ThongBaoSchema = mongoose.Schema({
     },
     idReceiver:{
         type: String,
+        refPath: 'kindIdReceiver'
         //ref: toan khoa, lop chinh, lop mon hoc , sinh vien.
     },
     idFile:[{

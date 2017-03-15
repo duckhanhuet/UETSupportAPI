@@ -28,6 +28,8 @@ var config = require('../Config/Config');
 var async = require('async');
 var dataNoti= require('../Utils/dataNoti');
 //========================================================
+var getListSv = require('../Utils/list_sv_guithongbao');
+//================================================
 var bodyParser= require('body-parser');
 router.use(bodyParser.urlencoded({ extended: false }))
 
@@ -103,24 +105,17 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     var idLoaiThongBao = req.body.idLoaiThongBao;
     //nguoi gui thong bao
     var idSender=req.user._id;
-
     //kiem tra gui thong bao
     var idReceiver='';
-
-    var kindSender='PhongBan'
-
-    var files=[];
+    var kindSender='PhongBan';
+    var files=[];//file post from web app
     var hasfile; // hasfile=0 : khong co file //hasfile=1 : co file
-    if(req.body.categoryReceiver=='khoa')
-        idReceiver='toanKhoa'
-    if(req.body.categoryReceiver=='lop')
-        idReceiver=req.body.receiverLopchinh;
-    else if(req.body.categoryReceiver=='lopmonhoc');
-    idReceiver=req.body.receiverLopmonhoc;
+
+    var category = req.body.categoryReceiver;
+    var idReceiver = req.body.idReceiver;
     // kind=1 tuc la loai thong bao (kind=2 la loai diem,..)
     var kind =1;
     var hasfile;
-
     //kiem tra xem co file dinh kem hay khong
     if(req.body.file_length!=0)
     {
@@ -164,7 +159,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                     var infoThongBao={
                         tieuDe: tieuDe, noiDung: noiDung, idFile: idFiles,
                         idLoaiThongBao: idLoaiThongBao, idMucDoThongBao: idMucDoThongBao,
-                        idSender:idSender, idReceiver:idReceiver,kindIdSender:kindSender
+                        idSender:idSender, idReceiver:idReceiver,kindIdSender:kindSender,kindIdReceiver:category
                     }
                     //luu thong bao vua gui
                     ThongBaoController.create(infoThongBao,function (err, tb) {
@@ -197,16 +192,55 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         },
         function find(result,callback) {
             //tim tat ca cac sinh vien muon nhan loai thong bao
+            var listSubs =[];
             SubscribeController.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}},function (err,subscribes) {
                 if (err){
-                    callback(err,null)
-                }else {
-                    //tra ve object gom thong bao dang va list cac subcribes
-                    var object ={
-                        thongbao: result,
-                        subscribes: subscribes
+                    callback(err,null);
+                }else{
+                    if (category=='SinhVien'){
+                        var object ={
+                            thongbao: result,
+                            subscribes: subscribes
+                        }
+                        callback(null,object);
                     }
-                    callback(null,object);
+                    else if (category=='Khoa'){
+                        //console.log('la khoa')
+                        subscribes.forEach(function (subscribe) {
+                            if (subscribe._id.idLopChinh.idKhoa._id==idReceiver){
+                                listSubs.push(subscribe);
+                            }
+                        })
+                        var object ={
+                            thongbao: result,
+                            subscribes: listSubs
+                        }
+                        callback(null,object)
+                    }
+                    else if (category=='LopChinh'){
+                        subscribes.forEach(function (subscribe) {
+                            if (subscribe._id.idLopChinh._id== idReceiver){
+                                listSubs.push(subscribe)
+                            }
+                        })
+                        var object ={
+                            thongbao: result,
+                            subscribes: listSubs
+                        }
+                        callback(null,object)
+                    }
+                    else if (category=='LopMonHoc'){
+                        subscribes.forEach(function (subscribe) {
+                            if (subscribe._id.idLopMonHoc._id.indexOf(idReceiver)>-1){
+                                listSubs.push(subscribe)
+                            }
+                        })
+                        var object ={
+                            thongbao: result,
+                            subscribes: listSubs
+                        }
+                        callback(null,object)
+                    }
                 }
             })
         },

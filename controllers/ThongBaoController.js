@@ -44,6 +44,9 @@ module.exports =  {
             },
             {
                 path:'idSender'
+            },
+            {
+                path:'idReceiver'
             }
         ]).exec(function (err, thongbao) {
 
