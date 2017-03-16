@@ -44,7 +44,8 @@ var ThongBaoSchema = mongoose.Schema({
     },
     link:{
         type: String,
-        unique: true
+        unique: true,
+        sparse: true
     },
     feedback:[
         {
