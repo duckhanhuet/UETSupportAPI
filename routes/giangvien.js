@@ -308,11 +308,10 @@ router.post('/guithongbao/diem',auth.reqIsAuthenticate,auth.reqIsGiangVien,funct
 
 
 //====================================================
-//Giang vien gui thong bao ts lop mon hoc
+//Giang vien gui thong bao ts lop mon hoc hoac sinh vien
 
-router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,function (req, res) {
+router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsGiangVien,multipartMiddleware,function (req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
-    //console.log('req',req.body)
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
     //noi dung cua thong bao
@@ -323,50 +322,37 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
     var idLoaiThongBao = req.body.idLoaiThongBao;
     //nguoi gui thong bao
     var idSender=req.user._id;
-
     //kiem tra gui thong bao
-    var idReceiver='';
-
-    var files;
+    var kindSender='GiangVien';
+    var files=[];//file post from web app
     var hasfile; // hasfile=0 : khong co file //hasfile=1 : co file
-    if(req.body.categoryReceiver=='khoa')
-        idReceiver='toanKhoa'
-    if(req.body.categoryReceiver=='lop')
-        idReceiver=req.body.receiverLopchinh;
-    else if(req.body.categoryReceiver=='lopmonhoc');
-    idReceiver=req.body.receiverLopmonhoc;
+
+    var category = req.body.categoryReceiver;
+    var idReceiver = req.body.idReceiver;
     // kind=1 tuc la loai thong bao (kind=2 la loai diem,..)
     var kind =1;
     var hasfile;
-
     //kiem tra xem co file dinh kem hay khong
     if(req.body.file_length!=0)
     {
-        console.log('co file');
+        //check files la array or object
         if (req.files.files instanceof Array){
-            //console.log('la array')
             files= req.files.files;
         }else {
-            //console.log('la object')
             files.push(req.files.files)
-            //console.log(files)
-
+            // console.log('thogn tin files')
+            // console.log(files)
         }
         hasfile=1;
     }else {
-        console.log('khong co file');
         hasfile=0;
     }
-    //var file = req.files.file;
-    //===============================================
-    //===============================================
+    //==============================================
     var message;
     //==============================================
     var sender = new gcm.Sender(config.serverKey);
     var registerToken = [];
-
-    //===============================================
-
+    //==============================================
     async.waterfall([
         function checkValidate(callback) {
             if(!tieuDe||!noiDung||!idLoaiThongBao){
@@ -380,43 +366,37 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
             }
         },
         function checkFile(ketqua,callback) {
-            //neu co file dinh kem
             if (files){
                 var idFiles=[];
-                //function luu file vao database va callback lai idFiles
+                //save file
                 storage_file.saveFile(files,idFiles);
-
                 //function luu thong bao voi idFile la mang idFiles tim duoc o tren
                 var functionTwo = function () {
                     //console.log(idFiles);
                     //create thong bao
                     var infoThongBao={
-                        tieuDe: tieuDe,
-                        noiDung: noiDung,
-                        idFile: idFiles,
-                        idLoaiThongBao: idLoaiThongBao,
-                        idMucDoThongBao: idMucDoThongBao,
-                        idSender:idSender,
-                        idReceiver:idReceiver,
+                        tieuDe: tieuDe, noiDung: noiDung, idFile: idFiles,
+                        idLoaiThongBao: idLoaiThongBao, idMucDoThongBao: idMucDoThongBao,
+                        idSender:idSender, idReceiver:idReceiver,kindIdSender:kindSender,kindIdReceiver:category
                     }
                     //luu thong bao vua gui
                     ThongBaoController.create(infoThongBao,function (err, tb) {
                         if (err){
+                            console.log('err:'+err)
                             callback(err,null);
                         }
                         console.log("tb",tb);
                         callback(null,tb);
                     })
                 }
-                //setTime cho functionTwo thuc hien sau 1s (settimeout de doi push idFile xong)
+                //setTime for functionTwo proccess after 1s (wait push idFile done)
                 setTimeout(functionTwo,1000);
                 //============================
             }
             else{
                 //neu khong co file dinh kem
                 var infoThongBao={
-                    tieuDe: tieuDe,
-                    noiDung: noiDung,
+                    tieuDe: tieuDe, noiDung: noiDung,
                     idLoaiThongBao: idLoaiThongBao,
                     idMucDoThongBao: idMucDoThongBao
                 }
@@ -431,53 +411,77 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
         },
         function find(result,callback) {
             //tim tat ca cac sinh vien muon nhan loai thong bao
-            SubscribeController.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}},function (err,subscribes) {
-                if (err){
-                    callback(err,null)
-                }else {
-                    var listSubs=[]; // list gom tat ca cac sinh vien co idLoaiThongBao va cac sinh vien thuoc khoa post
-                    //push all sinh vien co idKhoa= req.user._id
-                    subscribes.forEach(function (subscribe) {
-                        if (subscribe._id.idLopMonHoc._id.indexOf(req.params.idlopmonhoc)>-1){
-                            listSubs.push(subscribe)
-                        }
-                    })
-                    //in ra tat ca cac sinh vien thoa man
-                    //console.log('listsub:'+listSubs)
+            var listSubs =[];
 
-                    //tra ve object gom thong bao dang va list cac subcribes
-                    var object ={
-                        thongbao: result,
-                        subscribes: listSubs
+            //==========================================================================
+            //khi nha truong gui thong bao cho tung sinh vien thi thong bao se mang tinh bat buoc
+            if (category=='SinhVien'){
+                idReceiver = req.body.idReceiver.split(',');
+                SubscribeController.find({_id: {$in: idReceiver}},function (err, subscribes) {
+                    if (err){
+                        callback(err,null)
+                    }else {
+                        var object ={
+                            thongbao: result,
+                            subscribes: subscribes
+                        }
+                        callback(null,object);
                     }
-                    callback(null,object);
-                }
-            })
+                })
+            }else {
+                SubscribeController.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}},function (err,subscribes) {
+                    if (err){
+                        callback(err,null);
+                    }else{
+                        if (category=='LopChinh'){
+                            subscribes.forEach(function (subscribe) {
+                                if (subscribe._id.idLopChinh._id== idReceiver){
+                                    listSubs.push(subscribe)
+                                }
+                            })
+                            var object ={
+                                thongbao: result,
+                                subscribes: listSubs
+                            }
+                            callback(null,object)
+                        }
+                        else if (category=='LopMonHoc'){
+                            subscribes.forEach(function (subscribe) {
+                                var ls=[];
+                                console.log('lop mon hoc')
+                                console.log(subscribe._id.idLopMonHoc);
+                                if (subscribe._id.idLopMonHoc.indexOf(idReceiver)>-1){
+                                    listSubs.push(subscribe)
+                                }
+                            })
+                            var object ={
+                                thongbao: result,
+                                subscribes: listSubs
+                            }
+                            callback(null,object)
+                        }
+                    }
+                })
+            }
+            //===================================================================
         },
         function (result, callback) {
-            //========================================
-            //luu idThongBao vao phongban
-            // GiangVien.findByIdAndUpdate(
-            //     req.user._id,
-            //     {$push: {"idThongBao": result.thongbao._id}},
-            //     {safe: true, upsert: true},
-            //     function(err, model) {
-            //         console.log(err);
-            //     }
-            // );
-            //==========================================
             //url de lay thong bao ve
             var url = '/thongbao/' + result.thongbao._id;
             //gui tin nhan ts app
             message = new gcm.Message({
-                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile)
+                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile,idSender)
             });
-            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile));
+            console.log('Thong tin gui di bao gom:');
+            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile,idSender));
             var subscribes= result.subscribes;
+
+            // pust list tokenFirebase vao mang registerToken
             subscribes.forEach(function (subscribe) {
                 registerToken.push(subscribe._id.tokenFirebase);
             })
-            //console.log(registerToken);
+            //list cac token ma server gui toi
+            console.log('list tokenFirebase la:'+ registerToken);
             //gui thong bao cho tung sinh vien
             sender.send(message, registerToken, function (err, response) {
                 console.log(response)
@@ -496,7 +500,8 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
                 success:false,
                 err:err.message
             })
-        }else {
+        }
+        else {
             res.json({
                 success: true,
                 message: result
@@ -504,8 +509,8 @@ router.post('/guithongbao/:idlopmonhoc',auth.reqIsAuthenticate,auth.reqIsGiangVi
         }
 
     })
-
 })
+//=====================================================
 //====================================================
 router.get('/list/thongbaodagui',auth.reqIsAuthenticate,function (req, res, next) {
     // GiangVienController.findById(req.user._id,function (err, giangvien) {
