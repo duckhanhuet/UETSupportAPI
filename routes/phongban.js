@@ -94,6 +94,7 @@ router.get('/profile', auth.reqIsAuthenticate, auth.reqIsPhongBan, function (req
 
 
 router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMiddleware,function (req, res) {
+    console.log(req.body)
     res.setHeader('Access-Control-Allow-Origin', '*');
     //tieu de cua thong bao
     var tieuDe = req.body.tieuDe;
@@ -123,6 +124,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         if (req.files.files instanceof Array){
             files= req.files.files;
         }else {
+            console.log(req.files.files);
             files.push(req.files.files)
         }
         hasfile=1;
@@ -164,9 +166,10 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                     //luu thong bao vua gui
                     ThongBaoController.create(infoThongBao,function (err, tb) {
                         if (err){
+                            console.log(err);
                             callback(err,null);
                         }
-                        console.log("tb",tb);
+                        // console.log("tb",tb);
                         callback(null,tb);
                     })
                 }
