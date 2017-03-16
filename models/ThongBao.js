@@ -9,6 +9,7 @@ var ThongBaoSchema = mongoose.Schema({
     kindIdReceiver:{
         type: String,
         enum:['SinhVien','Khoa','LopMonHoc','LopChinh']
+
     },
     tieuDe:{
         type: String
