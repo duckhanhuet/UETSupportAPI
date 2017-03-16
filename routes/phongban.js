@@ -123,8 +123,8 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
             files= req.files.files;
         }else {
             files.push(req.files.files)
-            console.log('thogn tin files')
-            console.log(files)
+            // console.log('thogn tin files')
+            // console.log(files)
         }
         hasfile=1;
     }else {
@@ -199,6 +199,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
             //==========================================================================
             //khi nha truong gui thong bao cho tung sinh vien thi thong bao se mang tinh bat buoc
             if (category=='SinhVien'){
+                idReceiver = req.body.idReceiver.split(',');
                 SubscribeController.find({_id: {$in: idReceiver}},function (err, subscribes) {
                     if (err){
                         callback(err,null)
@@ -215,7 +216,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                     if (err){
                         callback(err,null);
                     }else{
-                        if (category=='ToanTruong'){
+                        if (category=='ALL'){
                             var object ={
                                 thongbao: result,
                                 subscribes: subscribes
