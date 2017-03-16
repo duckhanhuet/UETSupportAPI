@@ -106,7 +106,6 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
     //nguoi gui thong bao
     var idSender=req.user._id;
     //kiem tra gui thong bao
-    var idReceiver='';
     var kindSender='PhongBan';
     var files=[];//file post from web app
     var hasfile; // hasfile=0 : khong co file //hasfile=1 : co file
@@ -122,8 +121,11 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         //check files la array or object
         if (req.files.files instanceof Array){
             files= req.files.files;
+
         }else {
             files.push(req.files.files)
+            console.log('thogn tin files')
+            console.log(files)
         }
         hasfile=1;
     }else {
@@ -164,6 +166,7 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
                     //luu thong bao vua gui
                     ThongBaoController.create(infoThongBao,function (err, tb) {
                         if (err){
+                            console.log('err:'+err)
                             callback(err,null);
                         }
                         console.log("tb",tb);
@@ -193,66 +196,87 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         function find(result,callback) {
             //tim tat ca cac sinh vien muon nhan loai thong bao
             var listSubs =[];
-            SubscribeController.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}},function (err,subscribes) {
-                if (err){
-                    callback(err,null);
-                }else{
-                    if (category=='SinhVien'){
+
+            //==========================================================================
+            //khi nha truong gui thong bao cho tung sinh vien thi thong bao se mang tinh bat buoc
+            if (category=='SinhVien'){
+                SubscribeController.find({_id: {$in: idReceiver}},function (err, subscribes) {
+                    if (err){
+                        callback(err,null)
+                    }else {
                         var object ={
                             thongbao: result,
                             subscribes: subscribes
                         }
                         callback(null,object);
                     }
-                    else if (category=='Khoa'){
-                        //console.log('la khoa')
-                        subscribes.forEach(function (subscribe) {
-                            if (subscribe._id.idLopChinh.idKhoa._id==idReceiver){
-                                listSubs.push(subscribe);
+                })
+            }else {
+                SubscribeController.find({idLoaiThongBao:{$in:[Number(idLoaiThongBao)]}},function (err,subscribes) {
+                    if (err){
+                        callback(err,null);
+                    }else{
+                        if (category=='ToanTruong'){
+                            var object ={
+                                thongbao: result,
+                                subscribes: subscribes
                             }
-                        })
-                        var object ={
-                            thongbao: result,
-                            subscribes: listSubs
+                            callback(null,object);
                         }
-                        callback(null,object)
-                    }
-                    else if (category=='LopChinh'){
-                        subscribes.forEach(function (subscribe) {
-                            if (subscribe._id.idLopChinh._id== idReceiver){
-                                listSubs.push(subscribe)
+                        else if (category=='Khoa'){
+                            //console.log('la khoa')
+                            subscribes.forEach(function (subscribe) {
+                                if (subscribe._id.idLopChinh.idKhoa._id==idReceiver){
+                                    listSubs.push(subscribe);
+                                }
+                            })
+                            var object ={
+                                thongbao: result,
+                                subscribes: listSubs
                             }
-                        })
-                        var object ={
-                            thongbao: result,
-                            subscribes: listSubs
+                            callback(null,object)
                         }
-                        callback(null,object)
-                    }
-                    else if (category=='LopMonHoc'){
-                        subscribes.forEach(function (subscribe) {
-                            if (subscribe._id.idLopMonHoc._id.indexOf(idReceiver)>-1){
-                                listSubs.push(subscribe)
+                        else if (category=='LopChinh'){
+                            subscribes.forEach(function (subscribe) {
+                                if (subscribe._id.idLopChinh._id== idReceiver){
+                                    listSubs.push(subscribe)
+                                }
+                            })
+                            var object ={
+                                thongbao: result,
+                                subscribes: listSubs
                             }
-                        })
-                        var object ={
-                            thongbao: result,
-                            subscribes: listSubs
+                            callback(null,object)
                         }
-                        callback(null,object)
+                        else if (category=='LopMonHoc'){
+                            subscribes.forEach(function (subscribe) {
+                                var ls=[];
+                                console.log('lop mon hoc')
+                                console.log(subscribe._id.idLopMonHoc);
+                                if (subscribe._id.idLopMonHoc.indexOf(idReceiver)>-1){
+                                    listSubs.push(subscribe)
+                                }
+                            })
+                            var object ={
+                                thongbao: result,
+                                subscribes: listSubs
+                            }
+                            callback(null,object)
+                        }
                     }
-                }
-            })
+                })
+            }
+            //===================================================================
         },
         function (result, callback) {
             //url de lay thong bao ve
             var url = '/thongbao/' + result.thongbao._id;
             //gui tin nhan ts app
             message = new gcm.Message({
-                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile)
+                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile,idSender)
             });
             console.log('Thong tin gui di bao gom:');
-            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile));
+            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile,idSender));
             var subscribes= result.subscribes;
 
             // pust list tokenFirebase vao mang registerToken

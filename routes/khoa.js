@@ -166,16 +166,11 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
     //nguoi gui thong bao
     var idSender=req.user._id;
     //kiem tra gui thong bao
-    var idReceiver='';
-
     var files;
     var hasfile; // hasfile=0 : khong co file //hasfile=1 : co file
-    if(req.body.categoryReceiver=='khoa')
-        idReceiver='toanKhoa'
-    if(req.body.categoryReceiver=='lop')
-        idReceiver=req.body.receiverLopchinh;
-    else if(req.body.categoryReceiver=='lopmonhoc');
-    idReceiver=req.body.receiverLopmonhoc;
+    var kindIdSender= 'Khoa'
+    var category = req.body.categoryReceiver;
+    var idReceiver = req.body.idReceiver;
     // kind=1 tuc la loai thong bao (kind=2 la loai diem,..)
     var kind =1;
     var hasfile;
@@ -232,6 +227,8 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsKhoa,multipartMiddle
                         idMucDoThongBao: idMucDoThongBao,
                         idSender:idSender,
                         idReceiver:idReceiver,
+                        kindIdSender: kindIdSender,
+                        kindIdReceiver: category
                     }
                     //luu thong bao vua gui
                     ThongBaoController.create(infoThongBao,function (err, tb) {

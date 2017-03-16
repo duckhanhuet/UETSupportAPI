@@ -7,6 +7,8 @@ module.exports ={
     //function savefile and callback idFiles
     saveFile: function (files, idFiles) {
         files.forEach(function (file) {
+            //console.log('file la:');
+            //console.log(file)
             // Tên file
             var originalFilename = file.name;
             // File type
@@ -23,6 +25,7 @@ module.exports ={
                 tenFile: originalFilename,
                 link: pathUpload
             }
+
             // var filet= new File()
             // filet.img.data = fs.readFileSync(pathUpload)
             // filet.img.contentType = 'image/'+fileType;

@@ -116,6 +116,7 @@ async.series([
     },
     function createPhongBan(callback) {
         sheet_name_list_phong_ban.forEach(function (y) {
+
             var worksheet = workbookPhongBan.Sheets[y];
             var result = XLSX.utils.sheet_to_json(worksheet);
             //console.log(result);
@@ -287,7 +288,79 @@ async.series([
         callback(null, 'Create Lop Mon hoc thanh cong');
     },
 
-    // create sinh vien va Subscribe
+    function createLoaiThongBao(callback) {
+        sheet_name_list_loai_thong_bao.forEach(function (y) {
+            var worksheet = workbookLoaiThongBao.Sheets[y];
+            var result = XLSX.utils.sheet_to_json(worksheet);
+            console.log(result);
+            for (var i=0;i<result.length;i++){
+                var loaithongbao= result[i];
+                var info={
+                    _id: Number(loaithongbao._id),
+                    tenLoaiThongBao: loaithongbao.tenLoaiThongBao
+                }
+                LoaiThongBaoController.create(info,function (err, info) {
+                    if (err){
+                    }
+                })
+            }
+        })
+        callback(null,'Create Loai Thong Bao Thanh Cong');
+    }
+    ,function createMucDoThongBao(callback) {
+        sheet_name_list_muc_do_thong_bao.forEach(function (y) {
+            var worksheet = workbookMucDoThongBao.Sheets[y];
+            var result = XLSX.utils.sheet_to_json(worksheet);
+            console.log(result);
+            for (var i=0;i<result.length;i++){
+                var mucdothongbao= result[i];
+                var info={
+                    _id: Number(mucdothongbao._id),
+                    tenMucDoThongBao: mucdothongbao.tenMucDoThongBao
+                }
+                MucDoThongBaoController.create(info,function (err, info) {
+                    if (err){
+                    }
+                })
+            }
+        })
+        callback(null,'Create mucdothongbao thanh cong')
+    },
+    function createThongBao(callback) {
+        sheet_name_list_thong_bao.forEach(function (y) {
+            var worksheet = workbookThongBao.Sheets[y];
+            var result = XLSX.utils.sheet_to_json(worksheet);
+            console.log(result);
+            for (var i=0;i<result.length;i++){
+                var thongbao= result[i];
+                var infoFile ={
+                    tenFile: thongbao.tenFile,
+                    link: thongbao.linkFile
+                }
+                var infoThongBao={
+                    tieuDe: thongbao.tieuDe,
+                    idLoaiThongBao: thongbao.idLoaiThongBao,
+                    idMucDoThongBao:thongbao.idMucDoThongBao,
+                    noiDung: thongbao.noiDung,
+                    idUser:thongbao.idUser,
+                }
+                FileController.create(infoFile,function (err, file) {
+                    if(err){
+                        console.log(err);
+                    }
+                    infoThongBao.idFile= file._id;
+                    ThongBaoController.create(infoThongBao,function (err, thongbao) {
+                        if (err){
+                            console.log('create thongbao fail');
+                        }
+                    })
+                })
+            }
+        })
+        callback(null,'Create file va mucdothongbao thanh cong')
+     },
+    //==========================================================
+    //create sinh vien va Subscribe
     function CreateSinhVien(callback) {
         sheet_name_list_sinh_vien.forEach(function (y) {
             var worksheet = workbookSinhVien.Sheets[y];
@@ -303,20 +376,27 @@ async.series([
                     _id: sinhvien._id,
                     password: sinhvien.password,
                 })
+                // UserController.create(user,function (err,user) {
+                //     if (err){
+                //
+                //     }
+                //     console.log(user);
+                // })
                 //=====================
                 //save user
-                user.save(function (err) {
-                    if (err) {
-                        //console.log('Users PhongBan existed');
-                    }
-                })
+                // user.save(function (err) {
+                //     if (err) {
+                //         //console.log('Users PhongBan existed');
+                //     }
+                // })
                 //======================
                 //create info sinhvien
                 var info = {
                     _id: sinhvien._id,
                     tenSinhVien: sinhvien.tenSinhVien,
                     idLopChinh: sinhvien.idLopChinh,
-                    idLopMonHoc: sinhvien.idLopMonHoc
+                    idLopMonHoc: sinhvien.idLopMonHoc,
+                    tokenFirebase: sinhvien.tokenFirebase
                 };
                 var infoSubscribe={
                     _id: sinhvien._id,
@@ -337,81 +417,10 @@ async.series([
             }
         })
         callback(null, 'Create Sinh vien thanh cong')
-    },
-    function createLoaiThongBao(callback) {
-        sheet_name_list_loai_thong_bao.forEach(function (y) {
-            var worksheet = workbookLoaiThongBao.Sheets[y];
-            var result = XLSX.utils.sheet_to_json(worksheet);
-            console.log(result);
-            for (var i=0;i<result.length;i++){
-                var loaithongbao= result[i];
-                var info={
-                    _id: Number(loaithongbao._id),
-                    tenLoaiThongBao: loaithongbao.tenLoaiThongBao
-                }
-                LoaiThongBaoController.create(info,function (err, info) {
-                    if (err){
-
-                    }
-                })
-            }
-        })
-        callback(null,'Create Loai Thong Bao Thanh Cong');
-    },function createMucDoThongBao(callback) {
-        sheet_name_list_muc_do_thong_bao.forEach(function (y) {
-            var worksheet = workbookMucDoThongBao.Sheets[y];
-            var result = XLSX.utils.sheet_to_json(worksheet);
-            console.log(result);
-            for (var i=0;i<result.length;i++){
-                var mucdothongbao= result[i];
-                var info={
-                    _id: Number(mucdothongbao._id),
-                    tenMucDoThongBao: mucdothongbao.tenMucDoThongBao
-                }
-                MucDoThongBaoController.create(info,function (err, info) {
-                    if (err){
-                    }
-                })
-            }
-        })
-        callback(null,'Create mucdothongbao thanh cong')
-    },
-    // function createThongBao(callback) {
-    //     sheet_name_list_thong_bao.forEach(function (y) {
-    //         var worksheet = workbookThongBao.Sheets[y];
-    //         var result = XLSX.utils.sheet_to_json(worksheet);
-    //         console.log(result);
-    //         for (var i=0;i<result.length;i++){
-    //             var thongbao= result[i];
-    //             var infoFile ={
-    //                 tenFile: thongbao.tenFile,
-    //                 link: thongbao.linkFile
-    //             }
-    //             var infoThongBao={
-    //                 tieuDe: thongbao.tieuDe,
-    //                 idLoaiThongBao: thongbao.idLoaiThongBao,
-    //                 idMucDoThongBao:thongbao.idMucDoThongBao,
-    //                 noiDung: thongbao.noiDung,
-    //                 idUser:thongbao.idUser,
-    //             }
-    //             FileController.create(infoFile,function (err, file) {
-    //                 if(err){
-    //                     console.log(err);
-    //                 }
-    //                 infoThongBao.idFile= file._id;
-    //                 ThongBaoController.create(infoThongBao,function (err, thongbao) {
-    //                     if (err){
-    //                         console.log('create thongbao fail');
-    //                     }
-    //                 })
-    //             })
-    //         }
-    //     })
-    //     callback(null,'Create file va mucdothongbao thanh cong')
-    //  }
+    }
 ], function (err, result) {
     if (err) {
         console.error(err)
     }
     console.log(result);
-})
+});

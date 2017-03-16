@@ -8,7 +8,7 @@ var ThongBaoSchema = mongoose.Schema({
     },
     kindIdReceiver:{
         type: String,
-        enum:['SinhVien','Khoa','LopMonHoc','LopChinh']
+        enum:['SinhVien','Khoa','LopMonHoc','LopChinh','ToanTruong']
     },
     tieuDe:{
         type: String
@@ -44,7 +44,8 @@ var ThongBaoSchema = mongoose.Schema({
     },
     link:{
         type: String,
-        unique: true
+        unique: true,
+        sparse: true
     },
     feedback:[
         {
@@ -61,7 +62,6 @@ var ThongBaoSchema = mongoose.Schema({
                 type: String,
                 require: true,
                 refPath: 'feedback.kind'
-
             },
             time:{
                 type: Date,

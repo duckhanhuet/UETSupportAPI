@@ -91,7 +91,9 @@ app.use('/diemrenluyen',diemrenluyen);
 //     res.render('guithongbao')
 // })
 
-
+app.get('/test/postavatar',function (req, res) {
+   res.render('postavatar')
+})
 
 //post database
 //require('./Utils/postdb')

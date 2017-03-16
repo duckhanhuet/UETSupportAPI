@@ -22,6 +22,10 @@ var async= require('async');
 //==========================================
 var gcm = require('node-gcm');
 //==========================================
+var fs = require('fs');
+var multipart  = require('connect-multiparty');
+var multipartMiddleware = multipart();
+//===============================================
 //get infomation of all sinhvien
 router.get('/', auth.reqIsAuthenticate, function (req, res, next) {
     SinhVienController.find({}, function (err, sinhviens) {
@@ -466,7 +470,7 @@ router.get('/list/thongbao',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (
             })
         }else {
             res.json({
-                success: true,
+                 success: true,
                 'toantruong': response.toantruong,
                 'khoa':response.khoa,
                 'phongban': response.phongban,
@@ -492,6 +496,44 @@ router.get('/lopmonhoc/:id',auth.reqIsAuthenticate,function (req, res, next) {
     })
 })
 
+//sinh vien upload avatar
+router.post('/postavatar',auth.reqIsAuthenticate,multipartMiddleware,function (req, res, next) {
+    var file = req.files.files;
+
+    var originalFilename = file.name;
+    // File type
+    var fileType         = file.type.split('/')[1];
+    // File size
+    var fileSize         = file.size;
+
+    fs.readFile(file.path,function (err, data) {
+        if (err){
+            res.json({
+                success: false
+            })
+        }else {
+            console.log('data:');
+            console.log(data);
+            var avatar ={
+                data: data,
+                contentType: 'image/'+fileType
+            }
+
+            SinhVienController.update(req.user._id,{avatar:avatar},function (err, response) {
+                if (err){
+                    res.json({
+                        success: false
+                    })
+                }else {
+                    res.json({
+                        success: true,
+                        sinhvien: response
+                    })
+                }
+            })
+        }
+    })
+})
 //==============================================
 //sinh vien xem tat ca cac thong bao cua minh
 //id sender co the la khoa, lopmon hoc, hoac co the la phongban
