@@ -6,12 +6,10 @@ var SinhVienSchema =new  mongoose.Schema({
         unique: true,
         ref: 'User'
     },
-
     tenSinhVien: {
         type: String,
         required: true
     },
-
     idLopChinh:{
         type: String,
         ref :'LopChinh'

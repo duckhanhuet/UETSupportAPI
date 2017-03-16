@@ -480,7 +480,6 @@ router.get('/list/thongbao',auth.reqIsAuthenticate,auth.reqIsSinhVien,function (
         }
     })
 })
-
 // tim kiem tat ca cac sinh vien trong 1 lop mon hoc
 
 router.get('/lopmonhoc/:id',auth.reqIsAuthenticate,function (req, res, next) {

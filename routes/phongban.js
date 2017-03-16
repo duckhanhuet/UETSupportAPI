@@ -121,7 +121,6 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
         //check files la array or object
         if (req.files.files instanceof Array){
             files= req.files.files;
-
         }else {
             files.push(req.files.files)
             console.log('thogn tin files')

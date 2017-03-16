@@ -94,7 +94,6 @@ app.use('/diemrenluyen',diemrenluyen);
 app.get('/test/postavatar',function (req, res) {
    res.render('postavatar')
 })
-
 //post database
 //require('./Utils/postdb')
 module.exports = app;

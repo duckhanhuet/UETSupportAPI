@@ -70,6 +70,5 @@ var ThongBaoSchema = mongoose.Schema({
         }
     ]
 });
-
 module.exports = mongoose.model('ThongBao',ThongBaoSchema);
 
