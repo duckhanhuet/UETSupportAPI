@@ -9,7 +9,7 @@ module.exports=function () {
     try {
 
         console.log("start alalyze the exist System");
-        var job = new CronJob('00 * * * * *', function () {
+        var job = new CronJob('00 30 * * * *', function () {
                 if (config.atFirst==true) {
                     term53.analyzeAtFirst();
                 } else {
