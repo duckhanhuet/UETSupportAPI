@@ -23,7 +23,8 @@ var SinhVienSchema =new  mongoose.Schema({
     },
     avatar:{
         data: Buffer,
-        contentType: String
+        contentType: String,
+        tenAvatar: String
     }
     // nhanLoaiThongBao:[{
     //     type: String,

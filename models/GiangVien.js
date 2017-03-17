@@ -22,7 +22,12 @@ var GiangVienSchema = mongoose.Schema({
     idThongBao:[{
         type: Schema.ObjectId,
         ref:'ThongBao'
-    }]
+    }],
+    avatar:{
+        data: Buffer,
+        contentType: String,
+        tenAvatar: String
+    }
 });
 
 module.exports = mongoose.model('GiangVien',GiangVienSchema);

@@ -497,6 +497,7 @@ router.get('/lopmonhoc/:id',auth.reqIsAuthenticate,function (req, res, next) {
 
 //sinh vien upload avatar
 router.post('/postavatar',auth.reqIsAuthenticate,multipartMiddleware,function (req, res, next) {
+    var tenAvatar = req.body.tenAvatar;
     var file = req.files.files;
 
     var originalFilename = file.name;
@@ -515,7 +516,8 @@ router.post('/postavatar',auth.reqIsAuthenticate,multipartMiddleware,function (r
             console.log(data);
             var avatar ={
                 data: data,
-                contentType: 'image/'+fileType
+                contentType: 'image/'+fileType,
+                tenAvatar: tenAvatar
             }
 
             SinhVienController.update(req.user._id,{avatar:avatar},function (err, response) {

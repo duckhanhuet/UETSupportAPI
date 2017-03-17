@@ -17,8 +17,14 @@ var KhoaSchema = new mongoose.Schema({
     idThongBao:[{
         type: Schema.Types.ObjectId,
         ref:'ThongBao'
-    }]
+    }],
+    avatar:{
+        data: Buffer,
+        contentType: String,
+        tenAvatar: String
+    }
 });
+
 
 module.exports = mongoose.model('Khoa',KhoaSchema);
 

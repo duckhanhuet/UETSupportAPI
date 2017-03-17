@@ -636,4 +636,46 @@ router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res
     }
 })
 
+//Phongban upload avatar
+router.post('/postavatar',auth.reqIsAuthenticate,multipartMiddleware,function (req, res, next) {
+    var tenAvatar = req.body.tenAvatar;
+
+    var file = req.files.files;
+
+    var originalFilename = file.name;
+    // File type
+    var fileType         = file.type.split('/')[1];
+    // File size
+    var fileSize         = file.size;
+
+    fs.readFile(file.path,function (err, data) {
+        if (err){
+            res.json({
+                success: false
+            })
+        }else {
+            console.log('data:');
+            console.log(data);
+            var avatar ={
+                data: data,
+                contentType: 'image/'+fileType,
+                tenAvatar: tenAvatar
+            }
+
+            PhongBanController.update(req.user._id,{avatar:avatar},function (err, response) {
+                if (err){
+                    res.json({
+                        success: false
+                    })
+                }else {
+                    res.json({
+                        success: true,
+                        phongban: response
+                    })
+                }
+            })
+        }
+    })
+})
+
 module.exports = router;

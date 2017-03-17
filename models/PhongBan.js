@@ -15,7 +15,12 @@ var PhongBanSchema = mongoose.Schema({
     idThongBao:[{
         type: Schema.Types.ObjectId,
         ref:'ThongBao'
-    }]
+    }],
+    avatar:{
+        data: Buffer,
+        contentType: String,
+        tenAvatar: String
+    }
 
 });
 
