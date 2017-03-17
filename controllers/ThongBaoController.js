@@ -84,5 +84,32 @@ module.exports =  {
             }
             callback(null,null);
         })
+    },
+    getThongBao: function (id, callback) {
+        ThongBao.findById(id).populate([
+            {
+                path:'idFile'
+            },
+            {
+                path:'idLoaiThongBao'
+            },
+            {
+                path: 'idMucDoThongBao'
+            },
+            {
+                path:'feedback.idComment',
+                select: '_id tenSinhVien tokenFirebase'
+            },
+            {
+                path:'idSender'
+            }
+        ]).exec(function (err, thongbao) {
+
+            if (err){
+                callback(err,null);
+                return;
+            }
+            callback(null,thongbao);
+        })
     }
 }

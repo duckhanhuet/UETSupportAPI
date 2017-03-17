@@ -26,10 +26,13 @@ router.get('/:idSender',function (req, res, next) {
                             success: false
                         })
                     }else {
-                        res.json({
-                            success : true,
-                            avatar: sinhvien
-                        })
+                        var img = new Buffer(sinhvien.avatar.data, 'base64');
+
+                        res.writeHead(200, {
+                            'Content-Type': 'image/png',
+                            'Content-Length': img.length
+                        });
+                        res.end(img);
                     }
                 })
             }
@@ -40,10 +43,13 @@ router.get('/:idSender',function (req, res, next) {
                             success: false
                         })
                     } else {
-                        res.json({
-                            success: true,
-                            avatar: pb
-                        })
+                        var img = new Buffer(pb.avatar.data, 'base64');
+
+                        res.writeHead(200, {
+                            'Content-Type': 'image/png',
+                            'Content-Length': img.length
+                        });
+                        res.end(img);
                     }
                 })
             }
@@ -54,10 +60,13 @@ router.get('/:idSender',function (req, res, next) {
                             success: false
                         })
                     } else {
-                        res.json({
-                            success: true,
-                            avatar: khoa
-                        })
+                        var img = new Buffer(khoa.avatar.data, 'base64');
+
+                        res.writeHead(200, {
+                            'Content-Type': 'image/png',
+                            'Content-Length': img.length
+                        });
+                        res.end(img);
                     }
                 })
             }
@@ -68,10 +77,13 @@ router.get('/:idSender',function (req, res, next) {
                             success: false
                         })
                     } else {
-                        res.json({
-                            success: true,
-                            avatar: gv
-                        })
+                        var img = new Buffer(gv.avatar.data, 'base64');
+
+                        res.writeHead(200, {
+                            'Content-Type': 'image/png',
+                            'Content-Length': img.length
+                        });
+                        res.end(img);
                     }
                 })
             }

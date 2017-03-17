@@ -5,7 +5,7 @@ var express = require('express');
 
 //hasfile=0: khong co file; //hasfile=1: co file
 module.exports = {
-    createData: function (tieuDe, noiDung,urlFile,mucDoThongBao,idloaiThongBaos,kind,hasfile,idSender) {
+    createData: function (tieuDe, noiDung,urlFile,mucDoThongBao,idloaiThongBaos,kind,hasfile,idSender,nameSender) {
          var data={
             tieuDe: tieuDe,
             noiDung: noiDung,
@@ -14,7 +14,8 @@ module.exports = {
             idLoaiThongBao: idloaiThongBaos,
             kind: kind,
             hasfile: hasfile,
-            idSender: idSender
+            idSender: idSender,
+            nameSender: nameSender
         }
         return data;
     },

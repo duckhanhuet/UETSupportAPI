@@ -268,15 +268,29 @@ router.post('/guithongbao',auth.reqIsAuthenticate,auth.reqIsPhongBan,multipartMi
             }
             //===================================================================
         },
+        function findThongbao(result,callback) {
+            //khong the findById boi vi trong truong hop category la ALL thi khong ton tai model idReceiver de ref -->loi
+            ThongBaoController.getThongBao(result.thongbao._id,function (err, thongbao) {
+                if (err){
+                    callback(err,null)
+                }
+                var object ={
+                    thongbao: thongbao,
+                    subscribes: result.subscribes
+                }
+                callback(null,object)
+            })
+        },
         function (result, callback) {
+            var nameSender = result.thongbao.idSender.tenPhongBan;
             //url de lay thong bao ve
             var url = '/thongbao/' + result.thongbao._id;
             //gui tin nhan ts app
             message = new gcm.Message({
-                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile,idSender)
+                data: dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile,idSender,nameSender)
             });
             console.log('Thong tin gui di bao gom:');
-            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile,idSender));
+            console.log(dataNoti.createData(tieuDe,noiDung,url,idMucDoThongBao,idLoaiThongBao,kind,hasfile,idSender,nameSender));
             var subscribes= result.subscribes;
 
             // pust list tokenFirebase vao mang registerToken
