@@ -71,5 +71,13 @@ module.exports =  {
             }
             callback(null,null);
         })
+    },
+    getAvatar: function (id, callback) {
+        GiangVien.findById(id).select('tenGiangVien avatar').exec(function (err, avatar) {
+            if (err){
+                callback(err,null)
+            }
+            callback(null,avatar)
+        })
     }
 }

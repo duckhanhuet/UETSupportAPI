@@ -8,7 +8,8 @@ var UserSchema = new mongoose.Schema({
     _id:{
         type: String,
         unique: true,
-        required: true
+        required: true,
+        //refPath:'role'
     },
     password:{
         type: String,

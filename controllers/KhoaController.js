@@ -61,5 +61,13 @@ module.exports =  {
             }
             callback(null,null);
         })
+    },
+    getAvatar: function (id, callback) {
+        Khoa.findById(id).select('tenKhoa avatar').exec(function (err, avatar) {
+            if (err){
+                callback(err,null)
+            }
+            callback(null,avatar)
+        })
     }
 }

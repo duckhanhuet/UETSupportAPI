@@ -86,5 +86,13 @@ module.exports =  {
             }
             callback(null,null);
         })
+    },
+    getAvatar: function (id, callback) {
+        SinhVien.findById(id).select('tenSinhVien avatar').exec(function (err, avatar) {
+            if (err){
+                callback(err,null)
+            }
+            callback(null,avatar)
+        })
     }
 }

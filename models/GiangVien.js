@@ -24,9 +24,8 @@ var GiangVienSchema = mongoose.Schema({
         ref:'ThongBao'
     }],
     avatar:{
-        data: Buffer,
+        data: String,
         contentType: String,
-        tenAvatar: String
     }
 });
 

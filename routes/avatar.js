@@ -16,10 +16,11 @@ router.get('/:idSender',function (req, res, next) {
                 success: false
             })
         }else {
+
             var role= user.role;
 
             if (role=='SinhVien'){
-                SinhVienController.findById(idSender,function (err, sinhvien) {
+                SinhVienController.getAvatar(idSender,function (err, sinhvien) {
                     if (err){
                         res.json({
                             success: false
@@ -27,13 +28,13 @@ router.get('/:idSender',function (req, res, next) {
                     }else {
                         res.json({
                             success : true,
-                            avatar: sinhvien.avatar
+                            avatar: sinhvien
                         })
                     }
                 })
             }
             if (role=='PhongBan'){
-                PhongBanController.findById(idSender,function (err, pb) {
+                PhongBanController.getAvatar(idSender,function (err, pb) {
                     if (err){
                         res.json({
                             success: false
@@ -41,13 +42,13 @@ router.get('/:idSender',function (req, res, next) {
                     } else {
                         res.json({
                             success: true,
-                            avatar: pb.avatar
+                            avatar: pb
                         })
                     }
                 })
             }
             if (role=='Khoa'){
-                KhoaController.findById(idSender,function (err, khoa) {
+                KhoaController.getAvatar(idSender,function (err, khoa) {
                     if (err){
                         res.json({
                             success: false
@@ -55,13 +56,13 @@ router.get('/:idSender',function (req, res, next) {
                     } else {
                         res.json({
                             success: true,
-                            avatar: khoa.avatar
+                            avatar: khoa
                         })
                     }
                 })
             }
             if (role=='GiangVien'){
-                GiangVienController.findById(idSender,function (err, gv) {
+                GiangVienController.getAvatar(idSender,function (err, gv) {
                     if (err){
                         res.json({
                             success: false
@@ -69,7 +70,7 @@ router.get('/:idSender',function (req, res, next) {
                     } else {
                         res.json({
                             success: true,
-                            avatar: gv.avatar
+                            avatar: gv
                         })
                     }
                 })

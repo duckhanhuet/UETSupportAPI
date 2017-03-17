@@ -637,8 +637,8 @@ router.post('/guifeedback/:idthongbao',auth.reqIsAuthenticate,function (req, res
 })
 
 //Phongban upload avatar
+//Phongban upload avatar
 router.post('/postavatar',auth.reqIsAuthenticate,multipartMiddleware,function (req, res, next) {
-    var tenAvatar = req.body.tenAvatar;
 
     var file = req.files.files;
 
@@ -655,13 +655,13 @@ router.post('/postavatar',auth.reqIsAuthenticate,multipartMiddleware,function (r
             })
         }else {
             console.log('data:');
-            console.log(data);
+            // console.log(data);
+            var base64Image = data.toString('base64');
             var avatar ={
-                data: data,
-                contentType: 'image/'+fileType,
-                tenAvatar: tenAvatar
+                data: base64Image,
+                contentType: 'image/'+fileType
             }
-
+            console.log(base64Image)
             PhongBanController.update(req.user._id,{avatar:avatar},function (err, response) {
                 if (err){
                     res.json({

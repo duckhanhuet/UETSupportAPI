@@ -51,5 +51,13 @@ module.exports =  {
             }
             callback(null,null);
         })
+    },
+    getAvatar: function (id, callback) {
+        PhongBan.findById(id).select('tenPhongBan avatar').exec(function (err, avatar) {
+            if (err){
+                callback(err,null)
+            }
+            callback(null,avatar)
+        })
     }
 }

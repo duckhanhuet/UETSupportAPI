@@ -392,11 +392,11 @@ router.post('/postavatar',auth.reqIsAuthenticate,multipartMiddleware,function (r
             })
         }else {
             console.log('data:');
-            console.log(data);
+            //console.log(data);
+            var base64Image = data.toString('base64');
             var avatar ={
-                data: data,
+                data: base64Image,
                 contentType: 'image/'+fileType,
-                tenAvatar: tenAvatar
             }
 
             KhoaController.update(req.user._id,{avatar:avatar},function (err, response) {
